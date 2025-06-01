@@ -9,16 +9,16 @@ import {
 import { verifyAuthToken } from "#middleware/index.js";
 
 const rootRouter = express.Router();
-const v1Router = express.Router();
+const apiRouter = express.Router();
 
 rootRouter.get("/", (_, res) => {
   res.json({ message: "Server is working..." });
 });
 
-rootRouter.use("/api", v1Router);
+rootRouter.use("/api", apiRouter);
 
-v1Router.use(authRoutes, emailRoutes);
-v1Router.use("/users", verifyAuthToken, userRoutes);
-v1Router.use("/otp", otpRoutes);
+apiRouter.use(authRoutes, emailRoutes);
+apiRouter.use("/users", verifyAuthToken, userRoutes);
+apiRouter.use("/otp", otpRoutes);
 
 export default rootRouter;

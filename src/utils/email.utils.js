@@ -19,7 +19,7 @@ export const sendVerificationEmail = async (email, verificationToken) => {
   const mailOptions = {
     from: USER_EMAIL,
     to: email,
-    subject: "Welcome to Vocora - Verify your email",
+    subject: "Welcome to Romulus - Verify your email",
     html: emailHtml,
   };
 
@@ -39,7 +39,7 @@ export const sendOtpEmail = async (email, otpCode) => {
   const mailOptions = {
     from: USER_EMAIL,
     to: email,
-    subject: "Vocora - Password Reset Code",
+    subject: "Romulus - Password Reset Code",
     html: emailHtml,
   };
 
