@@ -55,10 +55,6 @@ const authService = {
   },
 
   signIn: async ({ email, password }) => {
-    if (!email) {
-      throw createError(400, "Email and password are required.");
-    }
-
     const user = await read.userByEmail(email);
     if (!user) {
       throw createError(401, "Invalid email or username.");
@@ -78,6 +74,7 @@ const authService = {
       id: user._id,
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
+      role: user.role,
       token,
     };
   },
