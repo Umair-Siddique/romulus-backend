@@ -15,7 +15,7 @@ rootRouter.get("/", (_, res) => {
   res.json({ message: "Server is working..." });
 });
 
-rootRouter.use("/api/v1", v1Router);
+rootRouter.use("/api", v1Router);
 
 v1Router.use(authRoutes, emailRoutes);
 v1Router.use("/users", verifyAuthToken, userRoutes);

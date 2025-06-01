@@ -234,7 +234,7 @@ components:
       bearerFormat: JWT
 
 paths:
-  /api/v1/signup:
+  /api/signup:
     post:
       summary: Register a new user
       description: Creates a new user account with the provided details.
@@ -253,7 +253,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/signin:
+  /api/signin:
     post:
       summary: Sign in a user
       description: Authenticates the user using their credentials and returns a JWT token.
@@ -272,7 +272,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/signout:
+  /api/signout:
     post:
       summary: Sign out a user
       description: Invalidates the current JWT token, effectively signing the user out.  Requires a valid JWT to be presented (e.g., in the `Authorization` header).
@@ -287,7 +287,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/forgot-password/{email}:
+  /api/forgot-password/{email}:
     post:
       summary: Request password reset
       description: Initiates a password reset for the specified user.  A password reset link/token will be sent to the user's email address.  No request body is required.
@@ -304,7 +304,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/reset-password: # Separate endpoint for actually resetting the password
+  /api/reset-password: # Separate endpoint for actually resetting the password
     post:
       summary: Reset password with token
       description: Resets the user's password using a reset token received via email.

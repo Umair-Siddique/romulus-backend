@@ -2,7 +2,7 @@ import axios from "axios";
 import { env } from "./env.config.js";
 
 const { OPENROUTER_API_KEY } = env;
-const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const API_URL = "https://openrouter.ai/api/chat/completions";
 
 // Default configuration constants
 const DEFAULT_CONFIG = {
