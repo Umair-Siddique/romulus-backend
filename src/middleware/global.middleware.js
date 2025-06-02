@@ -1,12 +1,11 @@
 import morgan from "morgan";
 import cors from "cors";
 import express from "express";
-import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
 // eslint-disable-next-line no-unused-vars
 import colors from "colors";
 
-import { logger, swaggerSpec } from "#config/index.js";
+import { logger } from "#config/index.js";
 import { uploadDirectory } from "#constants/index.js";
 
 const corsOptions = {
@@ -44,7 +43,6 @@ const applyGlobalMiddleware = (app, rootRouter) => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use("/uploads", express.static(uploadDirectory));
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.use(rootRouter);
   app.use(invalidRouteHandler);
   app.use(error_handler);

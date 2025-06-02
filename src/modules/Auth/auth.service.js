@@ -29,7 +29,7 @@ const authService = {
       phone,
       email,
       password,
-      role
+      role,
     );
     if (!newUser) {
       throw createError(500, "Failed to create a new user.");
@@ -58,6 +58,13 @@ const authService = {
     const user = await read.userByEmail(email);
     if (!user) {
       throw createError(401, "Invalid email or username.");
+    } else if (!user.isEmailVerified) {
+      throw createError(401, "Email not verified. Please check your inbox.");
+    } else if (user.role === "educator" && !user.isPhoneVerified) {
+      throw createError(
+        401,
+        "Phone number not verified. Educators must verify their phone numbers.",
+      );
     }
 
     const isPasswordValid = await user.comparePassword(password);

@@ -52,6 +52,10 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isPhoneVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
@@ -61,7 +65,7 @@ const UserSchema = new Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 UserSchema.pre("save", async function (next) {
@@ -81,7 +85,7 @@ UserSchema.methods.generateAuthToken = function () {
     {
       expiresIn: JWT_EXPIRY,
       algorithm: JWT_ALGORITHM,
-    }
+    },
   );
   return token;
 };
