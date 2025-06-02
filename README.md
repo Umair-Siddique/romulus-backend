@@ -19,32 +19,32 @@ Here is a quick overview:
 
 | Method | Endpoint                 | Description                                                |
 | ------ | ------------------------ | ---------------------------------------------------------- |
-| `POST` | `/api/v1/signup`         | Registers a new user account.                              |
-| `POST` | `/api/v1/signin`         | Authenticates a user and provides a session token.         |
-| `POST` | `/api/v1/reset-password` | Resets the password against the provided email reset link. |
+| `POST` | `/api/auth/signup`         | Registers a new user account.                              |
+| `POST` | `/api/auth/signin`         | Authenticates a user and provides a session token.         |
+| `POST` | `/api/auth/reset-password` | Resets the password against the provided email reset link. |
 
 ### Email Endpoints 📧
 
 | Method | Endpoint                                  | Description                      |
 | ------ | ----------------------------------------- | -------------------------------- |
-| `GET`  | `/api/v1/verify-email/:verificationToken` | Verifies a user's email address. |
-| `POST` | `/api/v1/send-verification-email`         | Sends a verification email.      |
+| `GET`  | `/api/check-verification-token/:verificationToken` | Verifies a user's email address. |
+| `POST` | `/api/send-verification-token`         | Sends a verification email.      |
 
 ## OTP Endpoints
 
 | Method | Endpoint             | Description                        |
 | ------ | -------------------- | ---------------------------------- |
-| `POST` | `/api/v1/otp/send`   | Sends an OTP to the user email.    |
-| `POST` | `/api/v1/otp/verify` | Verifies the OTP send by the user. |
+| `POST` | `/api/otp/send`   | Sends an OTP to the user email.    |
+| `POST` | `/api/otp/verify` | Verifies the OTP send by the user. |
 
 ### User Endpoints 👤
 
 | Method   | Endpoint           | Description                      |
 | -------- | ------------------ | -------------------------------- |
-| `GET`    | `/api/v1/user/`    | Retrieves all users.             |
-| `GET`    | `/api/v1/user/:id` | Retrieves a specific user by ID. |
-| `PATCH`  | `/api/v1/user/:id` | Updates a specific user by ID.   |
-| `DELETE` | `/api/v1/user/:id` | Deletes a specific user by ID.   |
+| `GET`    | `/api/user/`    | Retrieves all users.             |
+| `GET`    | `/api/user/:id` | Retrieves a specific user by ID. |
+| `PATCH`  | `/api/user/:id` | Updates a specific user by ID.   |
+| `DELETE` | `/api/user/:id` | Deletes a specific user by ID.   |
 
 ## Author ✍️
 

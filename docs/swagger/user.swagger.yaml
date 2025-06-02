@@ -201,7 +201,7 @@ components:
       bearerFormat: JWT
 
 paths:
-  /api/v1/users:
+  /api/users:
     get:
       summary: Get all users
       description: Retrieves a list of all users (Admin only).
@@ -218,7 +218,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/users/{id}:
+  /api/users/{id}:
     get:
       summary: Get user by ID
       description: Retrieves a user's profile information by their ID.
