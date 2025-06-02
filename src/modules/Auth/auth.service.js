@@ -57,7 +57,7 @@ const authService = {
   signIn: async ({ email, password }) => {
     const user = await read.userByEmail(email);
     if (!user) {
-      throw createError(401, "Invalid email or username.");
+      throw createError(401, "Invalid email or password.");
     } else if (!user.isEmailVerified) {
       throw createError(401, "Email not verified. Please check your inbox.");
     } else if (user.role === "educator" && !user.isPhoneVerified) {
