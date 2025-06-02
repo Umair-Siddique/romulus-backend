@@ -19,16 +19,16 @@ Here is a quick overview:
 
 | Method | Endpoint                 | Description                                                |
 | ------ | ------------------------ | ---------------------------------------------------------- |
-| `POST` | `/api/signup`         | Registers a new user account.                              |
-| `POST` | `/api/signin`         | Authenticates a user and provides a session token.         |
-| `POST` | `/api/reset-password` | Resets the password against the provided email reset link. |
+| `POST` | `/api/auth/signup`         | Registers a new user account.                              |
+| `POST` | `/api/auth/signin`         | Authenticates a user and provides a session token.         |
+| `POST` | `/api/auth/reset-password` | Resets the password against the provided email reset link. |
 
 ### Email Endpoints 📧
 
 | Method | Endpoint                                  | Description                      |
 | ------ | ----------------------------------------- | -------------------------------- |
-| `GET`  | `/api/verify-email/:verificationToken` | Verifies a user's email address. |
-| `POST` | `/api/send-verification-email`         | Sends a verification email.      |
+| `GET`  | `/api/check-verification-token/:verificationToken` | Verifies a user's email address. |
+| `POST` | `/api/send-verification-token`         | Sends a verification email.      |
 
 ## OTP Endpoints
 

@@ -17,8 +17,9 @@ rootRouter.get("/", (_, res) => {
 
 rootRouter.use("/api", apiRouter);
 
-apiRouter.use(authRoutes, emailRoutes);
-apiRouter.use("/users", verifyAuthToken, userRoutes);
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/email", emailRoutes);
 apiRouter.use("/otp", otpRoutes);
+apiRouter.use("/users", verifyAuthToken, userRoutes);
 
 export default rootRouter;
