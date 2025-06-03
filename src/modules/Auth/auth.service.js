@@ -41,7 +41,11 @@ const authService = {
       throw createError(500, "An error occurred while generating the token.");
     }
 
-    const isEmailSent = await sendVerificationEmail(email, verificationToken);
+    const isEmailSent = await sendVerificationEmail(
+      email,
+      verificationToken,
+      "verify-email",
+    );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
       throw createError(500, "Failed to send the welcome email.");
@@ -86,27 +90,41 @@ const authService = {
     };
   },
 
-  signOut: async (token) => {
-    const decoded = decodeToken(token);
-    if (!decoded) {
-      throw createError(401, "The provided token is invalid or expired.");
+  forgetPassword: async ({ email }) => {
+    const existingUser = await read.userByEmail(email);
+    if (!existingUser) {
+      throw createError(404, "User not found");
     }
 
-    const id = decoded.id;
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1-hour expiration
-    const blacklistedToken = await save.blacklistedToken(token, expiresAt, id);
-    if (!blacklistedToken) {
-      throw createError(500, "An error occurred while blacklisting the token.");
+    const resetToken = generateToken(existingUser._id);
+    if (!resetToken) {
+      throw createError(500, "Failed to generate reset token");
     }
 
-    return {
-      status: true,
-      message: "Sign-out successful. The token has been invalidated.",
-    };
+    const isEmailSent = await sendVerificationEmail(
+      email,
+      resetToken,
+      "reset-password",
+    );
+    if (!isEmailSent) {
+      throw createError(500, "Failed to send reset password email");
+    }
+
+    return { status: true, message: "Reset password email sent successfully." };
   },
 
-  resetPassword: async ({ email, password }) => {
-    const existingUser = await read.userByEmail(email);
+  updatePassword: async ({ password, token }) => {
+    const decodedToken = decodeToken(token);
+    if (!decodedToken) {
+      throw createError(400, "Invalid or expired token");
+    }
+
+    const { userId } = decodedToken;
+    if (!userId) {
+      throw createError(400, "Invalid token payload");
+    }
+
+    const existingUser = await read.userById(userId);
     if (!existingUser) {
       throw createError(404, "User not found");
     }
@@ -114,7 +132,7 @@ const authService = {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const isPasswordUpdated = await update.userById(existingUser._id, {
+    const isPasswordUpdated = await update.userById(userId, {
       password: hashedPassword,
     });
     if (!isPasswordUpdated) {
