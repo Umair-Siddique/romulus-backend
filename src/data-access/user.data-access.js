@@ -5,7 +5,7 @@ export const user = {
     user: async (
       firstName,
       lastName,
-      phone = undefined,
+      phone,
       email,
       password,
       role,
