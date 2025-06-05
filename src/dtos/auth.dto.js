@@ -69,7 +69,7 @@ const forgotPasswordDto = Joi.object({
 
 const updatePasswordDto = Joi.object({
   password: passwordValidation.required(),
-  verificationToken: Joi.string().required().messages({
+  token: Joi.string().required().messages({
     "string.base": "Verification token should be a type of text.",
     "string.empty": "Verification token should not be empty.",
     "any.required": "Verification token is required.",
