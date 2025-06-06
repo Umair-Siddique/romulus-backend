@@ -29,7 +29,7 @@ const authService = {
       phone,
       email,
       password,
-      role,
+      role
     );
     if (!newUser) {
       throw createError(500, "Failed to create a new user.");
@@ -44,7 +44,7 @@ const authService = {
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email",
+      "verify-email"
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -52,7 +52,7 @@ const authService = {
     }
 
     return {
-      status: true,
+      success: true,
       message:
         "User registered successfully. Please verify your email address.",
     };
@@ -62,12 +62,16 @@ const authService = {
     const user = await read.userByEmail(email);
     if (!user) {
       throw createError(401, "Invalid email or password.");
-    } else if (!user.isEmailVerified) {
-      throw createError(401, "Email not verified. Please check your inbox.");
-    } else if (user.role === "educator" && !user.isPhoneVerified) {
+    }
+
+    if (!user.isEmailVerified) {
+      throw createError(403, "Email not verified. Please check your inbox.");
+    }
+
+    if (user.role === "educator" && !user.isPhoneVerified) {
       throw createError(
-        401,
-        "Phone number not verified. Educators must verify their phone numbers.",
+        403,
+        "Phone number not verified. Educators must verify their phone numbers."
       );
     }
 
@@ -82,10 +86,14 @@ const authService = {
     }
 
     return {
-      id: user._id,
-      name: `${user.firstName} ${user.lastName}`,
-      email: user.email,
-      role: user.role,
+      success: true,
+      message: "User signed in successfully.",
+      data: {
+        id: user._id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        role: user.role,
+      },
       token,
     };
   },
@@ -104,13 +112,16 @@ const authService = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password",
+      "reset-password"
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email");
     }
 
-    return { status: true, message: "Reset password email sent successfully." };
+    return {
+      success: true,
+      message: "Reset password email sent successfully.",
+    };
   },
 
   updatePassword: async ({ password, token }) => {
@@ -139,7 +150,7 @@ const authService = {
       throw createError(500, "Password update failed");
     }
 
-    return { status: true, message: "Password updated successfully." };
+    return { success: true, message: "Password updated successfully." };
   },
 };
 
