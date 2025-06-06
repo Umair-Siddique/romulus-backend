@@ -320,11 +320,11 @@ paths:
       summary: Register a new user
       description: |
         Creates a new user account with the provided details.
-        
+
         **Role-specific requirements:**
         - **Educators**: Phone number is required and must be verified after registration
         - **Admin/Organization**: Phone number is optional and will be ignored if provided
-        
+
         **Verification Process:**
         - A verification email is sent to the provided email address
         - Users must verify their email before signing in
@@ -367,11 +367,11 @@ paths:
       summary: Sign in a user
       description: |
         Authenticates the user using their credentials and returns a JWT token.
-        
+
         **Prerequisites:**
         - Email must be verified
         - For educators: Phone number must also be verified
-        
+
         **Response:**
         - JWT token is set as an HTTP-only cookie
         - User information is returned in the response body

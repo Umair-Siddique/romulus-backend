@@ -200,13 +200,13 @@ paths:
       summary: Send OTP to user's email
       description: |
         Generates and sends a One-Time Password (OTP) to the specified email address.
-        
+
         **Process:**
         - Validates that a user exists with the provided email
         - Generates a 6-digit numeric OTP
         - Stores the hashed OTP in the database with expiration time
         - Sends the OTP to the user's email address
-        
+
         **Security Features:**
         - OTP is hashed before storage for security
         - Automatic expiration to prevent replay attacks
@@ -233,13 +233,13 @@ paths:
       summary: Verify OTP for user
       description: |
         Verifies the provided OTP against the stored OTP for the specified user.
-        
+
         **Process:**
         - Validates that a user exists with the provided email
         - Retrieves all active OTPs for the user
         - Compares the provided OTP against stored hashed OTPs
         - Returns success if any OTP matches
-        
+
         **Security Features:**
         - Secure comparison using bcrypt for hashed OTPs
         - Supports multiple active OTPs (handles race conditions)

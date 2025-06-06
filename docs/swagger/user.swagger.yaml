@@ -263,10 +263,10 @@ paths:
       summary: Get all users
       description: |
         Retrieves a list of all registered users in the system.
-        
+
         **Authentication Required:** Yes (Bearer token)
         **Authorization:** Available to all authenticated users
-        
+
         **Response:**
         - Returns an array of user profiles
         - Password fields are automatically excluded from the response
@@ -289,10 +289,10 @@ paths:
       summary: Get user by ID
       description: |
         Retrieves a specific user's profile information by their unique ID.
-        
+
         **Authentication Required:** Yes (Bearer token)
         **Authorization:** Available to all authenticated users
-        
+
         **Response:**
         - Returns the user's complete profile information
         - Password field is automatically excluded from the response
@@ -317,16 +317,16 @@ paths:
       summary: Update user profile
       description: |
         Updates a user's profile information including name, phone, and profile picture.
-        
+
         **Authentication Required:** Yes (Bearer token)
         **Authorization:** Available to all authenticated users
-        
+
         **Features:**
         - Supports partial updates (only provided fields are updated)
         - Profile picture upload via multipart/form-data
         - Automatic cleanup of old profile pictures when new ones are uploaded
         - Validates phone number format if provided
-        
+
         **File Upload:**
         - Profile pictures are stored in `/uploads/` directory
         - Old profile pictures are automatically deleted when replaced
@@ -387,15 +387,15 @@ paths:
       summary: Delete user by ID
       description: |
         Permanently deletes a user account from the system.
-        
+
         **Authentication Required:** Yes (Bearer token)
         **Authorization:** Admin role required
-        
+
         **Security:**
         - Only users with 'admin' role can delete user accounts
         - Returns 204 status code on successful deletion
         - Cascading deletion may apply to related records
-        
+
         **Warning:** This operation is irreversible.
       tags: [Users]
       security:
