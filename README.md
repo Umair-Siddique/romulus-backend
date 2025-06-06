@@ -1,53 +1,105 @@
-## Scripts 🐜
+# Romulus Backend 🚀
 
-The `package.json` file contains several useful scripts:
+A robust Node.js backend application built with Express.js, featuring comprehensive authentication, user management, and email verification capabilities.
 
-- `npm start`: Starts the production server.
-- `npm run dev`: Starts the development server with Nodemon for automatic restarts.
-- `npm run seed`: Seeds the database with initial data using the script.
-- `npm run lint`: Runs ESLint to check for code quality issues.
-- `npm run lint:fix`: Runs ESLint and fixes issues automatically.
-- `npm run format`: Formats the code using Prettier.
+## 📋 Overview
 
-## API Endpoints 📌
+Romulus Backend is a production-ready API server that provides essential backend services including user authentication, email verification, OTP validation, and user management. The application follows modern development practices with proper code organization, validation, and documentation.
 
-See the [API Endpoints Documentation](./docs/swagger) for a comprehensive list of endpoints, their descriptions, and required parameters. Set-up the project and access the API documentation at `http://localhost:5000/api-docs`.
+## ✨ Features
 
-Here is a quick overview:
+- **Authentication & Authorization**: Secure user registration, login, and password reset functionality
+- **Email Verification**: Automated email verification system with token-based validation
+- **OTP System**: One-time password generation and verification for enhanced security
+- **User Management**: Complete CRUD operations for user accounts
+- **API Documentation**: Interactive Swagger documentation for all endpoints
+- **Development Tools**: Hot reloading, code formatting, and linting setup
+- **Database Integration**: MongoDB integration with Mongoose ODM
+- **Security**: JWT-based authentication with bcrypt password hashing
+- **Logging**: Comprehensive logging with Winston
+- **File Upload**: Multer integration for file handling capabilities
 
-### Auth Endpoints 🔑
+## 🛠️ Technology Stack
 
-| Method | Endpoint                   | Description                                                |
-| ------ | -------------------------- | ---------------------------------------------------------- |
-| `POST` | `/api/auth/signup`         | Registers a new user account.                              |
-| `POST` | `/api/auth/signin`         | Authenticates a user and provides a session token.         |
-| `POST` | `/api/auth/reset-password` | Resets the password against the provided email reset link. |
+### Core Dependencies
+- **Express.js** (v4.21.2) - Web framework
+- **Mongoose** (v8.9.6) - MongoDB object modeling
+- **JWT** (v9.0.2) - Authentication tokens
+- **Bcrypt.js** (v2.4.3) - Password hashing
+- **Joi** (v17.13.3) - Data validation
+- **Nodemailer** (v6.10.0) - Email sending
+- **Winston** (v3.17.0) - Logging
 
-### Email Endpoints 📧
+### Documentation & Development
+- **Swagger** - API documentation with interactive UI
+- **Nodemon** (v3.1.9) - Development auto-restart
+- **ESLint** (v9.20.0) - Code linting
+- **Prettier** (v3.5.0) - Code formatting
+- **Faker.js** (v9.5.0) - Test data generation
 
-| Method | Endpoint                                           | Description                      |
-| ------ | -------------------------------------------------- | -------------------------------- |
-| `GET`  | `/api/check-verification-token/:verificationToken` | Verifies a user's email address. |
-| `POST` | `/api/send-verification-token`                     | Sends a verification email.      |
+### Additional Features
+- **CORS** - Cross-origin resource sharing
+- **Morgan** - HTTP request logging
+- **Cookie Parser** - Cookie handling middleware
+- **Multer** - File upload handling
+- **Colors** - Console output styling
 
-## OTP Endpoints
+## 🚀 Getting Started
 
-| Method | Endpoint          | Description                        |
-| ------ | ----------------- | ---------------------------------- |
-| `POST` | `/api/otp/send`   | Sends an OTP to the user email.    |
-| `POST` | `/api/otp/verify` | Verifies the OTP send by the user. |
+### Prerequisites
+- Node.js (v16 or higher)
+- MongoDB database
+- npm or yarn package manager
 
-### User Endpoints 👤
+### Installation
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables
+4. Start the development server: `npm run dev`
 
-| Method   | Endpoint        | Description                      |
-| -------- | --------------- | -------------------------------- |
-| `GET`    | `/api/user/`    | Retrieves all users.             |
-| `GET`    | `/api/user/:id` | Retrieves a specific user by ID. |
-| `PATCH`  | `/api/user/:id` | Updates a specific user by ID.   |
-| `DELETE` | `/api/user/:id` | Deletes a specific user by ID.   |
+## 📜 Available Scripts
 
-## Author ✍️
+The project includes several utility scripts for development and maintenance:
+
+- **`npm start`** - Launches the production server
+- **`npm run dev`** - Starts development server with hot reloading via Nodemon  
+- **`npm run seed`** - Populates the database with initial seed data
+- **`npm run lint`** - Analyzes code for quality and style issues using ESLint
+- **`npm run format`** - Automatically formats code using Prettier across all supported file types
+
+## 📖 API Documentation
+
+Comprehensive API documentation is available through Swagger UI. After setting up the project locally, access the interactive documentation at:
+
+```
+http://localhost:5000/api-docs
+```
+
+The documentation provides detailed information about all available endpoints, request/response schemas, authentication requirements, and example usage.
+
+## 🏗️ Project Structure
+
+The application uses ES6 modules with a well-organized import mapping system:
+
+```
+src/
+├── config/     # Application configuration
+├── constants/  # Application constants
+├── data-access/# Database access layer
+├── dtos/       # Data transfer objects
+├── middleware/ # Express middleware
+├── models/     # Database models
+├── modules/    # Feature modules
+├── routes/     # API route definitions
+├── server/     # Server configuration
+├── utils/      # Utility functions
+└── scripts/    # Maintenance scripts
+```
+
+## 👨‍💻 Author
 
 **Sharjeel Faiq**
 
-# romulus-backend
+## 📄 License
+
+This project is licensed under the ISC License.
