@@ -10,7 +10,7 @@ const otpService = {
   send: async ({ email }) => {
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
-      throw createError(400, "A user with this email does not exist.");
+      throw createError(404, "User not found.");
     }
 
     const { rawOtp, hashedOtp, expiresAt } = await generateOtp();
@@ -22,7 +22,7 @@ const otpService = {
     });
 
     if (!isOtpSaved) {
-      throw new Error("Failed to save OTP.");
+      throw createError(500, "Failed to save OTP.");
     }
 
     await sendOtpEmail(email, rawOtp);
@@ -33,7 +33,7 @@ const otpService = {
   verify: async ({ email, otp }) => {
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
-      throw createError(400, "A user with this email does not exist.");
+      throw createError(404, "User not found.");
     }
 
     const existingOtps = await read.otp(existingUser._id);
@@ -44,8 +44,8 @@ const otpService = {
 
     const comparisonResults = await Promise.all(
       existingOtps.map((existingOtp) =>
-        bcrypt.compare(otp, existingOtp.otpHash),
-      ),
+        bcrypt.compare(otp, existingOtp.otpHash)
+      )
     );
 
     const isOtpValid = comparisonResults.some((result) => result === true);
