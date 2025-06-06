@@ -11,65 +11,88 @@ tags:
 components:
   schemas:
     # Reusable Schema Definitions
-    ID: # Reusable schema for an ID (e.g., MongoDB's _id)
+    ID:
       type: string
       description: Unique identifier.
       example: "60d0fe4f5311236168a109ca"
-      pattern: "^[0-9a-fA-F]{24}$" # Example: Check for 24-character hexadecimal string (MongoDB ObjectId)
+      pattern: "^[0-9a-fA-F]{24}$"
 
-    Email: # Reusable Schema for email
+    Email:
       type: string
       format: email
       description: Email address.
       example: "johndoe@example.com"
-      maxLength: 255 # Common limit
+      maxLength: 255
       minLength: 5
 
-    Password: #Reusable Schema for Password
+    Password:
       type: string
       format: password
-      description: User password. Must meet security requirements.
-      example: "P@$$wOrd"
-      minLength: 8 # Minimum password length
-      maxLength: 128 # Maximum password length
-      pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\-]).*$" # Requires one lowercase, one uppercase, one digit and one special character
+      description: User password. Must be at least 6 characters long.
+      example: "SecurePass123"
+      minLength: 6
+      maxLength: 128
 
-    Role: #Reusable Schema for Role
+    FirstName:
       type: string
-      enum: [admin, operator]
-      description: Role of the user (admin or operator).
-      default: operator
-      example: operator
+      description: First name of the user.
+      example: "John"
+      minLength: 2
+      maxLength: 50
+
+    LastName:
+      type: string
+      description: Last name of the user.
+      example: "Doe"
+      minLength: 2
+      maxLength: 50
+
+    PhoneNumber:
+      type: string
+      description: Phone number in international format.
+      example: "+1234567890"
+      pattern: "^\\+?[1-9]\\d{1,14}$"
+      minLength: 10
+      maxLength: 15
+
+    Role:
+      type: string
+      enum: [admin, organization, educator]
+      description: Role of the user (admin, organization, or educator).
+      default: educator
+      example: educator
+
+    Token:
+      type: string
+      description: JWT token or verification token.
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
     User:
       type: object
       properties:
         _id:
           $ref: "#/components/schemas/ID"
-        name:
-          type: string
-          description: Full name of the user.
-          example: "John Doe"
-          minLength: 2 # Example minimum name length
-          maxLength: 100 # Example maximum name length
+        firstName:
+          $ref: "#/components/schemas/FirstName"
+        lastName:
+          $ref: "#/components/schemas/LastName"
         email:
           $ref: "#/components/schemas/Email"
+        phone:
+          allOf:
+            - $ref: "#/components/schemas/PhoneNumber"
+          nullable: true
+          description: Phone number (required for educators, optional for others).
         role:
           $ref: "#/components/schemas/Role"
         isEmailVerified:
           type: boolean
           description: Indicates if the user's email is verified.
           example: false
-        isApproved:
+        isPhoneVerified:
           type: boolean
-          description: Indicates if the user is approved.
+          description: Indicates if the user's phone number is verified.
           example: false
-        profilePicture:
-          type: string
-          nullable: true
-          description: URL of the user's profile picture (optional).  Can be null.
-          example: "https://example.com/profile.jpg"
-          format: uri # Add format uri
         createdAt:
           type: string
           format: date-time
@@ -79,25 +102,31 @@ components:
           format: date-time
           description: Timestamp of when the user account was last updated.
       required:
-        - name
+        - firstName
+        - lastName
         - email
         - role
 
     SignUpRequest:
       type: object
       required:
-        - name
+        - firstName
+        - lastName
         - email
         - password
+        - role
       properties:
-        name:
-          type: string
-          description: Full name of the user.
-          example: "John Doe"
-          minLength: 2 # Example minimum name length
-          maxLength: 100 # Example maximum name length
+        firstName:
+          $ref: "#/components/schemas/FirstName"
+        lastName:
+          $ref: "#/components/schemas/LastName"
         email:
           $ref: "#/components/schemas/Email"
+        phone:
+          allOf:
+            - $ref: "#/components/schemas/PhoneNumber"
+          nullable: true
+          description: Phone number (required for educators, optional for admin and organization roles).
         password:
           $ref: "#/components/schemas/Password"
         role:
@@ -114,23 +143,37 @@ components:
         password:
           $ref: "#/components/schemas/Password"
 
-    PasswordResetRequest:
+    ForgotPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          $ref: "#/components/schemas/Email"
+
+    UpdatePasswordRequest:
       type: object
       required:
         - password
+        - token
       properties:
         password:
           $ref: "#/components/schemas/Password"
+        token:
+          $ref: "#/components/schemas/Token"
 
-    SuccessMessage:
+    SuccessResponse:
       type: object
       properties:
+        status:
+          type: boolean
+          example: true
         message:
           type: string
-          description: Generic success message.
+          description: Success message.
           example: "Operation completed successfully."
 
-    Error:
+    ErrorResponse:
       type: object
       properties:
         message:
@@ -138,106 +181,154 @@ components:
           description: Error message.
           example: "An error occurred."
 
-    TokenResponse:
+    SignInResponse:
       type: object
       properties:
-        token:
+        id:
+          $ref: "#/components/schemas/ID"
+        name:
           type: string
-          description: JWT access token
-          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          description: Full name of the user.
+          example: "John Doe"
+        email:
+          $ref: "#/components/schemas/Email"
+        role:
+          $ref: "#/components/schemas/Role"
+        token:
+          $ref: "#/components/schemas/Token"
 
   responses:
     # Reusable Response Definitions
     Success:
       description: Successful operation.
-
-    Created:
-      description: Resource created successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessResponse"
 
     BadRequest:
       description: Bad request - validation error or missing parameters.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validation_error:
+              value:
+                message: "First name is required."
+            user_exists:
+              value:
+                message: "A user with this email already exists."
+            phone_required:
+              value:
+                message: "Phone number is required for educators."
 
     Unauthorized:
-      description: Unauthorized - invalid credentials or missing token.
+      description: Unauthorized - invalid credentials, unverified email, or missing token.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
-
-    Forbidden:
-      description: Forbidden - the user does not have permission to access the resource.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            invalid_credentials:
+              value:
+                message: "Invalid email or password."
+            email_not_verified:
+              value:
+                message: "Email not verified. Please check your inbox."
+            phone_not_verified:
+              value:
+                message: "Phone number not verified. Educators must verify their phone numbers."
+            invalid_token:
+              value:
+                message: "Invalid or expired token"
 
     NotFound:
       description: Resource not found.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            user_not_found:
+              value:
+                message: "User not found"
 
     InternalServerError:
       description: Internal server error.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Error"
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            token_generation_failed:
+              value:
+                message: "Token generation failed."
+            email_send_failed:
+              value:
+                message: "Failed to send the welcome email."
+            password_update_failed:
+              value:
+                message: "Password update failed"
 
-    SignOutSuccess:
-      description: User signed out successfully.
+    UserRegistered:
+      description: User registered successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SuccessMessage"
+            $ref: "#/components/schemas/SuccessResponse"
+          example:
+            status: true
+            message: "User registered successfully. Please verify your email address."
 
     SignInSuccess:
       description: User signed in successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/TokenResponse"
+            $ref: "#/components/schemas/SignInResponse"
 
-    PasswordResetSuccess:
-      description: Password reset successfully.
+    PasswordResetEmailSent:
+      description: Password reset email sent successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SuccessMessage"
+            $ref: "#/components/schemas/SuccessResponse"
+          example:
+            status: true
+            message: "Reset password email sent successfully."
 
-    UserRegisteredSuccess:
-      description: User registered successfully.
+    PasswordUpdated:
+      description: Password updated successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SuccessMessage"
+            $ref: "#/components/schemas/SuccessResponse"
+          example:
+            status: true
+            message: "Password updated successfully."
 
-  parameters:
-    # Reusable Parameter Definitions
-    EmailPath:
-      in: path
-      name: email
-      required: true
-      description: Email address of the user.
-      schema:
-        $ref: "#/components/schemas/Email"
-
-  securitySchemes: # Define the security scheme for JWT authentication
+  securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
 
 paths:
-  /api/v1/signup:
+  /api/auth/signup:
     post:
       summary: Register a new user
-      description: Creates a new user account with the provided details.
+      description: |
+        Creates a new user account with the provided details.
+        
+        **Role-specific requirements:**
+        - **Educators**: Phone number is required and must be verified after registration
+        - **Admin/Organization**: Phone number is optional and will be ignored if provided
+        
+        **Verification Process:**
+        - A verification email is sent to the provided email address
+        - Users must verify their email before signing in
+        - Educators must also verify their phone numbers
       tags: [Auth]
       requestBody:
         required: true
@@ -245,18 +336,45 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SignUpRequest"
+            examples:
+              educator:
+                summary: Educator registration
+                value:
+                  firstName: "John"
+                  lastName: "Doe"
+                  email: "john.doe@example.com"
+                  phone: "+1234567890"
+                  password: "SecurePass123"
+                  role: "educator"
+              admin:
+                summary: Admin registration
+                value:
+                  firstName: "Jane"
+                  lastName: "Smith"
+                  email: "jane.smith@example.com"
+                  password: "AdminPass456"
+                  role: "admin"
       responses:
         201:
-          $ref: "#/components/responses/UserRegisteredSuccess"
+          $ref: "#/components/responses/UserRegistered"
         400:
           $ref: "#/components/responses/BadRequest"
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/signin:
+  /api/auth/signin:
     post:
       summary: Sign in a user
-      description: Authenticates the user using their credentials and returns a JWT token.
+      description: |
+        Authenticates the user using their credentials and returns a JWT token.
+        
+        **Prerequisites:**
+        - Email must be verified
+        - For educators: Phone number must also be verified
+        
+        **Response:**
+        - JWT token is set as an HTTP-only cookie
+        - User information is returned in the response body
       tags: [Auth]
       requestBody:
         required: true
@@ -264,6 +382,9 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SignInRequest"
+            example:
+              email: "john.doe@example.com"
+              password: "SecurePass123"
       responses:
         200:
           $ref: "#/components/responses/SignInSuccess"
@@ -272,67 +393,51 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/signout:
-    post:
-      summary: Sign out a user
-      description: Invalidates the current JWT token, effectively signing the user out.  Requires a valid JWT to be presented (e.g., in the `Authorization` header).
-      tags: [Auth]
-      security: # Indicate that this endpoint requires authentication
-        - bearerAuth: [] # Assumes you'll define this security scheme
-      responses:
-        200:
-          $ref: "#/components/responses/SignOutSuccess"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/forgot-password/{email}:
+  /api/auth/forgot-password:
     post:
       summary: Request password reset
-      description: Initiates a password reset for the specified user.  A password reset link/token will be sent to the user's email address.  No request body is required.
-      tags: [Auth]
-      parameters:
-        - $ref: "#/components/parameters/EmailPath"
-      responses:
-        200:
-          $ref: "#/components/responses/PasswordResetSuccess"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        404:
-          $ref: "#/components/responses/NotFound" # Add 404 if the email doesn't exist
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/reset-password: # Separate endpoint for actually resetting the password
-    post:
-      summary: Reset password with token
-      description: Resets the user's password using a reset token received via email.
+      description: |
+        Initiates a password reset for the specified user.
+        A password reset email with a secure token will be sent to the user's email address.
       tags: [Auth]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - token
-                - password
-              properties:
-                token:
-                  type: string
-                  description: The password reset token received via email.
-                  example: "someRandomToken"
-                  minLength: 36 #Example for UUID
-                  maxLength: 255 #Example limit
-                password:
-                  $ref: "#/components/schemas/Password"
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+            example:
+              email: "john.doe@example.com"
       responses:
         200:
-          $ref: "#/components/responses/PasswordResetSuccess"
+          $ref: "#/components/responses/PasswordResetEmailSent"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/auth/update-password:
+    patch:
+      summary: Update password with reset token
+      description: |
+        Updates the user's password using a reset token received via email.
+        The token is validated before allowing the password change.
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePasswordRequest"
+            example:
+              token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              password: "NewSecurePass789"
+      responses:
+        200:
+          $ref: "#/components/responses/PasswordUpdated"
         400:
           $ref: "#/components/responses/BadRequest"
         404:
-          $ref: "#/components/responses/NotFound" # Add 404 if the token is invalid
+          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
