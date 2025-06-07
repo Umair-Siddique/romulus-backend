@@ -118,59 +118,109 @@ components:
           nullable: true
           description: Updated phone number.
 
-    UserList:
-      type: array
-      items:
-        $ref: "#/components/schemas/UserProfile"
-      description: List of user profiles.
-
-    SuccessResponse:
+    # Updated to match actual service response structure
+    ServiceResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          description: Indicates if the operation was successful.
+          example: true
         message:
           type: string
-          description: Success message.
+          description: Response message.
           example: "Operation completed successfully."
+        data:
+          description: Response data (varies by endpoint).
+
+    UserListResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserProfile"
+              description: List of user profiles.
+          example:
+            success: true
+            message: "Users retrieved successfully"
+            data: []
+
+    UserResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/UserProfile"
+          example:
+            success: true
+            message: "User retrieved successfully"
+            data:
+              _id: "60d0fe4f5311236168a109ca"
+              firstName: "John"
+              lastName: "Doe"
+              email: "johndoe@example.com"
+
+    UserDeleteResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          example:
+            success: true
+            message: "User deleted successfully"
 
     ErrorResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          description: Always false for error responses.
+          example: false
         message:
           type: string
           description: Error message.
           example: "An error occurred."
 
   responses:
-    # Reusable Response Definitions
+    # Updated to match actual service response structure
     UserFound:
       description: User details retrieved successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/UserProfile"
+            $ref: "#/components/schemas/UserResponse"
 
     UserUpdated:
       description: User profile updated successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/UserProfile"
+            $ref: "#/components/schemas/UserResponse"
+          example:
+            success: true
+            message: "User updated successfully"
+            data:
+              _id: "60d0fe4f5311236168a109ca"
+              firstName: "Jane"
+              lastName: "Smith"
+              email: "janesmith@example.com"
 
     UserDeleted:
       description: User deleted successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SuccessResponse"
-          example:
-            message: "User deleted successfully"
+            $ref: "#/components/schemas/UserDeleteResponse"
 
     UserListFound:
       description: List of users retrieved successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/UserList"
+            $ref: "#/components/schemas/UserListResponse"
 
     NotFound:
       description: Resource not found.
@@ -181,10 +231,8 @@ components:
           examples:
             user_not_found:
               value:
+                success: false
                 message: "User not found"
-            users_not_found:
-              value:
-                message: "Users not found"
 
     BadRequest:
       description: Bad request - validation error or invalid parameters.
@@ -195,9 +243,11 @@ components:
           examples:
             validation_error:
               value:
+                success: false
                 message: "First name must be at least 2 characters long"
             invalid_user_id:
               value:
+                success: false
                 message: "Invalid user ID format"
 
     Unauthorized:
@@ -209,9 +259,11 @@ components:
           examples:
             missing_token:
               value:
+                success: false
                 message: "Access token is required"
             invalid_token:
               value:
+                success: false
                 message: "Invalid or expired token"
 
     Forbidden:
@@ -223,9 +275,11 @@ components:
           examples:
             admin_required:
               value:
+                success: false
                 message: "Admin access required"
             insufficient_permissions:
               value:
+                success: false
                 message: "You don't have permission to perform this action"
 
     InternalServerError:
@@ -237,9 +291,11 @@ components:
           examples:
             user_update_failed:
               value:
+                success: false
                 message: "User update failed"
             server_error:
               value:
+                success: false
                 message: "Internal server error occurred"
 
   parameters:
@@ -268,9 +324,9 @@ paths:
         **Authorization:** Available to all authenticated users
 
         **Response:**
-        - Returns an array of user profiles
+        - Returns a service response with success flag, message, and data array
+        - If no users exist, returns success: true with empty data array and message "No users found"
         - Password fields are automatically excluded from the response
-        - If no users exist, returns 404 error
       tags: [Users]
       security:
         - bearerAuth: []
@@ -279,8 +335,6 @@ paths:
           $ref: "#/components/responses/UserListFound"
         401:
           $ref: "#/components/responses/Unauthorized"
-        404:
-          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
 
@@ -294,8 +348,9 @@ paths:
         **Authorization:** Available to all authenticated users
 
         **Response:**
-        - Returns the user's complete profile information
+        - Returns the user's complete profile information wrapped in service response format
         - Password field is automatically excluded from the response
+        - Throws 404 error if user not found
       tags: [Users]
       security:
         - bearerAuth: []
@@ -326,10 +381,12 @@ paths:
         - Profile picture upload via multipart/form-data
         - Automatic cleanup of old profile pictures when new ones are uploaded
         - Validates phone number format if provided
+        - Throws 404 error if user not found
+        - Throws 500 error if update operation fails
 
         **File Upload:**
         - Profile pictures are stored in `/uploads/` directory
-        - Old profile pictures are automatically deleted when replaced
+        - Old profile pictures are automatically deleted from `/public/` directory when replaced
       tags: [Users]
       security:
         - bearerAuth: []
@@ -393,8 +450,8 @@ paths:
 
         **Security:**
         - Only users with 'admin' role can delete user accounts
-        - Returns 204 status code on successful deletion
-        - Cascading deletion may apply to related records
+        - Returns service response with success flag on successful deletion
+        - Throws 404 error if user not found
 
         **Warning:** This operation is irreversible.
       tags: [Users]
@@ -403,7 +460,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/UserIDPath"
       responses:
-        204:
+        200:
           $ref: "#/components/responses/UserDeleted"
         401:
           $ref: "#/components/responses/Unauthorized"
