@@ -29,12 +29,7 @@ const emailService = {
       throw createError(500, "An error occurred while verifying the email");
     }
 
-    sendVerificationNotification();
-
-    return {
-      success: true,
-      message: "Email verified successfully",
-    };
+    return sendVerificationNotification();
   },
 
   send: async (email) => {
