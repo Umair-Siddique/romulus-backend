@@ -10,8 +10,8 @@ const emailController = {
 
   send: asyncHandler(async (req, res) => {
     const { email } = req.body;
-    const result = await emailService.send(email);
-    res.status(200).send(result);
+    const result = await emailService.sendFile(email);
+    res.status(200).json(result);
   }),
 };
 

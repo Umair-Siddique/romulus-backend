@@ -111,7 +111,10 @@ const authService = {
       throw createError(500, "An error occurred while blacklisting the token.");
     }
 
-    return "Sign-out successful. The token has been invalidated.";
+    return {
+      success: true,
+      message: "User signed out successfully.",
+    };
   },
 
   forgetPassword: async ({ email }) => {
