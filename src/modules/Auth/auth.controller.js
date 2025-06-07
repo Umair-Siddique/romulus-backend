@@ -24,6 +24,23 @@ const authController = {
       .json({ ...result, token: undefined });
   }),
 
+  signOut: asyncHandler(async (req, res) => {
+    const token = req.cookies[COOKIE_NAME];
+    if (!token) {
+      return res.status(400).json({ message: "No token found" });
+    }
+
+    const result = await authService.signOut(token);
+
+    const options = getCookieOptions(false);
+    res.clearCookie(COOKIE_NAME, {
+      ...options,
+      maxAge: undefined,
+    });
+
+    res.status(200).json(result);
+  }),
+
   forgetPassword: asyncHandler(async (req, res) => {
     const payload = req.body;
     const result = await authService.forgetPassword(payload);

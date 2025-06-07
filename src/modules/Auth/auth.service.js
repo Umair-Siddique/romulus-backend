@@ -98,6 +98,22 @@ const authService = {
     };
   },
 
+  signOut: async (token) => {
+    const decoded = decodeToken(token);
+    if (!decoded) {
+      throw createError(401, "The provided token is invalid or expired.");
+    }
+
+    const id = decoded.id;
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1-hour expiration
+    const blacklistedToken = await save.blacklistedToken(token, expiresAt, id);
+    if (!blacklistedToken) {
+      throw createError(500, "An error occurred while blacklisting the token.");
+    }
+
+    return "Sign-out successful. The token has been invalidated.";
+  },
+
   forgetPassword: async ({ email }) => {
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
