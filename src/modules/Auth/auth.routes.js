@@ -14,13 +14,14 @@ export const authRoutes = express.Router();
 authRoutes
   .post("/signup", validateDto(signUpDto), authController.signUp)
   .post("/signin", validateDto(signInDto), authController.signIn)
+  .post("/signout", authController.signOut)
   .post(
     "/forgot-password",
     validateDto(forgotPasswordDto),
-    authController.forgetPassword,
+    authController.forgetPassword
   )
   .patch(
     "/update-password",
     validateDto(updatePasswordDto),
-    authController.updatePassword,
+    authController.updatePassword
   );
