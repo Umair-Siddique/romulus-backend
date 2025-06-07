@@ -46,7 +46,7 @@ components:
     SuccessResponse:
       type: object
       properties:
-        status:
+        success:
           type: boolean
           example: true
         message:
@@ -57,6 +57,10 @@ components:
     ErrorResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: false
+          description: Indicates the request was unsuccessful.
         message:
           type: string
           description: Error message.
@@ -65,7 +69,7 @@ components:
     VerificationSuccessResponse:
       type: object
       properties:
-        status:
+        success:
           type: boolean
           example: true
         message:
@@ -91,12 +95,15 @@ components:
           examples:
             invalid_token:
               value:
+                success: false
                 message: "Invalid token"
             missing_user_id:
               value:
+                success: false
                 message: "Token does not contain the user id"
             validation_error:
               value:
+                success: false
                 message: "Email is required."
 
     NotFound:
@@ -108,6 +115,7 @@ components:
           examples:
             user_not_found:
               value:
+                success: false
                 message: "User not found"
 
     InternalServerError:
@@ -119,12 +127,15 @@ components:
           examples:
             verification_failed:
               value:
+                success: false
                 message: "An error occurred while verifying the email"
             token_generation_failed:
               value:
+                success: false
                 message: "An error occurred while generating the token."
             email_send_failed:
               value:
+                success: false
                 message: "Failed to send the welcome email."
 
     EmailVerified:
@@ -134,16 +145,18 @@ components:
           schema:
             $ref: "#/components/schemas/VerificationSuccessResponse"
           example:
-            status: true
-            message: "Email verified successfully."
+            success: true
+            message: "Email verified successfully"
 
     VerificationEmailSent:
       description: Verification email sent successfully.
       content:
-        text/plain:
+        application/json:
           schema:
-            type: string
-            example: "Verification email sent successfully"
+            $ref: "#/components/schemas/SuccessResponse"
+          example:
+            success: true
+            message: "Verification email sent successfully"
 
   securitySchemes:
     bearerAuth:
@@ -162,7 +175,8 @@ paths:
         - Decodes and validates the verification token
         - Extracts the user ID from the token
         - Updates the user's email verification status to true
-        - Returns a success notification
+        - Sends a verification notification
+        - Returns a success response
 
         **Token Requirements:**
         - Token must be valid and not expired
@@ -194,7 +208,7 @@ paths:
         - Validates that a user exists with the provided email
         - Generates a secure verification token containing the user ID
         - Sends a verification email with the token
-        - If any step fails, the user account is removed for security
+        - If token generation or email sending fails, the user account is removed for security
 
         **Prerequisites:**
         - User must exist in the system with the provided email

@@ -92,6 +92,10 @@ components:
     ErrorResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: false
+          description: Indicates the request was unsuccessful.
         message:
           type: string
           description: Error message.
@@ -137,19 +141,32 @@ components:
           examples:
             validation_error:
               value:
+                success: false
                 message: "Email is required."
-            user_not_found:
-              value:
-                message: "A user with this email does not exist."
             invalid_otp:
               value:
+                success: false
                 message: "Invalid OTP"
             otp_required:
               value:
+                success: false
                 message: "OTP is required."
             invalid_email_format:
               value:
+                success: false
                 message: "Please provide a valid email address."
+
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            user_not_found:
+              value:
+                success: false
+                message: "User not found."
 
     InternalServerError:
       description: Internal server error.
@@ -160,12 +177,15 @@ components:
           examples:
             otp_save_failed:
               value:
+                success: false
                 message: "Failed to save OTP."
             email_send_failed:
               value:
+                success: false
                 message: "Failed to send OTP email."
             server_error:
               value:
+                success: false
                 message: "Internal server error occurred."
 
     OtpSent:
@@ -225,6 +245,8 @@ paths:
           $ref: "#/components/responses/OtpSent"
         400:
           $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
 
@@ -237,7 +259,7 @@ paths:
         **Process:**
         - Validates that a user exists with the provided email
         - Retrieves all active OTPs for the user
-        - Compares the provided OTP against stored hashed OTPs
+        - Compares the provided OTP against stored hashed OTPs using bcrypt
         - Returns success if any OTP matches
 
         **Security Features:**
@@ -260,5 +282,7 @@ paths:
           $ref: "#/components/responses/OtpVerified"
         400:
           $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"

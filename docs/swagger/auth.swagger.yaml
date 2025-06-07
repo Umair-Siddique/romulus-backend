@@ -162,26 +162,35 @@ components:
         token:
           $ref: "#/components/schemas/Token"
 
-    SuccessResponse:
+    # Updated to match consistent service response structure
+    ServiceResponse:
       type: object
       properties:
-        status:
+        success:
           type: boolean
+          description: Indicates if the operation was successful.
           example: true
         message:
           type: string
-          description: Success message.
+          description: Response message.
           example: "Operation completed successfully."
+        data:
+          description: Response data (varies by endpoint).
 
     ErrorResponse:
       type: object
       properties:
+        success:
+          type: boolean
+          example: false
+          description: Indicates the request was unsuccessful.
         message:
           type: string
           description: Error message.
           example: "An error occurred."
 
-    SignInResponse:
+    # Updated SignIn response structure
+    SignInData:
       type: object
       properties:
         id:
@@ -197,89 +206,54 @@ components:
         token:
           $ref: "#/components/schemas/Token"
 
+    SignInResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/SignInData"
+          example:
+            success: true
+            message: "User signed in successfully"
+            data:
+              id: "60d0fe4f5311236168a109ca"
+              name: "John Doe"
+              email: "john.doe@example.com"
+              role: "educator"
+
+    SignUpResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          example:
+            success: true
+            message: "User registered successfully. Please verify your email address."
+
+    ForgotPasswordResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          example:
+            success: true
+            message: "Reset password email sent successfully."
+
+    UpdatePasswordResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          example:
+            success: true
+            message: "Password updated successfully."
+
   responses:
-    # Reusable Response Definitions
-    Success:
-      description: Successful operation.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/SuccessResponse"
-
-    BadRequest:
-      description: Bad request - validation error or missing parameters.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorResponse"
-          examples:
-            validation_error:
-              value:
-                message: "First name is required."
-            user_exists:
-              value:
-                message: "A user with this email already exists."
-            phone_required:
-              value:
-                message: "Phone number is required for educators."
-
-    Unauthorized:
-      description: Unauthorized - invalid credentials, unverified email, or missing token.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorResponse"
-          examples:
-            invalid_credentials:
-              value:
-                message: "Invalid email or password."
-            email_not_verified:
-              value:
-                message: "Email not verified. Please check your inbox."
-            phone_not_verified:
-              value:
-                message: "Phone number not verified. Educators must verify their phone numbers."
-            invalid_token:
-              value:
-                message: "Invalid or expired token"
-
-    NotFound:
-      description: Resource not found.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorResponse"
-          examples:
-            user_not_found:
-              value:
-                message: "User not found"
-
-    InternalServerError:
-      description: Internal server error.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorResponse"
-          examples:
-            token_generation_failed:
-              value:
-                message: "Token generation failed."
-            email_send_failed:
-              value:
-                message: "Failed to send the welcome email."
-            password_update_failed:
-              value:
-                message: "Password update failed"
-
+    # Updated response definitions
     UserRegistered:
       description: User registered successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SuccessResponse"
-          example:
-            status: true
-            message: "User registered successfully. Please verify your email address."
+            $ref: "#/components/schemas/SignUpResponse"
 
     SignInSuccess:
       description: User signed in successfully.
@@ -293,20 +267,98 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SuccessResponse"
-          example:
-            status: true
-            message: "Reset password email sent successfully."
+            $ref: "#/components/schemas/ForgotPasswordResponse"
 
     PasswordUpdated:
       description: Password updated successfully.
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/SuccessResponse"
-          example:
-            status: true
-            message: "Password updated successfully."
+            $ref: "#/components/schemas/UpdatePasswordResponse"
+
+    BadRequest:
+      description: Bad request - validation error or missing parameters.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validation_error:
+              value:
+                success: false
+                message: "First name is required."
+            user_exists:
+              value:
+                success: false
+                message: "A user with this email already exists."
+            phone_required:
+              value:
+                success: false
+                message: "Phone number is required for educators."
+
+    Unauthorized:
+      description: Unauthorized - invalid credentials, unverified email, or missing token.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            invalid_credentials:
+              value:
+                success: false
+                message: "Invalid email or password."
+            email_not_verified:
+              value:
+                success: false
+                message: "Email not verified. Please check your inbox."
+            phone_not_verified:
+              value:
+                success: false
+                message: "Phone number not verified. Educators must verify their phone numbers."
+            invalid_token:
+              value:
+                success: false
+                message: "Invalid or expired token"
+
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            user_not_found:
+              value:
+                success: false
+                message: "User not found"
+            endpoint_not_found:
+              value:
+                success: false
+                message: "Endpoint not found"
+
+    InternalServerError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            token_generation_failed:
+              value:
+                success: false
+                message: "Token generation failed."
+            email_send_failed:
+              value:
+                success: false
+                message: "Failed to send the welcome email."
+            password_update_failed:
+              value:
+                success: false
+                message: "Password update failed"
+            internal_server_error:
+              value:
+                success: false
+                message: "Internal Server Error"
 
   securitySchemes:
     bearerAuth:
@@ -329,6 +381,10 @@ paths:
         - A verification email is sent to the provided email address
         - Users must verify their email before signing in
         - Educators must also verify their phone numbers
+
+        **Response:**
+        - Returns service response with success flag and message
+        - No data object is returned for signup
       tags: [Auth]
       requestBody:
         required: true
@@ -366,15 +422,16 @@ paths:
     post:
       summary: Sign in a user
       description: |
-        Authenticates the user using their credentials and returns a JWT token.
+        Authenticates the user using their credentials and returns user data with JWT token.
 
         **Prerequisites:**
         - Email must be verified
         - For educators: Phone number must also be verified
 
         **Response:**
-        - JWT token is set as an HTTP-only cookie
-        - User information is returned in the response body
+        - JWT token is included in the response data and set as an HTTP-only cookie
+        - User information is returned in the data object
+        - Follows consistent service response structure with success, message, and data
       tags: [Auth]
       requestBody:
         required: true
@@ -399,6 +456,10 @@ paths:
       description: |
         Initiates a password reset for the specified user.
         A password reset email with a secure token will be sent to the user's email address.
+
+        **Response:**
+        - Returns service response with success flag and message
+        - No data object is returned for password reset request
       tags: [Auth]
       requestBody:
         required: true
@@ -422,6 +483,10 @@ paths:
       description: |
         Updates the user's password using a reset token received via email.
         The token is validated before allowing the password change.
+
+        **Response:**
+        - Returns service response with success flag and message
+        - No data object is returned for password update
       tags: [Auth]
       requestBody:
         required: true
