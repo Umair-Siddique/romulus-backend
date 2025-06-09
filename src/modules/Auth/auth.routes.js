@@ -7,7 +7,7 @@ import {
   updatePasswordDto,
 } from "#dtos/index.js";
 import { validateDto } from "#middleware/index.js";
-import authController from "./auth.controller.js";
+import authController from "./auth.controllers.js";
 
 export const authRoutes = express.Router();
 
