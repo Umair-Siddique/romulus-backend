@@ -54,7 +54,7 @@ const authService = {
     return {
       success: true,
       message:
-        "User registered successfully. Please verify your email address.",
+        "Account registered successfully. Please verify your email address.",
     };
   },
 
@@ -87,7 +87,7 @@ const authService = {
 
     return {
       success: true,
-      message: "User signed in successfully.",
+      message: "Signed in successfully.",
       data: {
         id: user._id,
         name: `${user.firstName} ${user.lastName}`,
@@ -113,7 +113,7 @@ const authService = {
 
     return {
       success: true,
-      message: "User signed out successfully.",
+      message: "Signed out successfully.",
     };
   },
 
