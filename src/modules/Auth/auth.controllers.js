@@ -1,6 +1,6 @@
 import { asyncHandler, getCookieOptions } from "#utils/index.js";
 import { env } from "#config/index.js";
-import authService from "./auth.service.js";
+import authService from "./auth.services.js";
 
 const { COOKIE_NAME } = env;
 

@@ -1,5 +1,5 @@
 import { asyncHandler } from "#utils/index.js";
-import emailService from "./email.service.js";
+import emailService from "./email.services.js";
 
 const emailController = {
   check: asyncHandler(async (req, res) => {

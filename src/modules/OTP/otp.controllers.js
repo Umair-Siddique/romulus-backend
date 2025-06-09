@@ -1,5 +1,5 @@
 import { asyncHandler } from "#utils/index.js";
-import otpService from "./otp.service.js";
+import otpService from "./otp.services.js";
 
 const otpController = {
   send: asyncHandler(async (req, res) => {
