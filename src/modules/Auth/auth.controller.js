@@ -41,9 +41,15 @@ const authController = {
     res.status(200).json(result);
   }),
 
-  resetPassword: asyncHandler(async (req, res) => {
+  forgetPassword: asyncHandler(async (req, res) => {
     const payload = req.body;
-    const result = await authService.resetPassword(payload);
+    const result = await authService.forgetPassword(payload);
+    res.status(200).json(result);
+  }),
+
+  updatePassword: asyncHandler(async (req, res) => {
+    const payload = req.body;
+    const result = await authService.updatePassword(payload);
     res.status(200).json(result);
   }),
 };

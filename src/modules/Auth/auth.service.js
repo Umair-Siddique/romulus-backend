@@ -41,27 +41,38 @@ const authService = {
       throw createError(500, "An error occurred while generating the token.");
     }
 
-    const isEmailSent = await sendVerificationEmail(email, verificationToken);
+    const isEmailSent = await sendVerificationEmail(
+      email,
+      verificationToken,
+      "verify-email"
+    );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
       throw createError(500, "Failed to send the welcome email.");
     }
 
     return {
-      status: true,
+      success: true,
       message:
         "User registered successfully. Please verify your email address.",
     };
   },
 
   signIn: async ({ email, password }) => {
-    if (!email) {
-      throw createError(400, "Email and password are required.");
-    }
-
     const user = await read.userByEmail(email);
     if (!user) {
-      throw createError(401, "Invalid email or username.");
+      throw createError(401, "Invalid email or password.");
+    }
+
+    if (!user.isEmailVerified) {
+      throw createError(403, "Email not verified. Please check your inbox.");
+    }
+
+    if (user.role === "educator" && !user.isPhoneVerified) {
+      throw createError(
+        403,
+        "Phone number not verified. Educators must verify their phone numbers."
+      );
     }
 
     const isPasswordValid = await user.comparePassword(password);
@@ -75,9 +86,14 @@ const authService = {
     }
 
     return {
-      id: user._id,
-      name: `${user.firstName} ${user.lastName}`,
-      email: user.email,
+      success: true,
+      message: "User signed in successfully.",
+      data: {
+        id: user._id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        role: user.role,
+      },
       token,
     };
   },
@@ -96,13 +112,49 @@ const authService = {
     }
 
     return {
-      status: true,
-      message: "Sign-out successful. The token has been invalidated.",
+      success: true,
+      message: "User signed out successfully.",
     };
   },
 
-  resetPassword: async ({ email, password }) => {
+  forgetPassword: async ({ email }) => {
     const existingUser = await read.userByEmail(email);
+    if (!existingUser) {
+      throw createError(404, "User not found");
+    }
+
+    const resetToken = generateToken(existingUser._id);
+    if (!resetToken) {
+      throw createError(500, "Failed to generate reset token");
+    }
+
+    const isEmailSent = await sendVerificationEmail(
+      email,
+      resetToken,
+      "reset-password"
+    );
+    if (!isEmailSent) {
+      throw createError(500, "Failed to send reset password email");
+    }
+
+    return {
+      success: true,
+      message: "Reset password email sent successfully.",
+    };
+  },
+
+  updatePassword: async ({ password, token }) => {
+    const decodedToken = decodeToken(token);
+    if (!decodedToken) {
+      throw createError(400, "Invalid or expired token");
+    }
+
+    const { userId } = decodedToken;
+    if (!userId) {
+      throw createError(400, "Invalid token payload");
+    }
+
+    const existingUser = await read.userById(userId);
     if (!existingUser) {
       throw createError(404, "User not found");
     }
@@ -110,14 +162,14 @@ const authService = {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const isPasswordUpdated = await update.userById(existingUser._id, {
+    const isPasswordUpdated = await update.userById(userId, {
       password: hashedPassword,
     });
     if (!isPasswordUpdated) {
       throw createError(500, "Password update failed");
     }
 
-    return { status: true, message: "Password updated successfully." };
+    return { success: true, message: "Password updated successfully." };
   },
 };
 

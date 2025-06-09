@@ -1,8 +1,8 @@
 import morgan from "morgan";
 import cors from "cors";
 import express from "express";
-import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
 // eslint-disable-next-line no-unused-vars
 import colors from "colors";
 
@@ -16,21 +16,20 @@ const corsOptions = {
 
 // eslint-disable-next-line no-unused-vars
 const error_handler = async (err, req, res, next) => {
-  const errorInfo = {
-    status: err.statusCode || 500,
-    message: err.message || "Something went wrong",
-    stack: err.stack || "No stack trace available",
-  };
+  const isProduction = process.env.NODE_ENV === "production";
+  const status = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  const stack = isProduction
+    ? undefined
+    : err.stack || "No stack trace available";
 
-  const error_response = {
+  const errorResponse = {
     success: false,
-    status: errorInfo.status,
-    message: errorInfo.message,
-    stack: errorInfo.stack,
+    message,
   };
 
-  logger.error(JSON.stringify(error_response, null, 2));
-  res.status(errorInfo.status).json(error_response);
+  logger.error(JSON.stringify({ ...errorResponse, stack }, null, 2));
+  res.status(status).json(errorResponse);
 };
 
 const invalidRouteHandler = (req, res) => {

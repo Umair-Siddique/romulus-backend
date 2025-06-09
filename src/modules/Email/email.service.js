@@ -11,7 +11,7 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, update, remove } = dataAccess;
 
 const emailService = {
-  verify: async (verificationToken) => {
+  check: async (verificationToken) => {
     const decoded = decodeToken(verificationToken);
     if (!decoded) {
       throw createError(400, "Invalid token");
@@ -50,7 +50,10 @@ const emailService = {
       throw createError(500, "Failed to send the welcome email.");
     }
 
-    return "Verification email sent successfully";
+    return {
+      success: true,
+      message: "Verification email sent successfully",
+    };
   },
 };
 
