@@ -18,9 +18,9 @@ npm install
 
 - **`npm start`** - Production server
 - **`npm run dev`** - Development server with hot reload
+- **`npm run format`** - Format code with Prettier
 - **`npm run seed`** - Seed database with initial data
 - **`npm run lint`** - Check code quality with ESLint
-- **`npm run format`** - Format code with Prettier
 
 ## Environment Setup
 
