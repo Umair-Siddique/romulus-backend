@@ -11,7 +11,7 @@ import { dataAccess } from "#dataAccess/index.js";
 const { save, read, remove, update } = dataAccess;
 
 const authService = {
-  signUp: async ({ firstName, lastName, phone, email, password, role }) => {
+  signUp: async ({ phone, email, password, role }) => {
     const existingUser = await read.userByEmail(email);
     if (existingUser) {
       throw createError(400, "A user with this email already exists.");
@@ -23,14 +23,7 @@ const authService = {
       phone = undefined; // Phone number is not required for admin or organization roles
     }
 
-    const newUser = await save.user(
-      firstName,
-      lastName,
-      phone,
-      email,
-      password,
-      role
-    );
+    const newUser = await save.user(phone, email, password, role);
     if (!newUser) {
       throw createError(500, "Failed to create a new user.");
     }
@@ -90,8 +83,6 @@ const authService = {
       message: "Signed in successfully.",
       data: {
         id: user._id,
-        name: `${user.firstName} ${user.lastName}`,
-        email: user.email,
         role: user.role,
       },
       token,

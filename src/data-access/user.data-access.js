@@ -2,10 +2,8 @@ import { UserModel } from "#models/index.js";
 
 export const user = {
   save: {
-    user: async (firstName, lastName, phone, email, password, role) => {
+    user: async (phone, email, password, role) => {
       return await UserModel.create({
-        firstName,
-        lastName,
         phone,
         email,
         password,
@@ -49,7 +47,7 @@ export const user = {
       return await UserModel.findOneAndUpdate(
         { email },
         { password },
-        { new: true, upsert: true },
+        { new: true, upsert: true }
       );
     },
   },

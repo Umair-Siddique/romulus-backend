@@ -10,18 +10,6 @@ const { Schema, model } = mongoose;
 
 const UserSchema = new Schema(
   {
-    firstName: {
-      type: String,
-      required: [true, "First name is required"],
-      trim: true,
-      minlength: [2, "First name must be at least 2 characters long"],
-    },
-    lastName: {
-      type: String,
-      required: [true, "Last name is required"],
-      trim: true,
-      minlength: [2, "Last name must be at least 2 characters long"],
-    },
     email: {
       type: String,
       required: [true, "Email is required"],
@@ -38,7 +26,11 @@ const UserSchema = new Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters long"],
+      minlength: [8, "Password must be at least 8 characters long"],
+      match: [
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
+        "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      ],
     },
     role: {
       type: String,
@@ -65,7 +57,7 @@ const UserSchema = new Schema(
         return ret;
       },
     },
-  },
+  }
 );
 
 UserSchema.pre("save", async function (next) {
@@ -85,7 +77,7 @@ UserSchema.methods.generateAuthToken = function () {
     {
       expiresIn: JWT_EXPIRY,
       algorithm: JWT_ALGORITHM,
-    },
+    }
   );
   return token;
 };

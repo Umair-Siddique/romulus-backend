@@ -1,7 +1,6 @@
 import morgan from "morgan";
 import cors from "cors";
 import express from "express";
-import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 // eslint-disable-next-line no-unused-vars
 import colors from "colors";
@@ -39,7 +38,6 @@ const invalidRouteHandler = (req, res) => {
 const applyGlobalMiddleware = (app, rootRouter) => {
   app.use(morgan("dev"));
   app.use(cors(corsOptions));
-  app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use("/uploads", express.static(uploadDirectory));

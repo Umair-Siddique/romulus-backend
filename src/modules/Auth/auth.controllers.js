@@ -16,16 +16,17 @@ const authController = {
     const result = await authService.signIn(payload);
     const { token } = result;
 
-    const options = getCookieOptions(payload.isRemembered);
-
     res
       .status(200)
-      .cookie(COOKIE_NAME, token, { ...options, maxAge: undefined })
-      .json({ ...result, token: undefined });
+      .header("Authorization", `Bearer ${token}`)
+      .header("Access-Control-Expose-Headers", "Authorization")
+      .json(result);
   }),
 
   signOut: asyncHandler(async (req, res) => {
-    const token = req.cookies[COOKIE_NAME];
+    const authHeader = req.headers.authorization;
+    const token = authHeader ? authHeader.replace("Bearer ", "") : null;
+
     if (!token) {
       return res.status(400).json({ message: "No token found" });
     }
