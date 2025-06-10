@@ -29,7 +29,7 @@ const authService = {
       phone,
       email,
       password,
-      role
+      role,
     );
     if (!newUser) {
       throw createError(500, "Failed to create a new user.");
@@ -44,7 +44,7 @@ const authService = {
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email"
+      "verify-email",
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -71,7 +71,7 @@ const authService = {
     if (user.role === "educator" && !user.isPhoneVerified) {
       throw createError(
         403,
-        "Phone number not verified. Educators must verify their phone numbers."
+        "Phone number not verified. Educators must verify their phone numbers.",
       );
     }
 
@@ -131,7 +131,7 @@ const authService = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password"
+      "reset-password",
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email");

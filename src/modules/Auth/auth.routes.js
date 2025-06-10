@@ -18,10 +18,10 @@ authRoutes
   .post(
     "/forgot-password",
     validateDto(forgotPasswordDto),
-    authController.forgetPassword
+    authController.forgetPassword,
   )
   .patch(
     "/update-password",
     validateDto(updatePasswordDto),
-    authController.updatePassword
+    authController.updatePassword,
   );

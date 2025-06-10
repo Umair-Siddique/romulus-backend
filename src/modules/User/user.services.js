@@ -51,7 +51,7 @@ const userService = {
       const oldProfilePicturePath = path.join(
         __dirname,
         "../../../public",
-        existingUser.profilePicture
+        existingUser.profilePicture,
       );
       deleteFile(oldProfilePicturePath);
     }
