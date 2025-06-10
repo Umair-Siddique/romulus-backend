@@ -70,27 +70,13 @@ components:
     SignUpRequest:
       type: object
       required:
-        - firstName
-        - lastName
         - email
         - password
-        - role
       properties:
-        firstName:
-          $ref: "#/components/schemas/FirstName"
-        lastName:
-          $ref: "#/components/schemas/LastName"
         email:
           $ref: "#/components/schemas/Email"
-        phone:
-          allOf:
-            - $ref: "#/components/schemas/PhoneNumber"
-          nullable: true
-          description: Phone number (required for educators, optional for admin and organization roles).
         password:
           $ref: "#/components/schemas/Password"
-        role:
-          $ref: "#/components/schemas/Role"
 
     SignInRequest:
       type: object
@@ -263,15 +249,11 @@ components:
             validation_error:
               value:
                 success: false
-                message: "First name is required."
+                message: "Email is required."
             user_exists:
               value:
                 success: false
                 message: "A user with this email already exists."
-            phone_required:
-              value:
-                success: false
-                message: "Phone number is required for educators."
             no_token:
               value:
                 success: false
@@ -312,10 +294,6 @@ components:
               value:
                 success: false
                 message: "Email not verified. Please check your inbox."
-            phone_not_verified:
-              value:
-                success: false
-                message: "Phone number not verified. Educators must verify their phone numbers."
 
     NotFound:
       description: Resource not found.
@@ -368,16 +346,11 @@ paths:
     post:
       summary: Register a new user
       description: |
-        Creates a new user account with the provided details.
-
-        **Role-specific requirements:**
-        - **Educators**: Phone number is required and must be verified after registration
-        - **Admin/Organization**: Phone number is optional and will be ignored if provided
+        Creates a new user account with email and password.
 
         **Verification Process:**
         - A verification email is sent to the provided email address
         - Users must verify their email before signing in
-        - Educators must also verify their phone numbers
       tags: [Auth]
       requestBody:
         required: true
@@ -386,23 +359,11 @@ paths:
             schema:
               $ref: "#/components/schemas/SignUpRequest"
             examples:
-              educator:
-                summary: Educator registration
+              user_signup:
+                summary: User registration
                 value:
-                  firstName: "John"
-                  lastName: "Doe"
                   email: "john.doe@example.com"
-                  phone: "+1234567890"
                   password: "SecurePass123"
-                  role: "educator"
-              admin:
-                summary: Admin registration
-                value:
-                  firstName: "Jane"
-                  lastName: "Smith"
-                  email: "jane.smith@example.com"
-                  password: "AdminPass456"
-                  role: "admin"
       responses:
         201:
           $ref: "#/components/responses/UserRegistered"
@@ -419,7 +380,6 @@ paths:
 
         **Prerequisites:**
         - Email must be verified
-        - For educators: Phone number must also be verified
 
         **Response:**
         - JWT token is included in the response and set in Authorization header

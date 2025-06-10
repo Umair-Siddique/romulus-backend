@@ -105,20 +105,6 @@ components:
         - email
         - role
 
-    UpdateUserProfileRequest:
-      type: object
-      properties:
-        firstName:
-          $ref: "#/components/schemas/FirstName"
-        lastName:
-          $ref: "#/components/schemas/LastName"
-        phone:
-          allOf:
-            - $ref: "#/components/schemas/PhoneNumber"
-          nullable: true
-          description: Updated phone number.
-
-    # Updated to match actual service response structure
     ServiceResponse:
       type: object
       properties:
@@ -143,10 +129,6 @@ components:
               items:
                 $ref: "#/components/schemas/UserProfile"
               description: List of user profiles.
-          example:
-            success: true
-            message: "Users retrieved successfully"
-            data: []
 
     UserResponse:
       allOf:
@@ -155,14 +137,6 @@ components:
           properties:
             data:
               $ref: "#/components/schemas/UserProfile"
-          example:
-            success: true
-            message: "User retrieved successfully"
-            data:
-              _id: "60d0fe4f5311236168a109ca"
-              firstName: "John"
-              lastName: "Doe"
-              email: "johndoe@example.com"
 
     UserDeleteResponse:
       allOf:
@@ -185,13 +159,21 @@ components:
           example: "An error occurred."
 
   responses:
-    # Updated to match actual service response structure
     UserFound:
       description: User details retrieved successfully.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/UserResponse"
+          example:
+            success: true
+            message: "User retrieved successfully"
+            data:
+              _id: "60d0fe4f5311236168a109ca"
+              firstName: "John"
+              lastName: "Doe"
+              email: "johndoe@example.com"
+              role: "educator"
 
     UserUpdated:
       description: User profile updated successfully.
@@ -207,6 +189,7 @@ components:
               firstName: "Jane"
               lastName: "Smith"
               email: "janesmith@example.com"
+              role: "educator"
 
     UserDeleted:
       description: User deleted successfully.
@@ -221,6 +204,27 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/UserListResponse"
+          examples:
+            users_found:
+              summary: Users found
+              value:
+                success: true
+                message: "Users retrieved successfully"
+                data: [
+                  {
+                    _id: "60d0fe4f5311236168a109ca",
+                    firstName: "John",
+                    lastName: "Doe",
+                    email: "johndoe@example.com",
+                    role: "educator"
+                  }
+                ]
+            no_users:
+              summary: No users found
+              value:
+                success: true
+                message: "No users found"
+                data: []
 
     NotFound:
       description: Resource not found.
@@ -387,6 +391,7 @@ paths:
         **File Upload:**
         - Profile pictures are stored in `/uploads/` directory
         - Old profile pictures are automatically deleted from `/public/` directory when replaced
+        - File is accessed via `req.files.profilePicture[0]`
       tags: [Users]
       security:
         - bearerAuth: []
@@ -450,7 +455,7 @@ paths:
 
         **Security:**
         - Only users with 'admin' role can delete user accounts
-        - Returns service response with success flag on successful deletion
+        - Returns 204 No Content status with JSON response body
         - Throws 404 error if user not found
 
         **Warning:** This operation is irreversible.
@@ -460,7 +465,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/UserIDPath"
       responses:
-        200:
+        204:
           $ref: "#/components/responses/UserDeleted"
         401:
           $ref: "#/components/responses/Unauthorized"
