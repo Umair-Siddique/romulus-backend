@@ -67,46 +67,6 @@ components:
       description: JWT token or verification token.
       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-    User:
-      type: object
-      properties:
-        _id:
-          $ref: "#/components/schemas/ID"
-        firstName:
-          $ref: "#/components/schemas/FirstName"
-        lastName:
-          $ref: "#/components/schemas/LastName"
-        email:
-          $ref: "#/components/schemas/Email"
-        phone:
-          allOf:
-            - $ref: "#/components/schemas/PhoneNumber"
-          nullable: true
-          description: Phone number (required for educators, optional for others).
-        role:
-          $ref: "#/components/schemas/Role"
-        isEmailVerified:
-          type: boolean
-          description: Indicates if the user's email is verified.
-          example: false
-        isPhoneVerified:
-          type: boolean
-          description: Indicates if the user's phone number is verified.
-          example: false
-        createdAt:
-          type: string
-          format: date-time
-          description: Timestamp of when the user account was created.
-        updatedAt:
-          type: string
-          format: date-time
-          description: Timestamp of when the user account was last updated.
-      required:
-        - firstName
-        - lastName
-        - email
-        - role
-
     SignUpRequest:
       type: object
       required:
@@ -162,7 +122,6 @@ components:
         token:
           $ref: "#/components/schemas/Token"
 
-    # Updated to match consistent service response structure
     ServiceResponse:
       type: object
       properties:
@@ -189,22 +148,14 @@ components:
           description: Error message.
           example: "An error occurred."
 
-    # Updated SignIn response structure
+    # Updated SignIn response data structure to match service implementation
     SignInData:
       type: object
       properties:
         id:
           $ref: "#/components/schemas/ID"
-        name:
-          type: string
-          description: Full name of the user.
-          example: "John Doe"
-        email:
-          $ref: "#/components/schemas/Email"
         role:
           $ref: "#/components/schemas/Role"
-        token:
-          $ref: "#/components/schemas/Token"
 
     SignInResponse:
       allOf:
@@ -213,14 +164,15 @@ components:
           properties:
             data:
               $ref: "#/components/schemas/SignInData"
+            token:
+              $ref: "#/components/schemas/Token"
           example:
             success: true
-            message: "User signed in successfully"
+            message: "Signed in successfully."
             data:
               id: "60d0fe4f5311236168a109ca"
-              name: "John Doe"
-              email: "john.doe@example.com"
               role: "educator"
+            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
     SignUpResponse:
       allOf:
@@ -228,7 +180,7 @@ components:
         - type: object
           example:
             success: true
-            message: "User registered successfully. Please verify your email address."
+            message: "Account registered successfully. Please verify your email address."
 
     ForgotPasswordResponse:
       allOf:
@@ -246,8 +198,15 @@ components:
             success: true
             message: "Password updated successfully."
 
+    SignOutResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceResponse"
+        - type: object
+          example:
+            success: true
+            message: "Signed out successfully."
+
   responses:
-    # Updated response definitions
     UserRegistered:
       description: User registered successfully.
       content:
@@ -257,10 +216,28 @@ components:
 
     SignInSuccess:
       description: User signed in successfully.
+      headers:
+        Authorization:
+          description: Bearer token for authentication
+          schema:
+            type: string
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        Access-Control-Expose-Headers:
+          description: Exposed headers for CORS
+          schema:
+            type: string
+            example: "Authorization"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/SignInResponse"
+
+    SignOutSuccess:
+      description: User signed out successfully.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SignOutResponse"
 
     PasswordResetEmailSent:
       description: Password reset email sent successfully.
@@ -295,9 +272,17 @@ components:
               value:
                 success: false
                 message: "Phone number is required for educators."
+            no_token:
+              value:
+                success: false
+                message: "No token found"
+            invalid_token:
+              value:
+                success: false
+                message: "Invalid or expired token"
 
     Unauthorized:
-      description: Unauthorized - invalid credentials, unverified email, or missing token.
+      description: Unauthorized - invalid credentials or token.
       content:
         application/json:
           schema:
@@ -307,6 +292,22 @@ components:
               value:
                 success: false
                 message: "Invalid email or password."
+            invalid_password:
+              value:
+                success: false
+                message: "Invalid password."
+            invalid_token:
+              value:
+                success: false
+                message: "The provided token is invalid or expired."
+
+    Forbidden:
+      description: Forbidden - email or phone not verified.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
             email_not_verified:
               value:
                 success: false
@@ -315,10 +316,6 @@ components:
               value:
                 success: false
                 message: "Phone number not verified. Educators must verify their phone numbers."
-            invalid_token:
-              value:
-                success: false
-                message: "Invalid or expired token"
 
     NotFound:
       description: Resource not found.
@@ -331,10 +328,6 @@ components:
               value:
                 success: false
                 message: "User not found"
-            endpoint_not_found:
-              value:
-                success: false
-                message: "Endpoint not found"
 
     InternalServerError:
       description: Internal server error.
@@ -355,10 +348,14 @@ components:
               value:
                 success: false
                 message: "Password update failed"
-            internal_server_error:
+            user_creation_failed:
               value:
                 success: false
-                message: "Internal Server Error"
+                message: "Failed to create a new user."
+            token_blacklist_failed:
+              value:
+                success: false
+                message: "An error occurred while blacklisting the token."
 
   securitySchemes:
     bearerAuth:
@@ -381,10 +378,6 @@ paths:
         - A verification email is sent to the provided email address
         - Users must verify their email before signing in
         - Educators must also verify their phone numbers
-
-        **Response:**
-        - Returns service response with success flag and message
-        - No data object is returned for signup
       tags: [Auth]
       requestBody:
         required: true
@@ -429,9 +422,8 @@ paths:
         - For educators: Phone number must also be verified
 
         **Response:**
-        - JWT token is included in the response data and set as an HTTP-only cookie
+        - JWT token is included in the response and set in Authorization header
         - User information is returned in the data object
-        - Follows consistent service response structure with success, message, and data
       tags: [Auth]
       requestBody:
         required: true
@@ -447,6 +439,27 @@ paths:
           $ref: "#/components/responses/SignInSuccess"
         401:
           $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/auth/signout:
+    post:
+      summary: Sign out a user
+      description: |
+        Signs out the user by blacklisting their JWT token and clearing cookies.
+        Requires a valid JWT token in the Authorization header.
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          $ref: "#/components/responses/SignOutSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
         500:
           $ref: "#/components/responses/InternalServerError"
 
@@ -456,10 +469,6 @@ paths:
       description: |
         Initiates a password reset for the specified user.
         A password reset email with a secure token will be sent to the user's email address.
-
-        **Response:**
-        - Returns service response with success flag and message
-        - No data object is returned for password reset request
       tags: [Auth]
       requestBody:
         required: true
@@ -483,10 +492,6 @@ paths:
       description: |
         Updates the user's password using a reset token received via email.
         The token is validated before allowing the password change.
-
-        **Response:**
-        - Returns service response with success flag and message
-        - No data object is returned for password update
       tags: [Auth]
       requestBody:
         required: true
