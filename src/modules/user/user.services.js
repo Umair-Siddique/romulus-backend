@@ -10,7 +10,7 @@ const { read, update, remove } = dataAccess;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const userService = {
+export const userServices = {
   getAll: async () => {
     const users = await read.allUsers();
     if (!users.length) {
