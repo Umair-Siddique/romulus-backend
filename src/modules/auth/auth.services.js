@@ -11,7 +11,7 @@ import { dataAccess } from "#dataAccess/index.js";
 const { save, read, remove, update } = dataAccess;
 
 export const authServices = {
-  signUp: async ({ phone, email, password, role }) => {
+  signUp: async ({ firstName, lastName, phone, email, password, role }) => {
     const existingUser = await read.userByEmail(email);
     if (existingUser) {
       throw createError(400, "A user with this email already exists.");
@@ -23,7 +23,14 @@ export const authServices = {
       phone = undefined; // Phone number is not required for admin or organization roles
     }
 
-    const newUser = await save.user(phone, email, password, role);
+    const newUser = await save.user(
+      firstName,
+      lastName,
+      phone,
+      email,
+      password,
+      role,
+    );
     if (!newUser) {
       throw createError(500, "Failed to create a new user.");
     }
@@ -37,7 +44,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email"
+      "verify-email",
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -64,7 +71,7 @@ export const authServices = {
     if (user.role === "educator" && !user.isPhoneVerified) {
       throw createError(
         403,
-        "Phone number not verified. Educators must verify their phone numbers."
+        "Phone number not verified. Educators must verify their phone numbers.",
       );
     }
 
@@ -83,6 +90,8 @@ export const authServices = {
       message: "Signed in successfully.",
       data: {
         id: user._id,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
         role: user.role,
       },
       token,
@@ -122,7 +131,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password"
+      "reset-password",
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email");

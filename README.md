@@ -29,6 +29,7 @@ Configure required environment variables before running the application.
 ## API Documentation
 
 Interactive Swagger documentation available at:
+
 ```
 http://localhost:5000/api-docs
 ```

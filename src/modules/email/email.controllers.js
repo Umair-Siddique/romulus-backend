@@ -10,7 +10,7 @@ export const emailControllers = {
 
   send: asyncHandler(async (req, res) => {
     const { email } = req.body;
-    const result = await emailServices.send(email);
+    const result = await emailServices.sendFile(email);
     res.status(200).json(result);
   }),
 };

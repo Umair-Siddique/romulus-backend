@@ -10,7 +10,7 @@ const { read, update, remove } = dataAccess;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const userServices = {
+export const userService = {
   getAll: async () => {
     const users = await read.allUsers();
     if (!users.length) {
@@ -51,7 +51,7 @@ export const userServices = {
       const oldProfilePicturePath = path.join(
         __dirname,
         "../../../public",
-        existingUser.profilePicture
+        existingUser.profilePicture,
       );
       deleteFile(oldProfilePicturePath);
     }

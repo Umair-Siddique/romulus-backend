@@ -1,7 +1,7 @@
 import express from "express";
 
-import { uploadFiles, verifyAuthRole } from "#middleware/index.js";
 import { userControllers } from "./user.controllers.js";
+import { uploadFiles, verifyAuthRole } from "#middleware/index.js";
 
 export const userRoutes = express.Router();
 
