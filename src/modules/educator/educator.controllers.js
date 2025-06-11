@@ -1,6 +1,5 @@
 import { asyncHandler } from "#utils/index.js";
 import { educatorServices } from "./educator.services.js";
-import { getFileUrl } from "#config/cloudinary.js";
 
 export const educatorControllers = {
   create: asyncHandler(async (req, res) => {
@@ -73,48 +72,5 @@ export const educatorControllers = {
     });
 
     res.status(201).json(result);
-  }),
-
-  // New method to get file URLs for existing educator
-  getFiles: asyncHandler(async (req, res) => {
-    const { userId } = req.params;
-
-    const fileTypes = [
-      "profilePicture",
-      "identityProof",
-      "criminalRecord",
-      "certificateOfHonor",
-      "diploma",
-    ];
-    const files = {};
-
-    fileTypes.forEach((fileType) => {
-      files[fileType] = getFileUrl(userId, fileType);
-    });
-
-    res.json({
-      success: true,
-      data: { userId, files },
-    });
-  }),
-
-  // Method to update specific files
-  updateFiles: asyncHandler(async (req, res) => {
-    const { userId } = req.params;
-    const files = req.files;
-
-    const updatedFiles = {};
-
-    // Process uploaded files and get their URLs
-    Object.keys(files || {}).forEach((fieldName) => {
-      if (files[fieldName]?.[0]) {
-        updatedFiles[fieldName] = files[fieldName][0].path;
-      }
-    });
-
-    // Update educator record with new file URLs
-    const result = await educatorServices.updateFiles(userId, updatedFiles);
-
-    res.json(result);
   }),
 };
