@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   authRoutes,
+  educatorRoutes,
   userRoutes,
   emailRoutes,
   otpRoutes,
@@ -21,5 +22,6 @@ apiRouter.use("/auth", authRoutes);
 apiRouter.use("/email", emailRoutes);
 apiRouter.use("/otp", otpRoutes);
 apiRouter.use("/users", verifyAuthToken, userRoutes);
+apiRouter.use("/educators", verifyAuthToken, educatorRoutes);
 
 export default rootRouter;

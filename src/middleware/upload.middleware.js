@@ -10,5 +10,8 @@ const upload = multer({
 
 export const uploadFiles = upload.fields([
   { name: "profilePicture", maxCount: 1 },
-  { name: "documents", maxCount: 5 },
+  { name: "identityProof", maxCount: 1 },
+  { name: "criminalRecord", maxCount: 1 },
+  { name: "certificateOfHonor", maxCount: 1 },
+  { name: "diploma", maxCount: 1 },
 ]);

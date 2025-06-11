@@ -87,7 +87,7 @@ export const authServices = {
       success: true,
       message: "Signed in successfully.",
       data: {
-        id: user._id,
+        userId: user._id,
         email: user.email,
         role: user.role,
       },
