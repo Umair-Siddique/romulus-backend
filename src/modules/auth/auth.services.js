@@ -11,7 +11,7 @@ import { dataAccess } from "#dataAccess/index.js";
 const { save, read, remove, update } = dataAccess;
 
 export const authServices = {
-  signUp: async ({ firstName, lastName, phone, email, password, role }) => {
+  signUp: async ({ phone, email, password, role }) => {
     const existingUser = await read.userByEmail(email);
     if (existingUser) {
       throw createError(400, "A user with this email already exists.");
@@ -24,8 +24,6 @@ export const authServices = {
     }
 
     const newUser = await save.user(
-      firstName,
-      lastName,
       phone,
       email,
       password,
@@ -90,7 +88,6 @@ export const authServices = {
       message: "Signed in successfully.",
       data: {
         id: user._id,
-        name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         role: user.role,
       },
