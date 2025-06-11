@@ -10,7 +10,7 @@ import { dataAccess } from "#dataAccess/index.js";
 
 const { save, read, remove, update } = dataAccess;
 
-const authService = {
+export const authServices = {
   signUp: async ({ phone, email, password, role }) => {
     const existingUser = await read.userByEmail(email);
     if (existingUser) {
@@ -163,5 +163,3 @@ const authService = {
     return { success: true, message: "Password updated successfully." };
   },
 };
-
-export default authService;

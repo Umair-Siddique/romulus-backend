@@ -1,20 +1,21 @@
 import createError from "http-errors";
 
-import { env } from "#config/index.js";
 import { asyncHandler, decodeToken } from "#utils/index.js";
 
-const { COOKIE_NAME } = env;
-
 const verifyAuthToken = asyncHandler(async (req, res, next) => {
-  const token = req.cookies[COOKIE_NAME];
-  if (!token) {
-    throw createError(401, "Token is missing in the authorization cookie.");
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw createError(401, "Authorization token missing or malformed.");
   }
+
+  const token = authHeader.split(" ")[1]; // Get token after 'Bearer '
 
   const decoded = await decodeToken(token);
   if (!decoded) {
     throw createError(401, "Invalid or expired token.");
   }
+
   req.user = decoded;
   next();
 });
