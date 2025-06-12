@@ -47,7 +47,7 @@ export const user = {
       return await UserModel.findOneAndUpdate(
         { email },
         { password },
-        { new: true, upsert: true }
+        { new: true, upsert: true },
       );
     },
   },

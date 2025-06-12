@@ -43,7 +43,7 @@ export const educatorServices = {
       education,
       languages,
       certificateOfHonor,
-      diploma
+      diploma,
     );
 
     return {

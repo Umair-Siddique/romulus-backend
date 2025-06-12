@@ -57,7 +57,7 @@ const UserSchema = new Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 UserSchema.pre("save", async function (next) {
@@ -77,7 +77,7 @@ UserSchema.methods.generateAuthToken = function () {
     {
       expiresIn: JWT_EXPIRY,
       algorithm: JWT_ALGORITHM,
-    }
+    },
   );
   return token;
 };

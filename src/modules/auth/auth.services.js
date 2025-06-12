@@ -23,12 +23,7 @@ export const authServices = {
       phone = undefined; // Phone number is not required for admin or organization roles
     }
 
-    const newUser = await save.user(
-      phone,
-      email,
-      password,
-      role,
-    );
+    const newUser = await save.user(phone, email, password, role);
     if (!newUser) {
       throw createError(500, "Failed to create a new user.");
     }

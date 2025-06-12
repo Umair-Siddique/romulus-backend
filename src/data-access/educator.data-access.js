@@ -21,7 +21,7 @@ export const educator = {
       education,
       languages,
       certificateOfHonor,
-      diploma
+      diploma,
     ) => {
       return await EducatorModel.create({
         userId,

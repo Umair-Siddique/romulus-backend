@@ -4,7 +4,7 @@ info:
   version: v1
   description: |
     Shared components library for consistent API design across all services.
-    
+
     This file contains reusable schemas, responses, parameters, and security schemes
     used across multiple API endpoints to ensure consistency and maintainability.
 
@@ -126,18 +126,6 @@ components:
               example: false
             message:
               example: "An error occurred processing your request"
-            error:
-              type: object
-              description: Additional error details
-              properties:
-                code:
-                  type: string
-                  description: Error code for programmatic handling
-                  example: "VALIDATION_ERROR"
-                details:
-                  type: object
-                  description: Detailed error information
-                  additionalProperties: true
 
     # ================================
     # USER RELATED SCHEMAS
@@ -255,11 +243,6 @@ components:
               value:
                 success: false
                 message: "Validation error occurred"
-                error:
-                  code: "VALIDATION_ERROR"
-                  details:
-                    field: "email"
-                    issue: "Invalid email format"
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -273,15 +256,11 @@ components:
               value:
                 success: false
                 message: "Authentication token is required"
-                error:
-                  code: "MISSING_TOKEN"
             invalidToken:
               summary: Token expired or malformed
               value:
                 success: false
                 message: "Invalid or expired token"
-                error:
-                  code: "INVALID_TOKEN"
 
     Forbidden:
       description: Insufficient permissions for requested operation
@@ -295,8 +274,6 @@ components:
               value:
                 success: false
                 message: "Insufficient permissions"
-                error:
-                  code: "FORBIDDEN"
 
     NotFound:
       description: Requested resource does not exist
@@ -310,8 +287,6 @@ components:
               value:
                 success: false
                 message: "Resource not found"
-                error:
-                  code: "NOT_FOUND"
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -325,5 +300,3 @@ components:
               value:
                 success: false
                 message: "Internal server error occurred"
-                error:
-                  code: "INTERNAL_ERROR"
