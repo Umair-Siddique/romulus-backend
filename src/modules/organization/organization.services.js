@@ -21,13 +21,13 @@ export const organizationServices = {
     // Validate user exists
     const existingUser = await read.userById(userId);
     if (!existingUser) {
-      throw createError(404, "This user does not exist.");
+      throw createError(404, "User does not exist.");
     }
 
     // Validate organization does not already exist for user
     const existingOrganization = await read.organizationByUserId(userId);
     if (existingOrganization) {
-      throw createError(400, "This user already has an organization profile.");
+      throw createError(400, "User already has organization profile.");
     }
 
     // Handle file URLs - extract path if file object exists
