@@ -149,9 +149,6 @@ export const authServices = {
     }
 
     const { userId } = decodedToken;
-    if (!userId) {
-      throw createError(400, "Invalid token payload");
-    }
 
     const existingUser = await read.userById(userId);
     if (!existingUser) {

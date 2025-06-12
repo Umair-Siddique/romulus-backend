@@ -14,4 +14,5 @@ export const uploadFiles = upload.fields([
   { name: "criminalRecord", maxCount: 1 },
   { name: "certificateOfHonor", maxCount: 1 },
   { name: "diploma", maxCount: 1 },
+  { name: "residenceGuidelines", maxCount: 1 },
 ]);

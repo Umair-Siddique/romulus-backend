@@ -1,6 +1,6 @@
 import { OtpModel } from "#models/index.js";
 
-export const otp = {
+export const otpDataAccess = {
   save: {
     otp: async ({ otpHash, userId, expiresAt }) => {
       return await OtpModel.create({

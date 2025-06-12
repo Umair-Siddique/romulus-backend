@@ -17,7 +17,7 @@ export const authControllers = {
       .status(200)
       .header("Authorization", `Bearer ${token}`)
       .header("Access-Control-Expose-Headers", "Authorization")
-      .json(result);
+      .json({ ...result, token: undefined });
   }),
 
   signOut: asyncHandler(async (req, res) => {

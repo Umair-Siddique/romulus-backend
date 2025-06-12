@@ -13,9 +13,6 @@ const { read, update, remove } = dataAccess;
 export const emailServices = {
   check: async (verificationToken) => {
     const decoded = decodeToken(verificationToken);
-    if (!decoded) {
-      throw createError(400, "Invalid token");
-    }
 
     const id = decoded["userId"];
     if (!id) {

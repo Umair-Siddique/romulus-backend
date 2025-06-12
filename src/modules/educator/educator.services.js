@@ -7,7 +7,7 @@ const { save, read } = dataAccess;
 export const educatorServices = {
   create: async (data) => {
     const {
-      userId,
+      user: userId,
       firstName,
       lastName,
       gender,
@@ -29,8 +29,15 @@ export const educatorServices = {
     } = data;
 
     const existingUser = await read.userById(userId);
+    console.log(existingUser);
     if (!existingUser) {
       throw createError(404, "This user does not exist.");
+    }
+
+    const existingEducator = await read.educatorByUserId(userId);
+    console.log(existingEducator);
+    if (existingEducator) {
+      throw createError(400, "This user already has an educator profile.");
     }
 
     // Handle file URLs - extract path if file object exists
@@ -49,9 +56,9 @@ export const educatorServices = {
       ? languages
       : languages?.split(",").map((l) => l.trim());
 
-    const isEducatorSaved = await save.educator(
-      userId,
-      getFilePath(profilePicture),
+    const educatorData = {
+      user: userId,
+      profilePicture: getFilePath(profilePicture),
       firstName,
       lastName,
       gender,
@@ -60,23 +67,25 @@ export const educatorServices = {
       country,
       fullAddress,
       bio,
-      getFilePath(identityProof),
-      getFilePath(criminalRecord),
+      identityProof: getFilePath(identityProof),
+      criminalRecord: getFilePath(criminalRecord),
       profession,
       hourlyRate,
-      processedSkills,
+      skills: processedSkills,
       education,
-      processedLanguages,
-      getFilePath(certificateOfHonor),
-      getFilePath(diploma)
-    );
+      languages: processedLanguages,
+      certificateOfHonor: getFilePath(certificateOfHonor),
+      diploma: getFilePath(diploma),
+    };
+
+    const isEducatorSaved = await save.educator(educatorData);
     if (!isEducatorSaved) {
       throw createError(500, "An error occurred while creating the profile.");
     }
 
     return {
       success: true,
-      message: "Profile Created Successfully",
+      message: "Educator Profile Created Successfully",
     };
   },
 };

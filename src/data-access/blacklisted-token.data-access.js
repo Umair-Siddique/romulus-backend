@@ -1,6 +1,6 @@
 import { BlacklistedToken } from "#models/index.js";
 
-export const blacklistedToken = {
+export const blacklistedTokenDataAccess = {
   save: {
     blacklistedToken: async (token) => {
       return await BlacklistedToken.create({ token });

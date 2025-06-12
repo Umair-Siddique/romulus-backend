@@ -4,7 +4,7 @@ const { Schema, model } = mongoose;
 
 const EducatorSchema = new Schema(
   {
-    userId: {
+    user: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: "User",
@@ -179,4 +179,4 @@ EducatorSchema.pre("save", function (next) {
   next();
 });
 
-export const EducatorModel = model("educators", EducatorSchema);
+export const EducatorModel = model("Educator", EducatorSchema);

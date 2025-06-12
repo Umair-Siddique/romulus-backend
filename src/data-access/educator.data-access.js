@@ -1,49 +1,15 @@
 import { EducatorModel } from "#models/index.js";
 
-export const educator = {
+export const educatorDataAccess = {
   save: {
-    educator: async (
-      userId,
-      profilePicture,
-      firstName,
-      lastName,
-      gender,
-      dateOfBirth,
-      city,
-      country,
-      fullAddress,
-      bio,
-      identityProof,
-      criminalRecord,
-      profession,
-      hourlyRate,
-      skills,
-      education,
-      languages,
-      certificateOfHonor,
-      diploma,
-    ) => {
-      return await EducatorModel.create({
-        userId,
-        profilePicture,
-        firstName,
-        lastName,
-        gender,
-        dateOfBirth,
-        city,
-        country,
-        fullAddress,
-        bio,
-        identityProof,
-        criminalRecord,
-        profession,
-        hourlyRate,
-        skills,
-        education,
-        languages,
-        certificateOfHonor,
-        diploma,
-      });
+    educator: async (educatorData) => {
+      return await EducatorModel.create(educatorData);
+    },
+  },
+
+  read: {
+    educatorByUserId: async (user) => {
+      return await EducatorModel.findOne({ user }).populate("user");
     },
   },
 };

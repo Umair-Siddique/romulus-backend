@@ -31,7 +31,6 @@ const UserSchema = new Schema(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/,
         "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
       ],
-      select: false,
     },
     role: {
       type: String,
@@ -58,7 +57,7 @@ const UserSchema = new Schema(
         return ret;
       },
     },
-  },
+  }
 );
 
 UserSchema.pre("save", async function (next) {
@@ -78,23 +77,22 @@ UserSchema.methods.generateAuthToken = function () {
     {
       expiresIn: JWT_EXPIRY,
       algorithm: JWT_ALGORITHM,
-    },
+    }
   );
   return token;
 };
 
 UserSchema.methods.comparePassword = async function (password) {
-  try {
-    const isMatch = await bcrypt.compare(password, this.password);
+  console.log("password:", password);
+  console.log("hashed password:", this.password);
 
-    if (!isMatch) {
-      throw createError(401, "Invalid credentials");
-    }
+  const isMatch = await bcrypt.compare(password, this.password);
 
-    return isMatch;
-  } catch (error) {
-    throw createError(500, error.message);
+  if (!isMatch) {
+    throw createError(401, "Invalid credentials");
   }
+
+  return isMatch;
 };
 
 export const UserModel = model("User", UserSchema);

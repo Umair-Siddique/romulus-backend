@@ -5,7 +5,7 @@ import { UserModel } from "#models/index.js";
 
 const { isValidObjectId } = mongoose;
 
-export const user = {
+export const userDataAccess = {
   save: {
     user: async (phone, email, password, role) => {
       return await UserModel.create({
