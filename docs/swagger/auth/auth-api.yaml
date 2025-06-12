@@ -16,6 +16,7 @@ info:
     3. For educators: Verify phone number via WhatsApp SMS
     4. Sign in to receive JWT token
     5. Use token in Authorization header for protected endpoints
+
   contact:
     name: API Support
     email: support@yourapi.com
@@ -26,38 +27,50 @@ info:
 servers:
   - url: https://api.yourapp.com
     description: Production server
-  - url: https://staging-api.yourapp.com
+  - url: https://romulus-backend.onrender.com/
     description: Staging server
-  - url: http://localhost:3000
+  - url: http://localhost:5000
     description: Development server
 
 tags:
   - name: Authentication
-    description: User authentication and account management endpoints
+    description: User authentication and account management
 
 components:
   schemas:
-    # Primitive Types
+    # ================================
+    # PRIMITIVE TYPES
+    # ================================
     ID:
       type: string
       description: MongoDB ObjectId identifier
       example: "60d0fe4f5311236168a109ca"
       pattern: "^[0-9a-fA-F]{24}$"
+      minLength: 24
+      maxLength: 24
 
     Email:
       type: string
       format: email
-      description: Valid email address
-      example: "johndoe@example.com"
+      description: Valid email address (lowercase, trimmed)
+      example: "user@example.com"
       maxLength: 255
       minLength: 5
       pattern: "^\\S+@\\S+\\.\\S+$"
+
+    PhoneNumber:
+      type: string
+      description: Phone number in international format
+      example: "+1234567890"
+      pattern: "^\\+?[1-9]\\d{1,14}$"
+      minLength: 10
+      maxLength: 15
 
     Password:
       type: string
       format: password
       description: |
-        Secure password with the following requirements:
+        Secure password with requirements:
         - Minimum 8 characters
         - At least one uppercase letter
         - At least one lowercase letter  
@@ -66,15 +79,6 @@ components:
       example: "SecurePass123!"
       minLength: 8
       maxLength: 128
-      pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$"
-
-    PhoneNumber:
-      type: string
-      description: Phone number in international format (required for educators)
-      example: "+1234567890"
-      pattern: "^\\+?[1-9]\\d{1,14}$"
-      minLength: 10
-      maxLength: 15
 
     Role:
       type: string
@@ -83,16 +87,58 @@ components:
         User role determining access permissions:
         - `admin`: Full system access
         - `organization`: Organization management
-        - `educator`: Content creation and student management (requires phone verification)
+        - `educator`: Content creation and student management
       default: educator
       example: educator
 
     Token:
       type: string
       description: JWT authentication or verification token
-      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwZDBmZTRmNTMxMTIzNjE2OGExMDljYSIsInJvbGUiOiJlZHVjYXRvciIsImlhdCI6MTYyNDU0MzMxOSwiZXhwIjoxNjI0NjI5NzE5fQ.example"
+      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      minLength: 20
 
-    # Request DTOs
+    # ================================
+    # RESPONSE STRUCTURES
+    # ================================
+    BaseResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the operation completed successfully
+        message:
+          type: string
+          description: Human-readable response message
+          example: "Operation completed successfully"
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            success:
+              example: false
+            message:
+              example: "An error occurred processing your request"
+            error:
+              type: object
+              description: Additional error details
+              properties:
+                code:
+                  type: string
+                  description: Error code for programmatic handling
+                  example: "VALIDATION_ERROR"
+                details:
+                  type: object
+                  description: Detailed error information
+                  additionalProperties: true
+
+    # ================================
+    # REQUEST SCHEMAS
+    # ================================
     SignUpRequest:
       type: object
       required:
@@ -112,8 +158,8 @@ components:
           description: |
             Phone number requirements by role:
             - **Required** for educators
-            - **Optional** for organizations (will be ignored if provided)
-            - **Not applicable** for admins (will be ignored if provided)
+            - **Optional** for organizations (ignored if provided)
+            - **Not applicable** for admins (ignored if provided)
       example:
         email: "educator@example.com"
         password: "SecurePass123!"
@@ -158,38 +204,9 @@ components:
         password: "NewSecurePass456!"
         token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-    # Response DTOs
-    BaseResponse:
-      type: object
-      required:
-        - success
-        - message
-      properties:
-        success:
-          type: boolean
-          description: Indicates if the operation completed successfully
-        message:
-          type: string
-          description: Human-readable response message
-
-    ErrorResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          properties:
-            success:
-              example: false
-            message:
-              example: "An error occurred processing your request"
-
-    SignUpResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          example:
-            success: true
-            message: "Account registered successfully. Please verify your email address."
-
+    # ================================
+    # RESPONSE DATA SCHEMAS
+    # ================================
     SignInData:
       type: object
       required:
@@ -204,52 +221,37 @@ components:
         id: "60d0fe4f5311236168a109ca"
         role: "educator"
 
+    # ================================
+    # RESPONSE SCHEMAS
+    # ================================
+    SignUpResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          example:
+            success: true
+            message: "Account registered successfully. Please verify your email address."
+
     SignInResponse:
       allOf:
         - $ref: "#/components/schemas/BaseResponse"
         - type: object
           required:
             - data
-            - token
           properties:
             data:
               $ref: "#/components/schemas/SignInData"
-            token:
-              $ref: "#/components/schemas/Token"
           example:
             success: true
-            message: "Signed in successfully."
+            message: "Signed in successfully"
             data:
-              id: "60d0fe4f5311236168a109ca"
+              userId: "60d0fe4f5311236168a109ca"
               role: "educator"
-            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-
-    SignOutResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          example:
-            success: true
-            message: "Signed out successfully."
-
-    ForgotPasswordResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          example:
-            success: true
-            message: "Reset password email sent successfully."
-
-    UpdatePasswordResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          example:
-            success: true
-            message: "Password updated successfully."
 
   responses:
-    # Success Responses
+    # ================================
+    # SUCCESS RESPONSES
+    # ================================
     SignUpSuccess:
       description: User account created successfully
       content:
@@ -275,28 +277,9 @@ components:
           schema:
             $ref: "#/components/schemas/SignInResponse"
 
-    SignOutSuccess:
-      description: User signed out and token invalidated
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/SignOutResponse"
-
-    PasswordResetEmailSent:
-      description: Password reset email dispatched successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ForgotPasswordResponse"
-
-    PasswordUpdated:
-      description: Password changed successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/UpdatePasswordResponse"
-
-    # Error Responses
+    # ================================
+    # ERROR RESPONSES
+    # ================================
     BadRequest:
       description: Invalid request data or business logic violation
       content:
@@ -304,36 +287,36 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            validation_error:
-              summary: Field validation failed
+            passwordValidation:
+              summary: Password validation failed
               value:
                 success: false
-                message: "Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character"
-            user_exists:
+                message: "Password must meet security requirements"
+                error:
+                  code: "PASSWORD_VALIDATION"
+                  details:
+                    requirements: ["uppercase", "lowercase", "number", "special"]
+            userExists:
               summary: Email already registered
               value:
                 success: false
-                message: "A user with this email already exists."
-            phone_required:
+                message: "A user with this email already exists"
+                error:
+                  code: "USER_EXISTS"
+            phoneRequired:
               summary: Missing required phone for educator
               value:
                 success: false
-                message: "Phone number is required for educators."
-            no_token:
+                message: "Phone number is required for educators"
+                error:
+                  code: "PHONE_REQUIRED"
+            tokenMissing:
               summary: Missing authentication token
               value:
                 success: false
-                message: "No token found"
-            invalid_token:
-              summary: Malformed or expired token
-              value:
-                success: false
-                message: "Invalid or expired token"
-            invalid_token_payload:
-              summary: Token missing required data
-              value:
-                success: false
-                message: "Invalid token payload"
+                message: "Authentication token is required"
+                error:
+                  code: "TOKEN_MISSING"
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -342,21 +325,13 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            invalid_credentials:
+            invalidCredentials:
               summary: Wrong email or password
               value:
                 success: false
-                message: "Invalid email or password."
-            invalid_password:
-              summary: Password verification failed
-              value:
-                success: false
-                message: "Invalid password."
-            expired_token:
-              summary: Token has expired
-              value:
-                success: false
-                message: "The provided token is invalid or expired."
+                message: "Invalid email or password"
+                error:
+                  code: "INVALID_CREDENTIALS"
 
     Forbidden:
       description: Account exists but verification requirements not met
@@ -365,16 +340,20 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            email_not_verified:
+            emailNotVerified:
               summary: Email verification pending
               value:
                 success: false
-                message: "Email not verified. Please check your inbox."
-            phone_not_verified:
+                message: "Email not verified. Please check your inbox"
+                error:
+                  code: "EMAIL_NOT_VERIFIED"
+            phoneNotVerified:
               summary: Phone verification required for educators
               value:
                 success: false
-                message: "Phone number not verified. Educators must verify their phone numbers."
+                message: "Phone number not verified. Educators must verify their phone numbers"
+                error:
+                  code: "PHONE_NOT_VERIFIED"
 
     NotFound:
       description: Requested resource does not exist
@@ -383,11 +362,13 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            user_not_found:
+            userNotFound:
               summary: No account with provided email
               value:
                 success: false
                 message: "User not found"
+                error:
+                  code: "USER_NOT_FOUND"
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -396,43 +377,25 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            token_generation_failed:
-              summary: JWT token creation failed
+            serverError:
+              summary: Internal server error
               value:
                 success: false
-                message: "Token generation failed."
-            email_send_failed:
-              summary: Email service unavailable
-              value:
-                success: false
-                message: "Failed to send the welcome email."
-            password_update_failed:
-              summary: Database update failed
-              value:
-                success: false
-                message: "Password update failed"
-            user_creation_failed:
-              summary: User registration failed
-              value:
-                success: false
-                message: "Failed to create a new user."
-            token_blacklist_failed:
-              summary: Token invalidation failed
-              value:
-                success: false
-                message: "An error occurred while blacklisting the token."
+                message: "Internal server error occurred"
+                error:
+                  code: "INTERNAL_ERROR"
 
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
       description: |
-        JWT token obtained from the sign-in endpoint.
+        JWT token obtained from the authentication sign-in endpoint.
         Include in the Authorization header as: `Bearer <token>`
 
 paths:
-  /api/auth/signup:
+  /api/v1/auth/signup:
     post:
       summary: Register new user account
       description: |
@@ -447,7 +410,7 @@ paths:
         1. Email verification link sent to provided address
         2. For educators: WhatsApp SMS verification sent to phone
         3. User must complete verification before signing in
-      operationId: signUp
+      operationId: sign-up
       tags: [Authentication]
       requestBody:
         required: true
@@ -456,20 +419,20 @@ paths:
             schema:
               $ref: "#/components/schemas/SignUpRequest"
             examples:
-              educator_registration:
+              educatorRegistration:
                 summary: Educator account (requires phone)
                 value:
                   email: "teacher@school.edu"
                   password: "TeacherPass123!"
                   role: "educator"
                   phone: "+1234567890"
-              organization_registration:
+              organizationRegistration:
                 summary: Organization account (phone optional)
                 value:
                   email: "admin@organization.com"
                   password: "OrgSecure456!"
                   role: "organization"
-              admin_registration:
+              adminRegistration:
                 summary: Admin account (no phone needed)
                 value:
                   email: "admin@system.com"
@@ -483,7 +446,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/auth/signin:
+  /api/v1/auth/signin:
     post:
       summary: Authenticate user credentials
       description: |
@@ -497,7 +460,7 @@ paths:
         - JWT token provided in Authorization header
         - Token expires based on server configuration
         - User ID and role included for client-side routing
-      operationId: signIn
+      operationId: sign-in
       tags: [Authentication]
       requestBody:
         required: true
@@ -515,7 +478,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/auth/signout:
+  /api/v1/auth/signout:
     post:
       summary: Invalidate user session
       description: |
@@ -525,19 +488,20 @@ paths:
         - Token is added to blacklist to prevent reuse
         - Requires valid JWT token in Authorization header
         - Blacklisted tokens expire automatically after 1 hour
-      operationId: signOut
+      operationId: sign-out
       tags: [Authentication]
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token from sign-in response
-          schema:
-            type: string
-            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       responses:
         200:
-          $ref: "#/components/responses/SignOutSuccess"
+          description: User signed out successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseResponse"
+              example:
+                success: true
+                message: "Signed out successfully"
         400:
           $ref: "#/components/responses/BadRequest"
         401:
@@ -545,7 +509,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/auth/forgot-password:
+  /api/v1/auth/forgot-password:
     post:
       summary: Request password reset
       description: |
@@ -556,7 +520,7 @@ paths:
         2. Generates secure reset token
         3. Sends reset link via email
         4. Token expires after configured duration
-      operationId: forgotPassword
+      operationId: forgot-password
       tags: [Authentication]
       requestBody:
         required: true
@@ -566,13 +530,20 @@ paths:
               $ref: "#/components/schemas/ForgotPasswordRequest"
       responses:
         200:
-          $ref: "#/components/responses/PasswordResetEmailSent"
+          description: Password reset email sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseResponse"
+              example:
+                success: true
+                message: "Password reset email sent successfully"
         404:
           $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/auth/update-password:
+  /api/v1/auth/update-password:
     patch:
       summary: Reset password with token
       description: |
@@ -583,7 +554,7 @@ paths:
         - New password must meet complexity requirements
         - Password immediately hashed and stored securely
         - Reset token becomes invalid after use
-      operationId: updatePassword
+      operationId: update-password
       tags: [Authentication]
       requestBody:
         required: true
@@ -593,7 +564,14 @@ paths:
               $ref: "#/components/schemas/UpdatePasswordRequest"
       responses:
         200:
-          $ref: "#/components/responses/PasswordUpdated"
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseResponse"
+              example:
+                success: true
+                message: "Password updated successfully"
         400:
           $ref: "#/components/responses/BadRequest"
         404:

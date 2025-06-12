@@ -32,7 +32,14 @@ const swaggerOptions = {
       },
     },
   },
-  apis: [join(__dirname, "../../docs/swagger/*.yaml")],
+  // Paths to API docs are in their dedicated folders, like auth docs in swagger/auth/*.yaml
+  apis: [
+    join(__dirname, "../../docs/swagger/*.yaml"),
+    join(__dirname, "../../docs/swagger/auth/*.yaml"),
+    join(__dirname, "../../docs/swagger/users/*.yaml"),
+    join(__dirname, "../../docs/swagger/verification/*.yaml"),
+    // Add more folders as needed
+  ],
 };
 
 export const swaggerSpec = swaggerJSDoc(swaggerOptions);
