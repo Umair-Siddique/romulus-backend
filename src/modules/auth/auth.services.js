@@ -11,7 +11,9 @@ import { dataAccess } from "#dataAccess/index.js";
 const { save, read, remove, update } = dataAccess;
 
 export const authServices = {
-  signUp: async ({ phone, email, password, role }) => {
+  signUp: async (data) => {
+    const { phone, email, password, role } = data;
+
     const existingUser = await read.userByEmail(email);
     if (existingUser) {
       throw createError(400, "A user with this email already exists.");
@@ -37,7 +39,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email",
+      "verify-email"
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -51,7 +53,9 @@ export const authServices = {
     };
   },
 
-  signIn: async ({ email, password }) => {
+  signIn: async (data) => {
+    const { email, password } = data;
+
     const user = await read.userByEmail(email);
     if (!user) {
       throw createError(401, "Invalid email or password.");
@@ -64,7 +68,7 @@ export const authServices = {
     if (user.role === "educator" && !user.isPhoneVerified) {
       throw createError(
         403,
-        "Phone number not verified. Educators must verify their phone numbers.",
+        "Phone number not verified. Educators must verify their phone numbers."
       );
     }
 
@@ -108,7 +112,9 @@ export const authServices = {
     };
   },
 
-  forgetPassword: async ({ email }) => {
+  forgetPassword: async (data) => {
+    const { email } = data;
+
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
       throw createError(404, "User not found");
@@ -122,7 +128,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password",
+      "reset-password"
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email");
@@ -134,7 +140,9 @@ export const authServices = {
     };
   },
 
-  updatePassword: async ({ password, token }) => {
+  updatePassword: async (data) => {
+    const { password, token } = data;
+
     const decodedToken = decodeToken(token);
     if (!decodedToken) {
       throw createError(400, "Invalid or expired token");

@@ -7,7 +7,9 @@ import { dataAccess } from "#dataAccess/index.js";
 const { save, read } = dataAccess;
 
 export const otpServices = {
-  send: async ({ email }) => {
+  send: async (data) => {
+    const { email } = data;
+
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
       throw createError(404, "User not found.");
@@ -30,7 +32,9 @@ export const otpServices = {
     return { success: true, message: "OTP sent successfully" };
   },
 
-  verify: async ({ email, otp }) => {
+  verify: async (data) => {
+    const { email, otp } = data;
+
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
       throw createError(404, "User not found.");
@@ -44,8 +48,8 @@ export const otpServices = {
 
     const comparisonResults = await Promise.all(
       existingOtps.map((existingOtp) =>
-        bcrypt.compare(otp, existingOtp.otpHash),
-      ),
+        bcrypt.compare(otp, existingOtp.otpHash)
+      )
     );
 
     const isOtpValid = comparisonResults.some((result) => result === true);
