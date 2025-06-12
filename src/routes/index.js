@@ -4,7 +4,6 @@ import {
   authRoutes,
   educatorRoutes,
   emailRoutes,
-  organizationRoutes,
   otpRoutes,
   userRoutes,
 } from "#modules/index.js";
@@ -24,6 +23,5 @@ v1Router.use("/email", emailRoutes);
 v1Router.use("/otp", otpRoutes);
 v1Router.use("/users", verifyAuthToken, userRoutes);
 v1Router.use("/educators", verifyAuthToken, educatorRoutes);
-v1Router.use("/organization", verifyAuthToken, organizationRoutes);
 
 export default appRouter;
