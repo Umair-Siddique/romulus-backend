@@ -83,7 +83,6 @@ export const authServices = {
       message: "Signed in successfully.",
       data: {
         userId: user._id,
-        email: user.email,
         role: user.role,
       },
       token,
