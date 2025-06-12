@@ -121,7 +121,7 @@ const EducatorSchema = new Schema(
       required: [true, "At least one skill is required"],
       validate: {
         validator: (v) => v.length > 0 && v.length <= 20,
-        message: "Must have 1-20 skills",
+        message: "At least one skill is required",
       },
     },
     education: {
@@ -136,7 +136,7 @@ const EducatorSchema = new Schema(
       required: [true, "At least one language is required"],
       validate: {
         validator: (v) => v.length > 0 && v.length <= 10,
-        message: "Must have 1-10 languages",
+        message: "At least one language is required",
       },
     },
     certificateOfHonor: {
@@ -164,7 +164,7 @@ const EducatorSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 // Pre-save middleware to normalize data

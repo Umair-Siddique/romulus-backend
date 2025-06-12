@@ -15,7 +15,7 @@ export const authControllers = {
 
     res
       .status(200)
-      .header("Authorization", `Bearer ${token}`)
+      .header("Authorization", `${token}`)
       .header("Access-Control-Expose-Headers", "Authorization")
       .json({ ...result, token: undefined });
   }),

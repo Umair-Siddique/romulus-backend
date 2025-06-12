@@ -8,11 +8,5 @@ const upload = multer({
   limits: { fileSize: MAX_FILE_SIZE },
 });
 
-export const uploadFiles = upload.fields([
-  { name: "profilePicture", maxCount: 1 },
-  { name: "identityProof", maxCount: 1 },
-  { name: "criminalRecord", maxCount: 1 },
-  { name: "certificateOfHonor", maxCount: 1 },
-  { name: "diploma", maxCount: 1 },
-  { name: "residenceGuidelines", maxCount: 1 },
-]);
+// Use upload.any() to handle dynamic field names without fileFilter for now
+export const uploadFiles = upload.any();

@@ -1,3 +1,4 @@
+import createError from "http-errors";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { env } from "#config/index.js";
@@ -38,27 +39,62 @@ const fileConfigs = {
     allowedFormats: ["jpg", "jpeg", "png", "pdf"],
     publicId: "diploma",
   },
+  residenceGuidelines: {
+    folder: "documents",
+    allowedFormats: ["jpg", "jpeg", "png", "pdf"],
+    publicId: "residenceGuidelines",
+  },
 };
 
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    const userId = req.body.userId || req.user?.id;
+    const userId = req.body.user;
 
     if (!userId) {
-      throw new Error("User ID is required for file upload");
+      throw createError(400, "User ID is required for file upload.");
     }
 
-    const config = fileConfigs[file.fieldname];
+    // Extract the actual field type from nested field names
+    let fieldType = file.fieldname;
+
+    console.log("Original fieldname:", file.fieldname);
+
+    // Handle nested fields like branches[0][residenceGuidelines]
+    if (
+      file.fieldname.includes("branches[") &&
+      file.fieldname.includes("[residenceGuidelines]")
+    ) {
+      fieldType = "residenceGuidelines";
+    }
+
+    console.log("Extracted fieldType:", fieldType);
+
+    const config = fileConfigs[fieldType];
 
     if (!config) {
-      throw new Error(`Invalid file field: ${file.fieldname}`);
+      throw createError(400, `Unsupported file type: ${fieldType}`);
+    }
+
+    console.log(
+      `Uploading file for user ${userId}:`,
+      file.fieldname,
+      `(type: ${fieldType})`
+    );
+
+    // Create unique public_id for nested fields
+    let publicId = config.publicId;
+    if (file.fieldname.includes("[")) {
+      const branchIndex = file.fieldname.match(/\[(\d+)\]/);
+      if (branchIndex) {
+        publicId = `${config.publicId}_branch_${branchIndex[1]}`;
+      }
     }
 
     return {
       folder: `uploads/users/${userId}/${config.folder}`,
       allowed_formats: config.allowedFormats,
-      public_id: config.publicId,
+      public_id: publicId,
       transformation: config.transformation || undefined,
       overwrite: true,
       invalidate: true, // Ensures CDN cache is cleared on overwrite

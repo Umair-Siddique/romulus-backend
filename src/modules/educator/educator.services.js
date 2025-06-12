@@ -29,15 +29,18 @@ export const educatorServices = {
     } = data;
 
     const existingUser = await read.userById(userId);
-    console.log(existingUser);
     if (!existingUser) {
       throw createError(404, "User does not exist.");
     }
 
-    const existingEducator = await read.educatorByUserId(userId);
-    console.log(existingEducator);
+    const [existingEducator, existingOrganization] = await Promise.all([
+      read.educatorByUserId(userId),
+      read.organizationByUserId(userId),
+    ]);
     if (existingEducator) {
       throw createError(400, "User already has educator profile.");
+    } else if (existingOrganization) {
+      throw createError(400, "User already has organization profile.");
     }
 
     // Handle file URLs - extract path if file object exists

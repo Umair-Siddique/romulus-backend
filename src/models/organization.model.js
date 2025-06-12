@@ -2,68 +2,67 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
-const BranchSchema = new Schema({
-  branchName: {
-    type: String,
-    required: [true, "Branch name is required"],
-    trim: true,
-    minlength: [2, "Branch name must be at least 2 characters"],
-    maxlength: [100, "Branch name cannot exceed 100 characters"],
-  },
-  branchEmail: {
-    type: String,
-    required: [true, "Branch email is required"],
-    trim: true,
-    lowercase: true,
-    validate: {
-      validator: (v) => {
-        return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);
+const BranchSchema = new Schema(
+  {
+    branchName: {
+      type: String,
+      required: [true, "Branch name is required"],
+      trim: true,
+      minlength: [2, "Branch name must be at least 2 characters"],
+      maxlength: [100, "Branch name cannot exceed 100 characters"],
+    },
+    branchEmail: {
+      type: String,
+      required: [true, "Branch email is required"],
+      trim: true,
+      lowercase: true,
+      validate: {
+        validator: (v) => {
+          return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);
+        },
+        message: "Branch email must be a valid email address",
       },
-      message: "Branch email must be a valid email address",
+    },
+    branchPhone: {
+      type: String,
+      trim: true,
+      validate: {
+        validator: (v) => {
+          return /^\+?[1-9]\d{1,14}$/.test(v);
+        },
+        message: "Branch phone number must be a valid international format",
+      },
+      minlength: [10, "Branch phone number must be at least 10 characters"],
+      maxlength: [15, "Branch phone number cannot exceed 15 characters"],
+    },
+    branchCity: {
+      type: String,
+      trim: true,
+      minlength: [2, "Branch city must be at least 2 characters"],
+      maxlength: [100, "Branch city cannot exceed 100 characters"],
+    },
+    branchCountry: {
+      type: String,
+      trim: true,
+      minlength: [2, "Branch country must be at least 2 characters"],
+      maxlength: [100, "Branch country cannot exceed 100 characters"],
+    },
+    branchAddress: {
+      type: String,
+      required: [true, "Branch full address is required"],
+      trim: true,
+      minlength: [10, "Branch full address must be at least 10 characters"],
+      maxlength: [500, "Branch full address cannot exceed 500 characters"],
+    },
+    residenceGuidelines: {
+      type: String, // Store file paths/URLs - Optional field
+      default: "", // Default to empty string
     },
   },
-  branchPhone: {
-    type: String,
-    required: [true, "Branch phone number is required"],
-    trim: true,
-    validate: {
-      validator: (v) => {
-        return /^\+?[1-9]\d{1,14}$/.test(v);
-      },
-      message: "Branch phone number must be a valid international format",
-    },
-    minlength: [10, "Branch phone number must be at least 10 characters"],
-    maxlength: [15, "Branch phone number cannot exceed 15 characters"],
-  },
-  branchCity: {
-    type: String,
-    required: [true, "Branch city is required"],
-    trim: true,
-    minlength: [2, "Branch city must be at least 2 characters"],
-    maxlength: [100, "Branch city cannot exceed 100 characters"],
-  },
-  branchCountry: {
-    type: String,
-    required: [true, "Branch country is required"],
-    trim: true,
-    minlength: [2, "Branch country must be at least 2 characters"],
-    maxlength: [100, "Branch country cannot exceed 100 characters"],
-  },
-  branchAddress: {
-    type: String,
-    required: [true, "Branch full address is required"],
-    trim: true,
-    minlength: [10, "Branch full address must be at least 10 characters"],
-    maxlength: [500, "Branch full address cannot exceed 500 characters"],
-  },
-  residenceGuidelines: {
-    type: [String],
-    required: [true, "Branch residence guidelines are required"],
-    trim: true,
-    minlength: [10, "Residence guidelines must be at least 10 characters"],
-    maxlength: [1000, "Residence guidelines cannot exceed 1000 characters"],
-  },
-});
+  {
+    _id: false, // Disable automatic _id generation for subdocuments
+  }
+);
 
 const OrganizationSchema = new Schema(
   {
@@ -115,7 +114,6 @@ const OrganizationSchema = new Schema(
       minlength: [10, "Phone number must be at least 10 characters"],
       maxlength: [15, "Phone number cannot exceed 15 characters"],
     },
-    // SIRET Number
     siretNumber: {
       type: String,
       required: [true, "SIRET number is required"],
@@ -150,6 +148,7 @@ const OrganizationSchema = new Schema(
     },
     branches: {
       type: [BranchSchema],
+      required: [true, "At least one branch is required"],
       validate: {
         validator: (v) => Array.isArray(v) && v.length > 0,
         message: "At least one branch is required",
@@ -158,7 +157,7 @@ const OrganizationSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const OrganizationModel = model("Organization", OrganizationSchema);
