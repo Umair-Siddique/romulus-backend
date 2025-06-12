@@ -60,7 +60,7 @@ export const userDataAccess = {
       return await UserModel.findOneAndUpdate(
         { email },
         { password },
-        { new: true, upsert: true }
+        { new: true, upsert: true },
       );
     },
   },

@@ -57,7 +57,7 @@ const UserSchema = new Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 UserSchema.pre("save", async function (next) {
@@ -77,15 +77,12 @@ UserSchema.methods.generateAuthToken = function () {
     {
       expiresIn: JWT_EXPIRY,
       algorithm: JWT_ALGORITHM,
-    }
+    },
   );
   return token;
 };
 
 UserSchema.methods.comparePassword = async function (password) {
-  console.log("password:", password);
-  console.log("hashed password:", this.password);
-
   const isMatch = await bcrypt.compare(password, this.password);
 
   if (!isMatch) {

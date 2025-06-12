@@ -1,0 +1,654 @@
+openapi: 3.0.3
+info:
+  title: Organization API
+  version: v1
+  description: |
+    Comprehensive API for managing organization profiles and branch operations.
+
+    **Features:**
+    - Organization profile creation with multiple branch support
+    - File upload support for profile pictures and branch documents
+    - Profile linking to existing user accounts
+    - Duplicate profile prevention (educator/organization conflict detection)
+    - SIRET number validation for French business registration
+    - Complex nested branch management with individual file uploads
+
+    **Authentication:**
+    - All endpoints require valid JWT authentication token
+    - User must have an existing account before creating organization profile
+    - Tokens obtained from Authentication API sign-in endpoint
+
+    **File Upload Support:**
+    - Profile pictures (jpg, jpeg, png, gif, webp)
+    - Branch residence guidelines (jpg, jpeg, png, gif, pdf)
+    - Complex nested file mapping for multiple branches
+
+  contact:
+    name: API Support
+    email: support@yourapi.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.yourapp.com
+    description: Production server
+  - url: https://romulus-backend.onrender.com
+    description: Staging server
+  - url: http://localhost:5000
+    description: Development server
+
+tags:
+  - name: Organization Management
+    description: Organization profile creation and branch management operations
+
+components:
+  schemas:
+    # ================================
+    # PRIMITIVE TYPES
+    # ================================
+    ID:
+      type: string
+      description: MongoDB ObjectId identifier
+      example: "60d0fe4f5311236168a109ca"
+      pattern: "^[0-9a-fA-F]{24}$"
+      minLength: 24
+      maxLength: 24
+
+    Email:
+      type: string
+      format: email
+      description: Valid email address (lowercase, trimmed)
+      example: "organization@example.com"
+      maxLength: 255
+      minLength: 5
+      pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+
+    PhoneNumber:
+      type: string
+      description: Phone number in international format
+      example: "+1234567890"
+      pattern: "^\\+?[1-9]\\d{1,14}$"
+      minLength: 10
+      maxLength: 15
+
+    SiretNumber:
+      type: string
+      description: French SIRET business registration number (14 digits)
+      example: "12345678901234"
+      pattern: "^\\d{14}$"
+      minLength: 14
+      maxLength: 14
+
+    Role:
+      type: string
+      enum: [admin, organization, educator]
+      description: User role determining access permissions
+      default: organization
+      example: organization
+
+    Timestamp:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp with timezone
+      example: "2024-01-15T10:30:00.000Z"
+
+    DocumentUrl:
+      type: string
+      description: URL or file path for uploaded documents
+      example: "/uploads/document-123.pdf"
+      pattern: "^(https?://.*\\.(jpg|jpeg|png|gif|pdf|webp)$|/uploads/.*\\.(jpg|jpeg|png|gif|pdf|webp)$)"
+
+    ImageUrl:
+      type: string
+      description: URL or file path for uploaded images
+      example: "/uploads/profile-123.jpg"
+      pattern: "^(https?://.*\\.(jpg|jpeg|png|gif|webp)$|/uploads/.*\\.(jpg|jpeg|png|gif|webp)$)"
+
+    # ================================
+    # RESPONSE STRUCTURES
+    # ================================
+    BaseResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the operation completed successfully
+        message:
+          type: string
+          description: Human-readable response message
+          example: "Operation completed successfully"
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            success:
+              example: false
+            message:
+              example: "An error occurred processing your request"
+
+    # ================================
+    # USER RELATED SCHEMAS
+    # ================================
+    UserProfile:
+      type: object
+      required:
+        - _id
+        - email
+        - role
+        - isEmailVerified
+        - isPhoneVerified
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        email:
+          $ref: "#/components/schemas/Email"
+        phone:
+          allOf:
+            - $ref: "#/components/schemas/PhoneNumber"
+          nullable: true
+          description: Phone number (required for educators)
+        role:
+          $ref: "#/components/schemas/Role"
+        isEmailVerified:
+          type: boolean
+          description: Email verification status
+          example: true
+        isPhoneVerified:
+          type: boolean
+          description: Phone verification status (required for educators)
+          example: false
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    # ================================
+    # BRANCH SCHEMAS
+    # ================================
+    Branch:
+      type: object
+      required:
+        - branchName
+        - branchEmail
+        - branchAddress
+      properties:
+        branchName:
+          type: string
+          description: Name of the branch office
+          example: "Paris Branch"
+          minLength: 2
+          maxLength: 100
+        branchEmail:
+          $ref: "#/components/schemas/Email"
+          description: Branch-specific email address
+          example: "paris@organization.com"
+        branchPhone:
+          $ref: "#/components/schemas/PhoneNumber"
+          description: Branch phone number (optional)
+          nullable: true
+        branchCity:
+          type: string
+          description: City where branch is located
+          example: "Paris"
+          minLength: 2
+          maxLength: 100
+          nullable: true
+        branchCountry:
+          type: string
+          description: Country where branch is located
+          example: "France"
+          minLength: 2
+          maxLength: 100
+          nullable: true
+        branchAddress:
+          type: string
+          description: Complete branch address
+          example: "123 Business District, Paris, France"
+          minLength: 10
+          maxLength: 500
+        residenceGuidelines:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Branch-specific residence guidelines document
+          nullable: true
+          default: ""
+
+    # ================================
+    # ORGANIZATION SCHEMAS
+    # ================================
+    OrganizationProfile:
+      type: object
+      required:
+        - _id
+        - user
+        - organizationName
+        - foundedYear
+        - phone
+        - siretNumber
+        - city
+        - country
+        - officeAddress
+        - branches
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - $ref: "#/components/schemas/UserProfile"
+          description: Reference to associated user account
+        profilePicture:
+          $ref: "#/components/schemas/ImageUrl"
+          description: Organization logo or profile picture
+          default: "https://example.com/default-profile-picture.png"
+        organizationName:
+          type: string
+          description: Official organization name
+          example: "EduTech Solutions Inc."
+          minLength: 2
+          maxLength: 100
+        foundedYear:
+          type: string
+          format: date
+          description: Year organization was founded (1900 to current year)
+          example: "2010-01-01"
+        phone:
+          $ref: "#/components/schemas/PhoneNumber"
+          description: Main organization phone number
+        siretNumber:
+          $ref: "#/components/schemas/SiretNumber"
+          description: French SIRET business registration number
+        city:
+          type: string
+          description: City of main office
+          example: "Lyon"
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          description: Country of main office
+          example: "France"
+          minLength: 2
+          maxLength: 100
+        officeAddress:
+          type: string
+          description: Complete main office address
+          example: "456 Corporate Blvd, Lyon, France 69000"
+          minLength: 10
+          maxLength: 500
+        branches:
+          type: array
+          description: Organization branch offices
+          items:
+            $ref: "#/components/schemas/Branch"
+          minItems: 1
+          example:
+            - branchName: "Paris Branch"
+              branchEmail: "paris@edutech.com"
+              branchPhone: "+33123456789"
+              branchCity: "Paris"
+              branchCountry: "France"
+              branchAddress: "123 Business District, Paris, France"
+              residenceGuidelines: "/uploads/paris-guidelines.pdf"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    # ================================
+    # REQUEST SCHEMAS
+    # ================================
+    BranchCreateRequest:
+      type: object
+      required:
+        - branchName
+        - branchEmail
+        - branchAddress
+      properties:
+        branchName:
+          type: string
+          description: Name of the branch office
+          minLength: 2
+          maxLength: 100
+        branchEmail:
+          $ref: "#/components/schemas/Email"
+          description: Branch-specific email address
+        branchPhone:
+          $ref: "#/components/schemas/PhoneNumber"
+          description: Branch phone number (optional)
+        branchCity:
+          type: string
+          description: City where branch is located
+          minLength: 2
+          maxLength: 100
+        branchCountry:
+          type: string
+          description: Country where branch is located
+          minLength: 2
+          maxLength: 100
+        branchAddress:
+          type: string
+          description: Complete branch address
+          minLength: 10
+          maxLength: 500
+
+    OrganizationCreateRequest:
+      type: object
+      required:
+        - user
+        - organizationName
+        - foundedYear
+        - phone
+        - siretNumber
+        - city
+        - country
+        - officeAddress
+        - branches
+      properties:
+        user:
+          $ref: "#/components/schemas/ID"
+          description: ID of the associated user account
+        profilePicture:
+          type: string
+          format: binary
+          description: Organization logo or profile picture (jpg, jpeg, png, gif, webp)
+        organizationName:
+          type: string
+          description: Official organization name
+          minLength: 2
+          maxLength: 100
+        foundedYear:
+          type: string
+          format: date
+          description: Year organization was founded (1900 to current year)
+        phone:
+          $ref: "#/components/schemas/PhoneNumber"
+          description: Main organization phone number
+        siretNumber:
+          $ref: "#/components/schemas/SiretNumber"
+          description: French SIRET business registration number (14 digits)
+        city:
+          type: string
+          description: City of main office
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          description: Country of main office
+          minLength: 2
+          maxLength: 100
+        officeAddress:
+          type: string
+          description: Complete main office address
+          minLength: 10
+          maxLength: 500
+        branches:
+          type: array
+          description: Organization branch offices (at least one required)
+          items:
+            $ref: "#/components/schemas/BranchCreateRequest"
+          minItems: 1
+      description: |
+        Organization profile creation data with complex file upload support.
+
+        **File Upload Fields:**
+        - profilePicture: Organization logo/profile image
+        - branches[0][residenceGuidelines]: First branch guidelines document
+        - branches[1][residenceGuidelines]: Second branch guidelines document
+        - branches[N][residenceGuidelines]: Nth branch guidelines document
+
+        **Branch File Mapping:**
+        Files are mapped using field names like `branches[0][residenceGuidelines]`
+        where the index corresponds to the branch array position.
+
+    # ================================
+    # RESPONSE SCHEMAS
+    # ================================
+    OrganizationCreateResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          example:
+            success: true
+            message: "Organization profile created successfully."
+
+  parameters:
+    OrganizationIdPath:
+      in: path
+      name: id
+      required: true
+      description: MongoDB ObjectId of the organization profile
+      schema:
+        $ref: "#/components/schemas/ID"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from the authentication sign-in endpoint.
+        Include in the Authorization header as: `Bearer <token>`
+
+  responses:
+    # ================================
+    # SUCCESS RESPONSES
+    # ================================
+    OrganizationCreateSuccess:
+      description: Organization profile created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/OrganizationCreateResponse"
+
+    # ================================
+    # ERROR RESPONSES
+    # ================================
+    BadRequest:
+      description: Invalid request data or business logic violation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validationError:
+              summary: Field validation failed
+              value:
+                success: false
+                message: "Organization name must be at least 2 characters"
+            siretValidation:
+              summary: SIRET number validation failed
+              value:
+                success: false
+                message: "SIRET number must be exactly 14 digits"
+            foundedYearValidation:
+              summary: Founded year validation failed
+              value:
+                success: false
+                message: "Founded year must be between 1900 and the current year"
+            branchValidation:
+              summary: Branch validation failed
+              value:
+                success: false
+                message: "At least one branch is required"
+            profileExists:
+              summary: Organization profile already exists
+              value:
+                success: false
+                message: "User already has organization profile."
+            educatorConflict:
+              summary: User has educator profile
+              value:
+                success: false
+                message: "User already has educator profile."
+            phoneValidation:
+              summary: Phone number validation failed
+              value:
+                success: false
+                message: "Phone number must be a valid international format"
+            emailValidation:
+              summary: Email validation failed
+              value:
+                success: false
+                message: "Branch email must be a valid email address"
+
+    Unauthorized:
+      description: Authentication failed or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missingToken:
+              summary: No authentication token provided
+              value:
+                success: false
+                message: "Authentication token is required"
+            invalidToken:
+              summary: Token expired or malformed
+              value:
+                success: false
+                message: "Invalid or expired token"
+
+    NotFound:
+      description: Referenced user not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            userNotFound:
+              summary: Associated user account not found
+              value:
+                success: false
+                message: "User does not exist."
+
+    InternalServerError:
+      description: Unexpected server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            profileCreationFailed:
+              summary: Database operation failed
+              value:
+                success: false
+                message: "Failed to create organization."
+            fileUploadError:
+              summary: File processing failed
+              value:
+                success: false
+                message: "Failed to process uploaded files"
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/v1/organizations:
+    post:
+      summary: Create organization profile
+      description: |
+        Creates a comprehensive organization profile with multiple branch support for an existing user account.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - Existing user account (referenced by user ID)
+        - User must not have existing educator or organization profile
+
+        **File Upload Support:**
+        - Content-Type: multipart/form-data
+        - Supported formats: jpg, jpeg, png, gif, webp (images), pdf (documents)
+        - Complex nested file mapping for branch-specific documents
+        - Files are processed and stored with generated paths
+
+        **Validation Rules:**
+        - SIRET number must be exactly 14 digits (French business registration)
+        - Founded year must be between 1900 and current year
+        - At least one branch is required
+        - All text fields are trimmed and validated for length
+        - Email addresses validated for proper format
+        - Phone numbers must be in international format
+
+        **Business Logic:**
+        - Prevents duplicate organization profiles per user
+        - Prevents organization profile if user has educator profile
+        - Handles complex nested file uploads for branch documents
+        - Maps branch files using fieldname pattern: branches[index][field]
+
+        **Branch File Mapping:**
+        Files for branches are uploaded with specific fieldnames:
+        - `branches[0][residenceGuidelines]` for first branch guidelines
+        - `branches[1][residenceGuidelines]` for second branch guidelines
+        - Pattern continues for additional branches
+
+      operationId: create-organization-profile
+      tags: [Organization Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/OrganizationCreateRequest"
+            examples:
+              completeProfile:
+                summary: Complete organization profile with multiple branches
+                value:
+                  user: "60d0fe4f5311236168a109ca"
+                  organizationName: "EduTech Solutions Inc."
+                  foundedYear: "2010-01-01"
+                  phone: "+33123456789"
+                  siretNumber: "12345678901234"
+                  city: "Lyon"
+                  country: "France"
+                  officeAddress: "456 Corporate Blvd, Lyon, France 69000"
+                  profilePicture: "[binary file data]"
+                  branches:
+                    - branchName: "Paris Branch"
+                      branchEmail: "paris@edutech.com"
+                      branchPhone: "+33987654321"
+                      branchCity: "Paris"
+                      branchCountry: "France"
+                      branchAddress: "123 Business District, Paris, France"
+                    - branchName: "Marseille Branch"
+                      branchEmail: "marseille@edutech.com"
+                      branchCity: "Marseille"
+                      branchCountry: "France"
+                      branchAddress: "789 Innovation Center, Marseille, France"
+              minimalProfile:
+                summary: Minimal required fields with single branch
+                value:
+                  user: "60d0fe4f5311236168a109ca"
+                  organizationName: "Small Learning Center"
+                  foundedYear: "2020-01-01"
+                  phone: "+33555123456"
+                  siretNumber: "98765432109876"
+                  city: "Nice"
+                  country: "France"
+                  officeAddress: "321 Education Ave, Nice, France 06000"
+                  branches:
+                    - branchName: "Main Branch"
+                      branchEmail: "main@learningcenter.com"
+                      branchAddress: "321 Education Ave, Nice, France 06000"
+      responses:
+        201:
+          $ref: "#/components/responses/OrganizationCreateSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"

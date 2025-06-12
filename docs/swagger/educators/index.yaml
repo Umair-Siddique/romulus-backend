@@ -1,0 +1,651 @@
+openapi: 3.0.3
+info:
+  title: Educator API
+  version: v1
+  description: |
+    Comprehensive API for managing educator profiles and related operations.
+
+    **Features:**
+    - Educator profile creation with comprehensive validation
+    - File upload support for documents and images
+    - Profile linking to existing user accounts
+    - Duplicate profile prevention (educator/organization conflict detection)
+    - Multi-language and skill management
+
+    **Authentication:**
+    - All endpoints require valid JWT authentication token
+    - User must have an existing account before creating educator profile
+    - Tokens obtained from Authentication API sign-in endpoint
+
+    **File Upload Support:**
+    - Profile pictures (jpg, jpeg, png, gif, webp)
+    - Identity proof documents (jpg, jpeg, png, gif, pdf)
+    - Criminal record documents (jpg, jpeg, png, gif, pdf)
+    - Certificates and diplomas (jpg, jpeg, png, gif, pdf)
+
+  contact:
+    name: API Support
+    email: support@yourapi.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.yourapp.com
+    description: Production server
+  - url: https://romulus-backend.onrender.com
+    description: Staging server
+  - url: http://localhost:5000
+    description: Development server
+
+tags:
+  - name: Educator Management
+    description: Educator profile creation and management operations
+
+components:
+  schemas:
+    # ================================
+    # PRIMITIVE TYPES
+    # ================================
+    ID:
+      type: string
+      description: MongoDB ObjectId identifier
+      example: "60d0fe4f5311236168a109ca"
+      pattern: "^[0-9a-fA-F]{24}$"
+      minLength: 24
+      maxLength: 24
+
+    Email:
+      type: string
+      format: email
+      description: Valid email address (lowercase, trimmed)
+      example: "educator@example.com"
+      maxLength: 255
+      minLength: 5
+      pattern: "^\\S+@\\S+\\.\\S+$"
+
+    PhoneNumber:
+      type: string
+      description: Phone number in international format
+      example: "+1234567890"
+      pattern: "^\\+?[1-9]\\d{1,14}$"
+      minLength: 10
+      maxLength: 15
+
+    Role:
+      type: string
+      enum: [admin, organization, educator]
+      description: User role determining access permissions
+      default: educator
+      example: educator
+
+    Gender:
+      type: string
+      enum: [male, female, other]
+      description: Gender identification
+      example: female
+
+    Timestamp:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp with timezone
+      example: "2024-01-15T10:30:00.000Z"
+
+    DocumentUrl:
+      type: string
+      description: URL or file path for uploaded documents
+      example: "/uploads/document-123.pdf"
+      pattern: "^(https?://.*\\.(jpg|jpeg|png|gif|pdf|webp)$|/uploads/.*\\.(jpg|jpeg|png|gif|pdf|webp)$)"
+
+    ImageUrl:
+      type: string
+      description: URL or file path for uploaded images
+      example: "/uploads/profile-123.jpg"
+      pattern: "^(https?://.*\\.(jpg|jpeg|png|gif|webp)$|/uploads/.*\\.(jpg|jpeg|png|gif|webp)$)"
+
+    # ================================
+    # RESPONSE STRUCTURES
+    # ================================
+    BaseResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the operation completed successfully
+        message:
+          type: string
+          description: Human-readable response message
+          example: "Operation completed successfully"
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            success:
+              example: false
+            message:
+              example: "An error occurred processing your request"
+
+    # ================================
+    # USER RELATED SCHEMAS
+    # ================================
+    UserProfile:
+      type: object
+      required:
+        - _id
+        - email
+        - role
+        - isEmailVerified
+        - isPhoneVerified
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        email:
+          $ref: "#/components/schemas/Email"
+        phone:
+          allOf:
+            - $ref: "#/components/schemas/PhoneNumber"
+          nullable: true
+          description: Phone number (required for educators)
+        role:
+          $ref: "#/components/schemas/Role"
+        isEmailVerified:
+          type: boolean
+          description: Email verification status
+          example: true
+        isPhoneVerified:
+          type: boolean
+          description: Phone verification status (required for educators)
+          example: false
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    # ================================
+    # EDUCATOR SCHEMAS
+    # ================================
+    EducatorProfile:
+      type: object
+      required:
+        - _id
+        - user
+        - firstName
+        - lastName
+        - gender
+        - dateOfBirth
+        - city
+        - country
+        - fullAddress
+        - profession
+        - hourlyRate
+        - skills
+        - education
+        - languages
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - $ref: "#/components/schemas/UserProfile"
+          description: Reference to associated user account
+        profilePicture:
+          $ref: "#/components/schemas/ImageUrl"
+          description: Profile picture URL
+          default: "https://example.com/default-profile-picture.png"
+        firstName:
+          type: string
+          description: Educator's first name
+          example: "Sarah"
+          minLength: 2
+          maxLength: 50
+        lastName:
+          type: string
+          description: Educator's last name
+          example: "Johnson"
+          minLength: 2
+          maxLength: 50
+        gender:
+          $ref: "#/components/schemas/Gender"
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth (age must be 18-100 years)
+          example: "1990-05-15"
+        city:
+          type: string
+          description: City of residence
+          example: "New York"
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          description: Country of residence
+          example: "United States"
+          minLength: 2
+          maxLength: 100
+        fullAddress:
+          type: string
+          description: Complete address
+          example: "123 Education St, New York, NY 10001"
+          minLength: 10
+          maxLength: 500
+        bio:
+          type: string
+          description: Professional biography
+          example: "Experienced mathematics teacher with 10+ years in secondary education"
+          maxLength: 500
+          nullable: true
+        identityProof:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Identity verification document
+          default: "https://example.com/default-identity-proof.png"
+        criminalRecord:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Criminal background check document
+          default: "https://example.com/default-criminal-record.png"
+        profession:
+          type: string
+          description: Professional title or occupation
+          example: "Mathematics Teacher"
+          minLength: 2
+          maxLength: 100
+        hourlyRate:
+          type: number
+          description: Hourly teaching rate in USD
+          example: 35.00
+          minimum: 0
+          maximum: 10000
+        skills:
+          type: array
+          description: Teaching skills and specializations
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          example: ["mathematics", "algebra", "calculus", "statistics"]
+          minItems: 1
+          maxItems: 20
+        education:
+          type: string
+          description: Educational background
+          example: "Master's in Mathematics Education, Harvard University"
+          minLength: 2
+          maxLength: 200
+        languages:
+          type: array
+          description: Spoken languages
+          items:
+            type: string
+            minLength: 1
+            maxLength: 30
+          example: ["english", "spanish", "french"]
+          minItems: 1
+          maxItems: 10
+        certificateOfHonor:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Certificate of honor or achievement
+          default: "https://example.com/default-certificate-of-honor.png"
+        diploma:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Academic diploma or degree certificate
+          default: "https://example.com/default-diploma.png"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    # ================================
+    # REQUEST SCHEMAS
+    # ================================
+    EducatorCreateRequest:
+      type: object
+      required:
+        - user
+        - firstName
+        - lastName
+        - gender
+        - dateOfBirth
+        - city
+        - country
+        - fullAddress
+        - profession
+        - hourlyRate
+        - skills
+        - education
+        - languages
+      properties:
+        user:
+          $ref: "#/components/schemas/ID"
+          description: ID of the associated user account
+        profilePicture:
+          type: string
+          format: binary
+          description: Profile picture file (jpg, jpeg, png, gif, webp)
+        firstName:
+          type: string
+          description: Educator's first name
+          minLength: 2
+          maxLength: 50
+        lastName:
+          type: string
+          description: Educator's last name
+          minLength: 2
+          maxLength: 50
+        gender:
+          $ref: "#/components/schemas/Gender"
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth (must result in age 18-100)
+        city:
+          type: string
+          description: City of residence
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          description: Country of residence
+          minLength: 2
+          maxLength: 100
+        fullAddress:
+          type: string
+          description: Complete residential address
+          minLength: 10
+          maxLength: 500
+        bio:
+          type: string
+          description: Professional biography (optional)
+          maxLength: 500
+        identityProof:
+          type: string
+          format: binary
+          description: Identity verification document (jpg, jpeg, png, gif, pdf)
+        criminalRecord:
+          type: string
+          format: binary
+          description: Criminal background check document (jpg, jpeg, png, gif, pdf)
+        profession:
+          type: string
+          description: Professional title or occupation
+          minLength: 2
+          maxLength: 100
+        hourlyRate:
+          type: number
+          description: Hourly teaching rate
+          minimum: 0
+          maximum: 10000
+        skills:
+          type: string
+          description: Teaching skills (comma-separated or array)
+          example: "mathematics,algebra,calculus,statistics"
+        education:
+          type: string
+          description: Educational background
+          minLength: 2
+          maxLength: 200
+        languages:
+          type: string
+          description: Spoken languages (comma-separated or array)
+          example: "english,spanish,french"
+        certificateOfHonor:
+          type: string
+          format: binary
+          description: Certificate of honor document (jpg, jpeg, png, gif, pdf)
+        diploma:
+          type: string
+          format: binary
+          description: Academic diploma file (jpg, jpeg, png, gif, pdf)
+      description: |
+        Educator profile creation data with file upload support.
+
+        **File Upload Fields:**
+        - profilePicture: Profile image
+        - identityProof: ID verification document
+        - criminalRecord: Background check document
+        - certificateOfHonor: Achievement certificate
+        - diploma: Academic degree certificate
+
+        **Array Fields:**
+        Skills and languages can be provided as:
+        - Comma-separated strings: "math,science,english"
+        - JSON arrays: ["math", "science", "english"]
+
+    # ================================
+    # RESPONSE SCHEMAS
+    # ================================
+    EducatorCreateResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          example:
+            success: true
+            message: "Educator Profile Created Successfully"
+
+  parameters:
+    EducatorIdPath:
+      in: path
+      name: id
+      required: true
+      description: MongoDB ObjectId of the educator profile
+      schema:
+        $ref: "#/components/schemas/ID"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from the authentication sign-in endpoint.
+        Include in the Authorization header as: `Bearer <token>`
+
+  responses:
+    # ================================
+    # SUCCESS RESPONSES
+    # ================================
+    EducatorCreateSuccess:
+      description: Educator profile created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EducatorCreateResponse"
+
+    # ================================
+    # ERROR RESPONSES
+    # ================================
+    BadRequest:
+      description: Invalid request data or business logic violation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validationError:
+              summary: Field validation failed
+              value:
+                success: false
+                message: "First name must be at least 2 characters"
+            ageValidation:
+              summary: Age validation failed
+              value:
+                success: false
+                message: "Age must be between 18 and 100 years"
+            profileExists:
+              summary: Educator profile already exists
+              value:
+                success: false
+                message: "User already has educator profile."
+            organizationConflict:
+              summary: User has organization profile
+              value:
+                success: false
+                message: "User already has organization profile."
+            invalidSkills:
+              summary: Skills validation failed
+              value:
+                success: false
+                message: "At least one skill is required"
+            invalidLanguages:
+              summary: Languages validation failed
+              value:
+                success: false
+                message: "At least one language is required"
+            hourlyRateInvalid:
+              summary: Hourly rate validation failed
+              value:
+                success: false
+                message: "Hourly rate must be a positive number"
+
+    Unauthorized:
+      description: Authentication failed or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missingToken:
+              summary: No authentication token provided
+              value:
+                success: false
+                message: "Authentication token is required"
+            invalidToken:
+              summary: Token expired or malformed
+              value:
+                success: false
+                message: "Invalid or expired token"
+
+    NotFound:
+      description: Referenced user not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            userNotFound:
+              summary: Associated user account not found
+              value:
+                success: false
+                message: "User does not exist."
+
+    InternalServerError:
+      description: Unexpected server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            profileCreationFailed:
+              summary: Database operation failed
+              value:
+                success: false
+                message: "An error occurred while creating the profile."
+            fileUploadError:
+              summary: File processing failed
+              value:
+                success: false
+                message: "Failed to process uploaded files"
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/v1/educators:
+    post:
+      summary: Create educator profile
+      description: |
+        Creates a comprehensive educator profile for an existing user account.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - Existing user account (referenced by user ID)
+        - User must not have existing educator or organization profile
+
+        **File Upload Support:**
+        - Content-Type: multipart/form-data
+        - Supported formats: jpg, jpeg, png, gif, webp (images), pdf (documents)
+        - Files are processed and stored with generated paths
+        - Default URLs provided for optional document fields
+
+        **Validation Rules:**
+        - Age must be between 18-100 years (calculated from dateOfBirth)
+        - At least one skill and one language required
+        - All text fields are trimmed and validated for length
+        - Skills and languages normalized to lowercase
+        - Hourly rate must be between 0-10000
+
+        **Business Logic:**
+        - Prevents duplicate educator profiles per user
+        - Prevents educator profile if user has organization profile
+        - Processes comma-separated strings into arrays for skills/languages
+        - Handles both file uploads and direct URL inputs
+
+      operationId: create-educator-profile
+      tags: [Educator Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/EducatorCreateRequest"
+            examples:
+              completeProfile:
+                summary: Complete educator profile with all fields
+                value:
+                  user: "60d0fe4f5311236168a109ca"
+                  firstName: "Sarah"
+                  lastName: "Johnson"
+                  gender: "female"
+                  dateOfBirth: "1990-05-15"
+                  city: "New York"
+                  country: "United States"
+                  fullAddress: "123 Education St, New York, NY 10001"
+                  bio: "Experienced mathematics teacher with 10+ years in secondary education"
+                  profession: "Mathematics Teacher"
+                  hourlyRate: 35.00
+                  skills: "mathematics,algebra,calculus,statistics"
+                  education: "Master's in Mathematics Education, Harvard University"
+                  languages: "english,spanish"
+                  profilePicture: "[binary file data]"
+                  identityProof: "[binary file data]"
+                  criminalRecord: "[binary file data]"
+                  certificateOfHonor: "[binary file data]"
+                  diploma: "[binary file data]"
+              minimalProfile:
+                summary: Minimal required fields only
+                value:
+                  user: "60d0fe4f5311236168a109ca"
+                  firstName: "John"
+                  lastName: "Smith"
+                  gender: "male"
+                  dateOfBirth: "1985-03-20"
+                  city: "Chicago"
+                  country: "United States"
+                  fullAddress: "456 Learning Ave, Chicago, IL 60601"
+                  profession: "Science Teacher"
+                  hourlyRate: 28.00
+                  skills: "biology,chemistry"
+                  education: "Bachelor's in Biology Education"
+                  languages: "english"
+      responses:
+        201:
+          $ref: "#/components/responses/EducatorCreateSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"

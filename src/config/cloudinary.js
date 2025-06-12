@@ -58,8 +58,6 @@ const storage = new CloudinaryStorage({
     // Extract the actual field type from nested field names
     let fieldType = file.fieldname;
 
-    console.log("Original fieldname:", file.fieldname);
-
     // Handle nested fields like branches[0][residenceGuidelines]
     if (
       file.fieldname.includes("branches[") &&
@@ -68,20 +66,11 @@ const storage = new CloudinaryStorage({
       fieldType = "residenceGuidelines";
     }
 
-    console.log("Extracted fieldType:", fieldType);
-
     const config = fileConfigs[fieldType];
 
     if (!config) {
       throw createError(400, `Unsupported file type: ${fieldType}`);
     }
-
-    console.log(
-      `Uploading file for user ${userId}:`,
-      file.fieldname,
-      `(type: ${fieldType})`
-    );
-
     // Create unique public_id for nested fields
     let publicId = config.publicId;
     if (file.fieldname.includes("[")) {

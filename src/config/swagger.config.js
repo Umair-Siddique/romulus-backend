@@ -36,8 +36,10 @@ const swaggerOptions = {
   apis: [
     join(__dirname, "../../docs/swagger/*.yaml"),
     join(__dirname, "../../docs/swagger/auth/*.yaml"),
+    join(__dirname, "../../docs/swagger/educators/*.yaml"),
     join(__dirname, "../../docs/swagger/users/*.yaml"),
     join(__dirname, "../../docs/swagger/verification/*.yaml"),
+    join(__dirname, "../../docs/swagger/organizations/*.yaml"),
     // Add more folders as needed
   ],
 };

@@ -68,8 +68,6 @@ export const organizationServices = {
       }
     });
 
-    console.log("Processed branches:", processedBranches);
-
     const organizationData = {
       user: userId,
       profilePicture: getFilePath(profilePicture),
@@ -82,6 +80,8 @@ export const organizationServices = {
       officeAddress,
       branches: processedBranches,
     };
+
+    console.log("Organization data to save:", organizationData);
 
     const isOrganizationSaved = await save.organization(organizationData);
     if (!isOrganizationSaved) {

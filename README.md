@@ -50,7 +50,6 @@ src/
 ├── routes/     # API route definitions
 ├── server/     # Server configuration
 ├── utils/      # Utility functions
-└── scripts/    # Maintenance scripts
 ```
 
 ## Core Dependencies
