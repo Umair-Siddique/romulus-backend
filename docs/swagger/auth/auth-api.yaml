@@ -41,9 +41,9 @@ components:
     # ================================
     # PRIMITIVE TYPES
     # ================================
-    ID:
+    UserID:
       type: string
-      description: MongoDB ObjectId identifier
+      description: MongoDB ObjectId identifier for the user
       example: "60d0fe4f5311236168a109ca"
       pattern: "^[0-9a-fA-F]{24}$"
       minLength: 24
@@ -198,15 +198,15 @@ components:
     SignInData:
       type: object
       required:
-        - id
+        - userId
         - role
       properties:
-        id:
+        userId:
           $ref: "#/components/schemas/ID"
         role:
           $ref: "#/components/schemas/Role"
       example:
-        id: "60d0fe4f5311236168a109ca"
+        userId: "60d0fe4f5311236168a109ca"
         role: "educator"
 
     # ================================
@@ -236,7 +236,7 @@ components:
             success: true
             message: "Signed in successfully"
             data:
-              id: "60d0fe4f5311236168a109ca"
+              userId: "60d0fe4f5311236168a109ca"
               role: "educator"
             token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
