@@ -8,9 +8,9 @@ info:
     **Features:**
     - Educator profile creation with comprehensive validation
     - File upload support for documents and images
-    - Profile linking to existing user accounts
+    - Profile retrieval by user ID
     - Duplicate profile prevention (educator/organization conflict detection)
-    - Multi-language and skill management
+    - Skill management with flexible input formats
 
     **Authentication:**
     - All endpoints require valid JWT authentication token
@@ -62,7 +62,6 @@ components:
       example: "educator@example.com"
       maxLength: 255
       minLength: 5
-      pattern: "^\\S+@\\S+\\.\\S+$"
 
     PhoneNumber:
       type: string
@@ -94,14 +93,14 @@ components:
     DocumentUrl:
       type: string
       description: URL or file path for uploaded documents
-      example: "/uploads/document-123.pdf"
-      pattern: "^(https?://.*\\.(jpg|jpeg|png|gif|pdf|webp)$|/uploads/.*\\.(jpg|jpeg|png|gif|pdf|webp)$)"
+      example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/identityProof.png"
+      pattern: "^https?:\\/\\/.+\\.(jpg|jpeg|png|gif|pdf)$"
 
     ImageUrl:
       type: string
       description: URL or file path for uploaded images
-      example: "/uploads/profile-123.jpg"
-      pattern: "^(https?://.*\\.(jpg|jpeg|png|gif|webp)$|/uploads/.*\\.(jpg|jpeg|png|gif|webp)$)"
+      example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/profilePicture.png"
+      pattern: "^https?:\\/\\/.+\\.(jpg|jpeg|png|gif|webp)$"
 
     # ================================
     # RESPONSE STRUCTURES
@@ -167,6 +166,10 @@ components:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
           $ref: "#/components/schemas/Timestamp"
+        __v:
+          type: integer
+          description: MongoDB version key
+          example: 0
 
     # ================================
     # EDUCATOR SCHEMAS
@@ -193,10 +196,8 @@ components:
         _id:
           $ref: "#/components/schemas/ID"
         user:
-          oneOf:
-            - $ref: "#/components/schemas/ID"
-            - $ref: "#/components/schemas/UserProfile"
-          description: Reference to associated user account
+          $ref: "#/components/schemas/UserProfile"
+          description: Associated user account (always populated)
         profilePicture:
           $ref: "#/components/schemas/ImageUrl"
           description: Profile picture URL
@@ -217,9 +218,9 @@ components:
           $ref: "#/components/schemas/Gender"
         dateOfBirth:
           type: string
-          format: date
-          description: Date of birth (age must be 18-100 years)
-          example: "1990-05-15"
+          format: date-time
+          description: Date of birth (age must be 18-100 years, stored as ISO datetime)
+          example: "1990-05-15T00:00:00.000Z"
         city:
           type: string
           description: City of residence
@@ -266,7 +267,7 @@ components:
           maximum: 10000
         skills:
           type: array
-          description: Teaching skills and specializations
+          description: Teaching skills and specializations (normalized to lowercase)
           items:
             type: string
             minLength: 1
@@ -374,7 +375,7 @@ components:
           maximum: 10000
         skills:
           type: string
-          description: Teaching skills (comma-separated or array)
+          description: Teaching skills (comma-separated string or array)
           example: "mathematics,algebra,calculus,statistics"
         education:
           type: string
@@ -389,20 +390,6 @@ components:
           type: string
           format: binary
           description: Academic diploma file (jpg, jpeg, png, gif, pdf)
-      description: |
-        Educator profile creation data with file upload support.
-
-        **File Upload Fields:**
-        - profilePicture: Profile image
-        - identityProof: ID verification document
-        - criminalRecord: Background check document
-        - certificateOfHonor: Achievement certificate
-        - diploma: Academic degree certificate
-
-        **Array Fields:**
-        Skillscan be provided as:
-        - Comma-separated strings: "math,science,english"
-        - JSON arrays: ["math", "science", "english"]
 
     # ================================
     # RESPONSE SCHEMAS
@@ -416,11 +403,11 @@ components:
             message: "Educator Profile Created Successfully"
 
   parameters:
-    EducatorIdPath:
+    UserIdPath:
       in: path
-      name: id
+      name: userId
       required: true
-      description: MongoDB ObjectId of the educator profile
+      description: MongoDB ObjectId of the user account
       schema:
         $ref: "#/components/schemas/ID"
 
@@ -443,6 +430,44 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/EducatorCreateResponse"
+
+    EducatorProfileResponse:
+      description: Educator profile retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EducatorProfile"
+          example:
+            _id: "684c741db41d25d0e5997b0e"
+            user:
+              _id: "684a460b15669c37873dfb06"
+              email: "educator@example.com"
+              role: "educator"
+              isEmailVerified: true
+              isPhoneVerified: true
+              createdAt: "2025-06-12T03:14:19.534Z"
+              updatedAt: "2025-06-12T03:15:47.735Z"
+              __v: 0
+            profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/profilePicture.png"
+            firstName: "Sarah"
+            lastName: "Johnson"
+            gender: "female"
+            dateOfBirth: "1990-05-15T00:00:00.000Z"
+            city: "Islamabad"
+            country: "Pakistan"
+            fullAddress: "Islamabad, Pakistan"
+            bio: "Experienced mathematics teacher with 10+ years in secondary education"
+            identityProof: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/identityProof.png"
+            criminalRecord: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/criminalRecord.png"
+            profession: "Mathematics Teacher"
+            hourlyRate: 35
+            skills: ["mathematics", "algebra", "calculus", "statistics"]
+            education: "Master's in Mathematics Education"
+            certificateOfHonor: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/certificateOfHonor.png"
+            diploma: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/diploma.png"
+            createdAt: "2025-06-13T18:55:25.227Z"
+            updatedAt: "2025-06-13T18:55:25.227Z"
+            __v: 0
 
     # ================================
     # ERROR RESPONSES
@@ -479,11 +504,6 @@ components:
               value:
                 success: false
                 message: "At least one skill is required"
-            hourlyRateInvalid:
-              summary: Hourly rate validation failed
-              value:
-                success: false
-                message: "Hourly rate must be a positive number"
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -504,7 +524,7 @@ components:
                 message: "Invalid or expired token"
 
     NotFound:
-      description: Referenced user not found
+      description: Resource not found
       content:
         application/json:
           schema:
@@ -515,6 +535,11 @@ components:
               value:
                 success: false
                 message: "User does not exist."
+            educatorNotFound:
+              summary: Educator profile not found
+              value:
+                success: false
+                message: "Educator profile not found."
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -528,11 +553,6 @@ components:
               value:
                 success: false
                 message: "An error occurred while creating the profile."
-            fileUploadError:
-              summary: File processing failed
-              value:
-                success: false
-                message: "Failed to process uploaded files"
 
 security:
   - BearerAuth: []
@@ -557,16 +577,16 @@ paths:
 
         **Validation Rules:**
         - Age must be between 18-100 years (calculated from dateOfBirth)
-        - At least one skill and one language required
+        - At least one skill required
         - All text fields are trimmed and validated for length
-        - Skills normalized to lowercase
+        - Skills normalized to lowercase during processing
         - Hourly rate must be between 0-10000
 
         **Business Logic:**
         - Prevents duplicate educator profiles per user
         - Prevents educator profile if user has organization profile
         - Processes comma-separated strings into arrays for skills
-        - Handles both file uploads and direct URL inputs
+        - Handles both file uploads and uses defaults for optional files
 
       operationId: create-educator-profile
       tags: [Educator Management]
@@ -595,11 +615,6 @@ paths:
                   hourlyRate: 35.00
                   skills: "mathematics,algebra,calculus,statistics"
                   education: "Master's in Mathematics Education, Harvard University"
-                  profilePicture: "[binary file data]"
-                  identityProof: "[binary file data]"
-                  criminalRecord: "[binary file data]"
-                  certificateOfHonor: "[binary file data]"
-                  diploma: "[binary file data]"
               minimalProfile:
                 summary: Minimal required fields only
                 value:
@@ -620,6 +635,38 @@ paths:
           $ref: "#/components/responses/EducatorCreateSuccess"
         400:
           $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/educators/{userId}:
+    get:
+      summary: Get educator profile by user ID
+      description: |
+        Retrieves an educator profile associated with a specific user ID.
+
+        **Response Details:**
+        - Returns complete educator profile with populated user information
+        - User object includes email, role, verification status, and timestamps
+        - All document URLs and file paths are included in response
+
+        **Use Cases:**
+        - Display educator profile information
+        - Verify educator account exists for a user
+        - Retrieve profile for editing or updates
+
+      operationId: get-educator-by-user-id
+      tags: [Educator Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/UserIdPath"
+      responses:
+        200:
+          $ref: "#/components/responses/EducatorProfileResponse"
         401:
           $ref: "#/components/responses/Unauthorized"
         404:

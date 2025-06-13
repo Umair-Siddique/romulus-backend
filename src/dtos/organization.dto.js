@@ -29,13 +29,17 @@ const userIdValidation = Joi.string()
     "any.required": "User ID is required.",
   });
 
-const organizationNameValidation = Joi.string().trim().min(2).max(100).messages({
-  "string.base": "Organization name should be a type of text.",
-  "string.empty": "Organization name should not be empty.",
-  "string.min": "Organization name must be at least 2 characters long.",
-  "string.max": "Organization name must not exceed 100 characters.",
-  "any.required": "Organization name is required.",
-});
+const organizationNameValidation = Joi.string()
+  .trim()
+  .min(2)
+  .max(100)
+  .messages({
+    "string.base": "Organization name should be a type of text.",
+    "string.empty": "Organization name should not be empty.",
+    "string.min": "Organization name must be at least 2 characters long.",
+    "string.max": "Organization name must not exceed 100 characters.",
+    "any.required": "Organization name is required.",
+  });
 
 const foundedYearValidation = Joi.date()
   .max("now")
@@ -108,14 +112,11 @@ const branchValidation = Joi.object({
   "object.base": "Branch should be a valid object.",
 });
 
-const branchesValidation = Joi.array()
-  .items(branchValidation)
-  .min(1)
-  .messages({
-    "array.base": "Branches should be an array.",
-    "array.min": "At least one branch is required.",
-    "any.required": "Branches are required.",
-  });
+const branchesValidation = Joi.array().items(branchValidation).min(1).messages({
+  "array.base": "Branches should be an array.",
+  "array.min": "At least one branch is required.",
+  "any.required": "Branches are required.",
+});
 
 // Main DTO schemas - designed for raw form data (before file processing)
 const createOrganizationDto = Joi.object({
@@ -129,9 +130,11 @@ const createOrganizationDto = Joi.object({
   officeAddress: addressValidation.required(),
   branches: branchesValidation.required(),
   // File fields are handled by multer and req.files, not validated here
-}).unknown(true).messages({
-  "object.unknown": "Additional fields are allowed for file uploads.",
-});
+})
+  .unknown(true)
+  .messages({
+    "object.unknown": "Additional fields are allowed for file uploads.",
+  });
 
 const updateOrganizationDto = Joi.object({
   organizationName: organizationNameValidation.optional(),
@@ -143,12 +146,12 @@ const updateOrganizationDto = Joi.object({
   officeAddress: addressValidation.optional(),
   branches: branchesValidation.optional(),
   // File fields are handled by multer and req.files, not validated here
-}).unknown(true).min(1).messages({
-  "object.min": "At least one field must be provided for update.",
-  "object.unknown": "Additional fields are allowed for file uploads.",
-});
+})
+  .unknown(true)
+  .min(1)
+  .messages({
+    "object.min": "At least one field must be provided for update.",
+    "object.unknown": "Additional fields are allowed for file uploads.",
+  });
 
-export { 
-  createOrganizationDto, 
-  updateOrganizationDto 
-};
+export { createOrganizationDto, updateOrganizationDto };

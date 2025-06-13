@@ -11,6 +11,6 @@ organizationRoutes
     "/",
     uploadMiddleware,
     validateDto(createOrganizationDto),
-    organizationControllers.create
+    organizationControllers.create,
   )
   .get("/:userId", organizationControllers.getByUserId);

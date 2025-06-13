@@ -105,7 +105,7 @@ const skillsValidation = Joi.alternatives()
         return helpers.error("skills.range");
       }
       return skills;
-    })
+    }),
   )
   .messages({
     "array.base": "Skills should be an array or comma-separated string.",
