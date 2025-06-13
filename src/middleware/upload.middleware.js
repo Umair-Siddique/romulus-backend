@@ -1,12 +1,48 @@
 import multer from "multer";
-import { storage } from "#config/cloudinary.js";
+import path from "path";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+import { env } from "#config/index.js";
+
+const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
+  env;
+
+cloudinary.config({
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: (req, file) => {
+    // Extract user ID from the form data
+    const userId = req.body.user;
+    const folderPath = `users/${userId}`;
+    const fileExtension = path.extname(file.originalname).substring(1);
+    const publicId = file.fieldname;
+
+    return {
+      folder: folderPath,
+      public_id: publicId,
+      format: fileExtension,
+    };
+  },
+});
 
 const upload = multer({
   storage,
-  limits: { fileSize: MAX_FILE_SIZE },
+  limits: {
+    fileSize: 5 * 1024 * 1024, // keep images size < 5 MB
+  },
 });
 
-// Use upload.any() to handle dynamic field names without fileFilter for now
-export const uploadFiles = upload.any();
+// Multer middleware for multiple fields
+export const uploadMiddleware = upload.fields([
+  { name: "profilePicture", maxCount: 1 },
+  { name: "identityProof", maxCount: 1 },
+  { name: "criminalRecord", maxCount: 1 },
+  { name: "certificateOfHonor", maxCount: 1 },
+  { name: "diploma", maxCount: 1 },
+]);

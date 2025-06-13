@@ -45,8 +45,6 @@ export const educatorServices = {
     // Handle file URLs - extract path if file object exists
     const getFilePath = (file) => {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
-      if (file?.path) return file.path;
-      return file;
     };
 
     // Process skills array
