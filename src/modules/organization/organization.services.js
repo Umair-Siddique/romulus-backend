@@ -16,6 +16,7 @@ export const organizationServices = {
       officeAddress,
       profilePicture,
       branches,
+      ...rest // this will contain dynamically named file fields
     } = data;
 
     const existingUser = await read.userById(userId);
@@ -39,33 +40,13 @@ export const organizationServices = {
       return file;
     };
 
-    // Process uploaded files and map nested fields to branches
-    const processedBranches = [...branches];
-
-    // Find all uploaded files that are numeric keys (multer file objects)
-    const uploadedFiles = Object.keys(data)
-      .filter((key) => !isNaN(key))
-      .map((key) => data[key]);
-
-    // Process each uploaded file
-    uploadedFiles.forEach((file) => {
-      if (file.fieldname && file.fieldname.includes("branches[")) {
-        // Extract branch index and field name from fieldname like "branches[0][residenceGuidelines]"
-        const match = file.fieldname.match(/branches\[(\d+)\]\[(\w+)\]/);
-        if (match) {
-          const branchIndex = parseInt(match[1]);
-          const fieldName = match[2];
-
-          // Ensure branch exists at this index
-          if (processedBranches[branchIndex]) {
-            processedBranches[branchIndex][fieldName] = file.path;
-            console.log(
-              `Mapped ${fieldName} to branch ${branchIndex}:`,
-              file.path
-            );
-          }
-        }
-      }
+    // ✅ Map residenceGuidelines files into corresponding branch objects
+    const processedBranches = branches.map((branch, index) => {
+      const dynamicKey = `branches[${index}][residenceGuidelines]`;
+      return {
+        ...branch,
+        residenceGuidelines: getFilePath(rest[dynamicKey]) || null,
+      };
     });
 
     const organizationData = {
@@ -80,8 +61,6 @@ export const organizationServices = {
       officeAddress,
       branches: processedBranches,
     };
-
-    console.log("Organization data to save:", organizationData);
 
     const isOrganizationSaved = await save.organization(organizationData);
     if (!isOrganizationSaved) {

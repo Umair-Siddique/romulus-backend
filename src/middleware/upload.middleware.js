@@ -31,18 +31,23 @@ const storage = new CloudinaryStorage({
   },
 });
 
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // keep images size < 5 MB
-  },
-});
-
-// Multer middleware for multiple fields
-export const uploadMiddleware = upload.fields([
+const knownFields = [
   { name: "profilePicture", maxCount: 1 },
   { name: "identityProof", maxCount: 1 },
   { name: "criminalRecord", maxCount: 1 },
   { name: "certificateOfHonor", maxCount: 1 },
   { name: "diploma", maxCount: 1 },
-]);
+];
+
+// Add expected dynamic branch fields (assuming max 10 branches for safety)
+for (let i = 0; i < 10; i++) {
+  knownFields.push({
+    name: `branches[${i}][residenceGuidelines]`,
+    maxCount: 1,
+  });
+}
+
+export const uploadMiddleware = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+}).fields(knownFields);
