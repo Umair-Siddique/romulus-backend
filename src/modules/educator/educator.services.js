@@ -20,7 +20,6 @@ export const educatorServices = {
       hourlyRate,
       skills,
       education,
-      languages,
       profilePicture,
       identityProof,
       criminalRecord,
@@ -50,14 +49,10 @@ export const educatorServices = {
       return file;
     };
 
-    // Process skills and languages arrays
+    // Process skills array
     const processedSkills = Array.isArray(skills)
       ? skills
       : skills?.split(",").map((s) => s.trim());
-
-    const processedLanguages = Array.isArray(languages)
-      ? languages
-      : languages?.split(",").map((l) => l.trim());
 
     const educatorData = {
       user: userId,
@@ -76,7 +71,6 @@ export const educatorServices = {
       hourlyRate,
       skills: processedSkills,
       education,
-      languages: processedLanguages,
       certificateOfHonor: getFilePath(certificateOfHonor),
       diploma: getFilePath(diploma),
     };

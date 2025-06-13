@@ -123,28 +123,6 @@ const educationValidation = Joi.string().trim().min(2).max(200).messages({
   "any.required": "Education is required.",
 });
 
-const languagesValidation = Joi.alternatives()
-  .try(
-    Joi.array().items(Joi.string().trim().min(1).max(30)).min(1).max(10),
-    Joi.string().custom((value, helpers) => {
-      const languages = value
-        .split(",")
-        .map((lang) => lang.trim())
-        .filter((lang) => lang.length > 0);
-      if (languages.length === 0 || languages.length > 10) {
-        return helpers.error("languages.range");
-      }
-      return languages;
-    })
-  )
-  .messages({
-    "array.base": "Languages should be an array or comma-separated string.",
-    "array.min": "At least one language is required.",
-    "array.max": "Languages cannot exceed 10 items.",
-    "languages.range": "Languages must contain 1-10 items.",
-    "any.required": "Languages are required.",
-  });
-
 // Main DTO schemas - designed for raw form data (before file processing)
 const createEducatorDto = Joi.object({
   user: userIdValidation.required(),
@@ -160,7 +138,6 @@ const createEducatorDto = Joi.object({
   hourlyRate: hourlyRateValidation.required(),
   skills: skillsValidation.required(),
   education: educationValidation.required(),
-  languages: languagesValidation.required(),
   // File fields are handled by multer and req.files, not validated here
 })
   .unknown(true)
@@ -181,7 +158,6 @@ const updateEducatorDto = Joi.object({
   hourlyRate: hourlyRateValidation.optional(),
   skills: skillsValidation.optional(),
   education: educationValidation.optional(),
-  languages: languagesValidation.optional(),
   // File fields are handled by multer and req.files, not validated here
 })
   .unknown(true)

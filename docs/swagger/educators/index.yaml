@@ -187,7 +187,6 @@ components:
         - hourlyRate
         - skills
         - education
-        - languages
         - createdAt
         - updatedAt
       properties:
@@ -281,16 +280,6 @@ components:
           example: "Master's in Mathematics Education, Harvard University"
           minLength: 2
           maxLength: 200
-        languages:
-          type: array
-          description: Spoken languages
-          items:
-            type: string
-            minLength: 1
-            maxLength: 30
-          example: ["english", "spanish", "french"]
-          minItems: 1
-          maxItems: 10
         certificateOfHonor:
           $ref: "#/components/schemas/DocumentUrl"
           description: Certificate of honor or achievement
@@ -322,7 +311,6 @@ components:
         - hourlyRate
         - skills
         - education
-        - languages
       properties:
         user:
           $ref: "#/components/schemas/ID"
@@ -393,10 +381,6 @@ components:
           description: Educational background
           minLength: 2
           maxLength: 200
-        languages:
-          type: string
-          description: Spoken languages (comma-separated or array)
-          example: "english,spanish,french"
         certificateOfHonor:
           type: string
           format: binary
@@ -416,7 +400,7 @@ components:
         - diploma: Academic degree certificate
 
         **Array Fields:**
-        Skills and languages can be provided as:
+        Skillscan be provided as:
         - Comma-separated strings: "math,science,english"
         - JSON arrays: ["math", "science", "english"]
 
@@ -495,11 +479,6 @@ components:
               value:
                 success: false
                 message: "At least one skill is required"
-            invalidLanguages:
-              summary: Languages validation failed
-              value:
-                success: false
-                message: "At least one language is required"
             hourlyRateInvalid:
               summary: Hourly rate validation failed
               value:
@@ -580,13 +559,13 @@ paths:
         - Age must be between 18-100 years (calculated from dateOfBirth)
         - At least one skill and one language required
         - All text fields are trimmed and validated for length
-        - Skills and languages normalized to lowercase
+        - Skills normalized to lowercase
         - Hourly rate must be between 0-10000
 
         **Business Logic:**
         - Prevents duplicate educator profiles per user
         - Prevents educator profile if user has organization profile
-        - Processes comma-separated strings into arrays for skills/languages
+        - Processes comma-separated strings into arrays for skills
         - Handles both file uploads and direct URL inputs
 
       operationId: create-educator-profile
@@ -616,7 +595,6 @@ paths:
                   hourlyRate: 35.00
                   skills: "mathematics,algebra,calculus,statistics"
                   education: "Master's in Mathematics Education, Harvard University"
-                  languages: "english,spanish"
                   profilePicture: "[binary file data]"
                   identityProof: "[binary file data]"
                   criminalRecord: "[binary file data]"
@@ -637,7 +615,6 @@ paths:
                   hourlyRate: 28.00
                   skills: "biology,chemistry"
                   education: "Bachelor's in Biology Education"
-                  languages: "english"
       responses:
         201:
           $ref: "#/components/responses/EducatorCreateSuccess"

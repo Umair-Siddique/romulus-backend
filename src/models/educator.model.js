@@ -131,14 +131,6 @@ const EducatorSchema = new Schema(
       minlength: [2, "Education must be at least 2 characters"],
       maxlength: [200, "Education cannot exceed 200 characters"],
     },
-    languages: {
-      type: [String],
-      required: [true, "At least one language is required"],
-      validate: {
-        validator: (v) => v.length > 0 && v.length <= 10,
-        message: "At least one language is required",
-      },
-    },
     certificateOfHonor: {
       type: String,
       trim: true,
@@ -169,12 +161,9 @@ const EducatorSchema = new Schema(
 
 // Pre-save middleware to normalize data
 EducatorSchema.pre("save", function (next) {
-  // Normalize skills and languages to lowercase
+  // Normalize skills to lowercase
   if (this.skills) {
     this.skills = this.skills.map((skill) => skill.toLowerCase().trim());
-  }
-  if (this.languages) {
-    this.languages = this.languages.map((lang) => lang.toLowerCase().trim());
   }
   next();
 });
