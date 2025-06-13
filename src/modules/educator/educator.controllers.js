@@ -10,4 +10,12 @@ export const educatorControllers = {
 
     res.status(201).json(result);
   }),
+
+  getByUserId: asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    const result = await educatorServices.getByUserId(userId);
+
+    res.status(200).json(result);
+  }),
 };

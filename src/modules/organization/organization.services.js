@@ -72,4 +72,13 @@ export const organizationServices = {
       message: "Organization profile created successfully.",
     };
   },
+
+  getByUserId: async (userId) => {
+    const organization = await read.organizationByUserId(userId);
+    if (!organization) {
+      throw createError(404, "Organization profile not found.");
+    }
+
+    return organization;
+  },
 };

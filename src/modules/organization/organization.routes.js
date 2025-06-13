@@ -6,9 +6,11 @@ import { uploadMiddleware } from "#middleware/index.js";
 
 export const organizationRoutes = express.Router();
 
-organizationRoutes.post(
-  "/",
-  uploadMiddleware,
-  validateDto(createOrganizationDto),
-  organizationControllers.create
-);
+organizationRoutes
+  .post(
+    "/",
+    uploadMiddleware,
+    validateDto(createOrganizationDto),
+    organizationControllers.create
+  )
+  .get("/:userId", organizationControllers.getByUserId);

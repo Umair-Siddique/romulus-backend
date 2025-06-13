@@ -7,9 +7,11 @@ import { educatorControllers } from "./educator.controllers.js";
 
 export const educatorRoutes = express.Router();
 
-educatorRoutes.post(
-  "/",
-  uploadMiddleware,
-  validateDto(createEducatorDto),
-  educatorControllers.create
-);
+educatorRoutes
+  .post(
+    "/",
+    uploadMiddleware,
+    validateDto(createEducatorDto),
+    educatorControllers.create
+  )
+  .get("/:userId", educatorControllers.getByUserId);

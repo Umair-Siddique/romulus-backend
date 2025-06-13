@@ -83,4 +83,13 @@ export const educatorServices = {
       message: "Educator Profile Created Successfully",
     };
   },
+
+  getByUserId: async (userId) => {
+    const educator = await read.educatorByUserId(userId);
+    if (!educator) {
+      throw createError(404, "Educator profile not found.");
+    }
+
+    return educator;
+  },
 };
