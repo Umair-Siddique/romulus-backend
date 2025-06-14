@@ -19,7 +19,7 @@ const error_handler = async (err, req, res, next) => {
   const status = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   const stack = isProduction
-    ? undefined
+    ? err.stack
     : err.stack || "No stack trace available";
 
   const errorResponse = {
