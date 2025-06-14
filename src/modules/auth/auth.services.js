@@ -39,7 +39,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email"
+      "verify-email",
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -72,7 +72,7 @@ export const authServices = {
     if (user.role === "educator" && !user.isPhoneVerified) {
       throw createError(
         403,
-        "Phone number not verified. Educators must verify their phone numbers."
+        "Phone number not verified. Educators must verify their phone numbers.",
       );
     }
 
@@ -132,7 +132,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password"
+      "reset-password",
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email");
