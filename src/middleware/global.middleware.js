@@ -23,7 +23,7 @@ const error_handler = async (err, req, res, next) => {
   const errorResponse = {
     success: false,
     message,
-    stack,
+    stack: isProduction ? undefined : stack,
   };
 
   logger.error(JSON.stringify(errorResponse, null, 2));
