@@ -90,6 +90,10 @@ export const educatorServices = {
       throw createError(404, "Educator profile not found.");
     }
 
-    return educator;
+    return {
+      success: true,
+      message: "Educator profile retrieved successfully.",
+      data: educator,
+    };
   },
 };

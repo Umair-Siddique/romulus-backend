@@ -79,6 +79,10 @@ export const organizationServices = {
       throw createError(404, "Organization profile not found.");
     }
 
-    return organization;
+    return {
+      success: true,
+      message: "Organization profile retrieved successfully.",
+      data: organization,
+    };
   },
 };
