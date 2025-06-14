@@ -18,16 +18,15 @@ const error_handler = async (err, req, res, next) => {
   const isProduction = process.env.NODE_ENV === "production";
   const status = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
-  const stack = isProduction
-    ? err.stack
-    : err.stack || "No stack trace available";
+  const stack = err.stack || "No stack trace available";
 
   const errorResponse = {
     success: false,
     message,
+    stack,
   };
 
-  logger.error(JSON.stringify({ ...errorResponse, stack }, null, 2));
+  logger.error(JSON.stringify(errorResponse, null, 2));
   res.status(status).json(errorResponse);
 };
 
