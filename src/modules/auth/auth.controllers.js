@@ -12,7 +12,7 @@ export const authControllers = {
     const payload = req.body;
     const result = await authServices.signIn(payload);
 
-    res.status(200).json({ result });
+    res.status(200).json(result);
   }),
 
   signOut: asyncHandler(async (req, res) => {
