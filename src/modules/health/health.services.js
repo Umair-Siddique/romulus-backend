@@ -18,192 +18,101 @@ const {
   FRONTEND_BASE_URL_DEV,
 } = env;
 
-// Helper function to format uptime
-const formatUptime = (seconds) => {
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = Math.floor(seconds % 60);
-
-  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  if (minutes > 0) return `${minutes}m ${secs}s`;
-  return `${secs}s`;
-};
-
-// Helper function to get memory health status
-const getMemoryHealth = (usage) => {
-  if (usage < 70) return "healthy";
-  if (usage < 85) return "warning";
-  return "critical";
-};
-
-// Helper function to get database connection details
-const getDatabaseInfo = () => {
-  const connection = mongoose.connection;
-  return {
-    name: connection.name || "unknown",
-    host: connection.host || "unknown",
-    port: connection.port || "unknown",
-    readyState: ["disconnected", "connected", "connecting", "disconnecting"][
-      connection.readyState
-    ],
-  };
-};
-
 export const healthServices = {
   checkHealth: async () => {
     const startTime = Date.now();
     const memoryUsage = process.memoryUsage();
-    const memoryUsagePercent = Math.round(
-      (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100
-    );
+    const memoryUsedMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
 
-    // Database health check with detailed info
+    // Database health check
     let dbStatus = "disconnected";
     let dbResponseTime = null;
-    const dbInfo = getDatabaseInfo();
 
     if (mongoose.connection.readyState === 1) {
       const dbStart = Date.now();
       await mongoose.connection.db.admin().ping();
       dbResponseTime = Date.now() - dbStart;
-      dbStatus =
-        dbResponseTime < 500
-          ? "healthy"
-          : dbResponseTime < 1000
-            ? "slow"
-            : "degraded";
+      dbStatus = dbResponseTime < 1000 ? "healthy" : "slow";
     }
 
-    // Service health with meaningful status
-    const serviceHealth = {
-      cloudinary: {
-        status: !!(
-          CLOUDINARY_CLOUD_NAME &&
-          CLOUDINARY_API_KEY &&
-          CLOUDINARY_API_SECRET
-        )
-          ? "configured"
-          : "not_configured",
-        details: !!(
-          CLOUDINARY_CLOUD_NAME &&
-          CLOUDINARY_API_KEY &&
-          CLOUDINARY_API_SECRET
-        )
-          ? `Cloud: ${CLOUDINARY_CLOUD_NAME}`
-          : "Missing credentials",
-      },
-      email: {
-        status: !!(USER_EMAIL && USER_PASSWORD)
-          ? "configured"
-          : "not_configured",
-        details: !!(USER_EMAIL && USER_PASSWORD)
-          ? `SMTP: ${USER_EMAIL}`
-          : "Missing credentials",
-      },
-    };
+    // Services check
+    const cloudinaryConfigured = !!(
+      CLOUDINARY_CLOUD_NAME &&
+      CLOUDINARY_API_KEY &&
+      CLOUDINARY_API_SECRET
+    );
+    const emailConfigured = !!(USER_EMAIL && USER_PASSWORD);
 
     // Overall health determination
-    const isHealthy =
-      (dbStatus === "healthy" || dbStatus === "slow") &&
-      memoryUsagePercent < 85;
+    const isHealthy = dbStatus === "healthy" && memoryUsedMB < 500; // 500MB threshold
     const overallStatus = isHealthy
       ? "healthy"
       : dbStatus === "disconnected"
         ? "unhealthy"
         : "degraded";
 
+    // Base health data
     const healthData = {
       status: overallStatus,
       timestamp: new Date().toISOString(),
       responseTime: `${Date.now() - startTime}ms`,
 
-      system: {
-        environment: NODE_ENV,
-        nodeVersion: process.version,
-        platform: `${process.platform} ${process.arch}`,
-        uptime: formatUptime(process.uptime()),
-        memory: {
-          used: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
-          total: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)}MB`,
-          usage: `${memoryUsagePercent}%`,
-          health: getMemoryHealth(memoryUsagePercent),
-          ...(memoryUsagePercent > 85 && {
-            warning: "High memory usage detected",
-          }),
-        },
-      },
-
       database: {
         status: dbStatus,
         responseTime: dbResponseTime ? `${dbResponseTime}ms` : null,
-        connection: dbInfo,
-        ...(dbResponseTime > 500 && { warning: "Slow database response" }),
       },
 
-      services: serviceHealth,
-
-      application: {
-        port: PORT,
+      system: {
         environment: NODE_ENV,
-        urls: {
-          backend:
-            NODE_ENV === "production"
-              ? BACKEND_BASE_URL_PROD
-              : BACKEND_BASE_URL_DEV,
-          frontend:
-            NODE_ENV === "production"
-              ? FRONTEND_BASE_URL_PROD
-              : FRONTEND_BASE_URL_DEV,
-        },
+        uptime: `${Math.floor(process.uptime())}s`,
+        memory: `${memoryUsedMB}MB`,
       },
 
-      // Configuration status (development only)
-      ...(NODE_ENV !== "production" && {
-        configuration: {
-          jwt: JWT_SECRET_KEY ? "configured" : "missing",
-          database: DATABASE_URI ? "configured" : "missing",
-          cloudinary: !!(
-            CLOUDINARY_CLOUD_NAME &&
-            CLOUDINARY_API_KEY &&
-            CLOUDINARY_API_SECRET
-          )
-            ? "configured"
-            : "missing",
-          email: !!(USER_EMAIL && USER_PASSWORD) ? "configured" : "missing",
-        },
-      }),
-
-      // Health summary
-      summary: {
-        totalChecks: 4, // database, memory, cloudinary, email
-        passing: [
-          dbStatus === "healthy" || dbStatus === "slow",
-          memoryUsagePercent < 85,
-          !!(
-            CLOUDINARY_CLOUD_NAME &&
-            CLOUDINARY_API_KEY &&
-            CLOUDINARY_API_SECRET
-          ),
-          !!(USER_EMAIL && USER_PASSWORD),
-        ].filter(Boolean).length,
-        issues: [
-          ...(dbStatus === "disconnected" ? ["Database disconnected"] : []),
-          ...(dbStatus === "degraded" ? ["Database very slow"] : []),
-          ...(dbStatus === "slow" ? ["Database response slow"] : []),
-          ...(memoryUsagePercent > 85 ? ["High memory usage"] : []),
-          ...(!!(
-            CLOUDINARY_CLOUD_NAME &&
-            CLOUDINARY_API_KEY &&
-            CLOUDINARY_API_SECRET
-          )
-            ? []
-            : ["Cloudinary not configured"]),
-          ...(!!(USER_EMAIL && USER_PASSWORD) ? [] : ["Email not configured"]),
-        ],
+      services: {
+        cloudinary: cloudinaryConfigured,
+        email: emailConfigured,
       },
     };
+
+    healthData.development = {
+      port: PORT || "unknown",
+      nodeVersion: process.version,
+      platform: process.platform,
+      database: {
+        name: mongoose.connection.name || "unknown",
+        host: mongoose.connection.host || "unknown",
+      },
+      configuration: {
+        jwt: !!JWT_SECRET_KEY,
+        database: !!DATABASE_URI,
+        cloudinary: cloudinaryConfigured,
+        email: emailConfigured,
+      },
+      urls: {
+        backend: BACKEND_BASE_URL_DEV,
+        frontend: FRONTEND_BASE_URL_DEV,
+      },
+    };
+
+    // Add production monitoring info
+    if (NODE_ENV === "production") {
+      const issues = [];
+      if (dbStatus === "disconnected") issues.push("Database disconnected");
+      if (dbStatus === "slow") issues.push("Database slow");
+      if (memoryUsedMB > 500) issues.push("High memory usage");
+      if (!cloudinaryConfigured) issues.push("Cloudinary not configured");
+      if (!emailConfigured) issues.push("Email not configured");
+
+      healthData.monitoring = {
+        totalChecks: 5,
+        passing: 5 - issues.length,
+        issues,
+        urls: {
+          backend: BACKEND_BASE_URL_PROD,
+          frontend: FRONTEND_BASE_URL_PROD,
+        },
+      };
+    }
 
     return {
       success: true,
@@ -211,8 +120,8 @@ export const healthServices = {
         overallStatus === "healthy"
           ? "All systems operational"
           : overallStatus === "degraded"
-            ? "System operational with performance issues"
-            : "System experiencing critical issues",
+            ? "System operational with issues"
+            : "System experiencing problems",
       data: healthData,
     };
   },
