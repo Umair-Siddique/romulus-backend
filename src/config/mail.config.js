@@ -2,12 +2,10 @@ import nodemailer from "nodemailer";
 
 import { logger, env } from "./index.js";
 
-const { EMAIL_HOST, EMAIL_PORT, USER_EMAIL, USER_PASSWORD, EMAIL_SERVICE } =
-  env;
+const { EMAIL_HOST, EMAIL_PORT, USER_EMAIL, USER_PASSWORD } = env;
 
 const createTransporter = () => {
   const transporter = nodemailer.createTransport({
-    service: EMAIL_SERVICE,
     host: EMAIL_HOST,
     port: EMAIL_PORT,
     secure: false, // Set true for SSL (465), false for TLS (587)
