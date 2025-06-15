@@ -7,17 +7,15 @@ import {
   organizationRoutes,
   otpRoutes,
   userRoutes,
+  healthRoutes
 } from "#modules/index.js";
 import { verifyAuthToken } from "#middleware/index.js";
 
 const appRouter = express.Router();
 const v1Router = express.Router();
 
-appRouter.get("/", (_, res) => {
-  res.json({ message: "Server is working..." });
-});
-
 appRouter.use("/api/v1", v1Router);
+appRouter.use("/health", healthRoutes);
 
 v1Router.use("/auth", authRoutes);
 v1Router.use("/email", emailRoutes);
