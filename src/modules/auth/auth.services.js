@@ -78,7 +78,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email",
+      "verify-email"
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -142,7 +142,7 @@ export const authServices = {
             role: user.role,
             action: "verify_phone",
           },
-        },
+        }
       );
     }
 
@@ -204,7 +204,7 @@ export const authServices = {
           operation: "save.blacklistedToken",
           userId: id,
           context: { expiresAt: expiresAt.toISOString() },
-        },
+        }
       );
     }
 
@@ -242,7 +242,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password",
+      "reset-password"
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email", {
