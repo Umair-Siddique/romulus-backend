@@ -18,13 +18,9 @@ const {
 } = env;
 
 const backendUrl =
-  NODE_ENV === "production"
-    ? BACKEND_BASE_URL_PROD
-    : BACKEND_BASE_URL_DEV;
+  NODE_ENV === "production" ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV;
 
 const frontendUrl =
-  NODE_ENV === "production"
-    ? FRONTEND_BASE_URL_PROD
-    : FRONTEND_BASE_URL_DEV;
+  NODE_ENV === "production" ? FRONTEND_BASE_URL_PROD : FRONTEND_BASE_URL_DEV;
 
 export { uploadDirectory, viewsDirectory, backendUrl, frontendUrl };

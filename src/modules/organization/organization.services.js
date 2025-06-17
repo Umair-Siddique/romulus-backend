@@ -21,17 +21,36 @@ export const organizationServices = {
 
     const existingUser = await read.userById(userId);
     if (!existingUser) {
-      throw createError(404, "User does not exist.");
+      throw createError(404, "User does not exist.", {
+        expose: true,
+        code: "USER_NOT_FOUND",
+        field: "user",
+        userId: userId,
+        operation: "create_organization_profile",
+      });
     }
 
     const [existingEducator, existingOrganization] = await Promise.all([
       read.educatorByUserId(userId),
       read.organizationByUserId(userId),
     ]);
+
     if (existingEducator) {
-      throw createError(400, "User already has educator profile.");
+      throw createError(400, "User already has educator profile.", {
+        expose: true,
+        code: "EDUCATOR_PROFILE_EXISTS",
+        userId: userId,
+        operation: "create_organization_profile",
+        context: { conflictType: "educator" },
+      });
     } else if (existingOrganization) {
-      throw createError(400, "User already has organization profile.");
+      throw createError(400, "User already has organization profile.", {
+        expose: true,
+        code: "ORGANIZATION_PROFILE_EXISTS",
+        userId: userId,
+        operation: "create_organization_profile",
+        context: { conflictType: "organization" },
+      });
     }
 
     const getFilePath = (file) => {
@@ -64,7 +83,18 @@ export const organizationServices = {
 
     const isOrganizationSaved = await save.organization(organizationData);
     if (!isOrganizationSaved) {
-      throw createError(500, "Failed to create organization.");
+      throw createError(500, "Failed to create organization.", {
+        expose: false,
+        code: "ORGANIZATION_CREATION_FAILED",
+        operation: "save.organization",
+        userId: userId,
+        context: {
+          organizationName,
+          branchesCount: processedBranches?.length || 0,
+          hasProfilePicture: !!organizationData.profilePicture,
+          hasSiretNumber: !!siretNumber,
+        },
+      });
     }
 
     return {
@@ -76,7 +106,13 @@ export const organizationServices = {
   getByUserId: async (userId) => {
     const organization = await read.organizationByUserId(userId);
     if (!organization) {
-      throw createError(404, "Organization profile not found.");
+      throw createError(404, "Organization profile not found.", {
+        expose: true,
+        code: "ORGANIZATION_NOT_FOUND",
+        field: "userId",
+        userId: userId,
+        operation: "get_organization_profile",
+      });
     }
 
     return {

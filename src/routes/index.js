@@ -7,7 +7,7 @@ import {
   organizationRoutes,
   otpRoutes,
   userRoutes,
-  healthRoutes
+  healthRoutes,
 } from "#modules/index.js";
 import { verifyAuthToken } from "#middleware/index.js";
 

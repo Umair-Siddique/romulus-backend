@@ -12,7 +12,13 @@ export const otpServices = {
 
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
-      throw createError(404, "User not found.");
+      throw createError(404, "User not found.", {
+        expose: true,
+        code: "USER_NOT_FOUND",
+        field: "email",
+        operation: "send_otp",
+        context: { email },
+      });
     }
 
     const { rawOtp, hashedOtp, expiresAt } = await generateOtp();
@@ -24,7 +30,16 @@ export const otpServices = {
     });
 
     if (!isOtpSaved) {
-      throw createError(500, "Failed to save OTP.");
+      throw createError(500, "Failed to save OTP.", {
+        expose: false,
+        code: "OTP_SAVE_FAILED",
+        operation: "save.otp",
+        userId: existingUser._id,
+        context: {
+          email,
+          expiresAt: expiresAt.toISOString(),
+        },
+      });
     }
 
     await sendOtpEmail(email, rawOtp);
@@ -37,13 +52,26 @@ export const otpServices = {
 
     const existingUser = await read.userByEmail(email);
     if (!existingUser) {
-      throw createError(404, "User not found.");
+      throw createError(404, "User not found.", {
+        expose: true,
+        code: "USER_NOT_FOUND",
+        field: "email",
+        operation: "verify_otp",
+        context: { email },
+      });
     }
 
     const existingOtps = await read.otp(existingUser._id);
 
     if (!existingOtps || !existingOtps.length) {
-      throw createError(400, "Invalid OTP");
+      throw createError(400, "Invalid OTP", {
+        expose: true,
+        code: "NO_OTP_FOUND",
+        field: "otp",
+        userId: existingUser._id,
+        operation: "verify_otp",
+        context: { email },
+      });
     }
 
     const comparisonResults = await Promise.all(
@@ -55,7 +83,18 @@ export const otpServices = {
     const isOtpValid = comparisonResults.some((result) => result === true);
 
     if (!isOtpValid) {
-      throw createError(400, "Invalid OTP");
+      throw createError(400, "Invalid OTP", {
+        expose: true,
+        code: "OTP_MISMATCH",
+        field: "otp",
+        userId: existingUser._id,
+        operation: "verify_otp",
+        context: {
+          email,
+          otpCount: existingOtps.length,
+          providedOtpLength: otp?.length,
+        },
+      });
     }
 
     return { success: true, message: "OTP Verified" };
