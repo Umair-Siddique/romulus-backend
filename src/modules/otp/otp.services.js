@@ -1,7 +1,7 @@
 import createError from "http-errors";
 import bcrypt from "bcryptjs";
 
-import { generateOtp, sendOtpEmail } from "#utils/index.js";
+import { generateOtp, sendEmailOtp } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { save, read } = dataAccess;
@@ -42,7 +42,7 @@ export const otpServices = {
       });
     }
 
-    await sendOtpEmail(email, rawOtp);
+    await sendEmailOtp(email, rawOtp);
 
     return { success: true, message: "OTP sent successfully" };
   },
@@ -76,8 +76,8 @@ export const otpServices = {
 
     const comparisonResults = await Promise.all(
       existingOtps.map((existingOtp) =>
-        bcrypt.compare(otp, existingOtp.otpHash),
-      ),
+        bcrypt.compare(otp, existingOtp.otpHash)
+      )
     );
 
     const isOtpValid = comparisonResults.some((result) => result === true);

@@ -53,7 +53,7 @@ export const sendVerificationEmail = async (
   return true;
 };
 
-export const sendOtpEmail = async (email, otpCode) => {
+export const sendEmailOtp = async (email, otpCode) => {
   const emailHtml = readEmailTemplate("otp-email", "index.html").replace(
     /\$\{otpCode\}/g,
     otpCode,
