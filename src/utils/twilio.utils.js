@@ -6,8 +6,8 @@ export const sendWhatsAppOTP = async (phone) => {
   return await twilioClient.verify.v2
     .services(TWILIO_VERIFY_SERVICE_SID)
     .verifications.create({
-      channel: "whatsapp",
       to: phone,
+      channel: "whatsapp",
     });
 };
 

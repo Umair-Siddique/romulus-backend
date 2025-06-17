@@ -60,20 +60,20 @@ export const authServices = {
       });
     }
 
-    const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
-    if (!isWhatsAppOtpSent) {
-      await remove.userById(newUser._id);
-      throw createError(500, "Failed to send OTP", {
-        expose: false,
-        code: "TWILIO_OTP_SEND_FAILED",
-        operation: "send_whatsapp_otp",
-        context: {
-          phone,
-          channel: "whatsapp",
-          service: "twilio_verify",
-        },
-      });
-    }
+    // const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
+    // if (!isWhatsAppOtpSent) {
+    //   await remove.userById(newUser._id);
+    //   throw createError(500, "Failed to send OTP", {
+    //     expose: false,
+    //     code: "TWILIO_OTP_SEND_FAILED",
+    //     operation: "send_whatsapp_otp",
+    //     context: {
+    //       phone,
+    //       channel: "whatsapp",
+    //       service: "twilio_verify",
+    //     },
+    //   });
+    // }
 
     const isEmailSent = await sendVerificationEmail(
       email,
