@@ -5,6 +5,7 @@ import {
   generateToken,
   decodeToken,
   sendVerificationEmail,
+  sendWhatsAppOTP,
 } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
@@ -56,6 +57,21 @@ export const authServices = {
         operation: "generateToken",
         userId: newUser._id,
         context: { purpose: "email_verification" },
+      });
+    }
+
+    const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
+    if (!isWhatsAppOtpSent) {
+      await remove.userById(newUser._id);
+      throw createError(500, "Failed to send OTP", {
+        expose: false,
+        code: "TWILIO_OTP_SEND_FAILED",
+        operation: "send_whatsapp_otp",
+        context: {
+          phone,
+          channel: "whatsapp",
+          service: "twilio_verify",
+        },
       });
     }
 

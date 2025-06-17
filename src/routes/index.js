@@ -8,6 +8,7 @@ import {
   otpRoutes,
   userRoutes,
   healthRoutes,
+  twilioRoutes,
 } from "#modules/index.js";
 import { verifyAuthToken } from "#middleware/index.js";
 
@@ -23,5 +24,6 @@ v1Router.use("/otp", otpRoutes);
 v1Router.use("/users", verifyAuthToken, userRoutes);
 v1Router.use("/educators", verifyAuthToken, educatorRoutes);
 v1Router.use("/organizations", verifyAuthToken, organizationRoutes);
+v1Router.use("/twilio", twilioRoutes);
 
 export default appRouter;
