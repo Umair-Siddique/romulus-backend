@@ -94,10 +94,10 @@ export const authServices = {
 
     const user = await read.userByEmail(email);
     if (!user) {
-      throw createError(401, "Invalid email or password.", {
+      throw createError(401, "Invalid credentials.", {
         expose: true,
         code: "INVALID_CREDENTIALS",
-        field: "email",
+        // field: "email",
         operation: "sign_in",
         headers: { "www-authenticate": "Bearer" },
       });
@@ -132,10 +132,10 @@ export const authServices = {
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      throw createError(401, "Invalid password.", {
+      throw createError(401, "Invalid credentials.", {
         expose: true,
-        code: "INVALID_PASSWORD",
-        field: "password",
+        code: "INVALID_CREDENTIALS",
+        // field: "password",
         operation: "sign_in",
         headers: { "www-authenticate": "Bearer" },
       });
