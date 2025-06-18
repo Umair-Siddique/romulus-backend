@@ -4,4 +4,6 @@ import { twilioControllers } from "./twilio.controllers.js";
 
 export const twilioRoutes = express.Router();
 
-twilioRoutes.post("/verify-otp", twilioControllers.verifyOTP);
+twilioRoutes
+  .post("/send-otp", twilioControllers.sendOTP)
+  .post("/verify-otp", twilioControllers.verifyOTP);

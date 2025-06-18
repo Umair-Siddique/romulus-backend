@@ -1,11 +1,29 @@
 import createError from "http-errors";
 
-import { verifyWhatsAppOTP } from "#utils/twilio.utils.js";
+import { sendWhatsAppOTP, verifyWhatsAppOTP } from "#utils/twilio.utils.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { update } = dataAccess;
 
 export const twilioServices = {
+  sendOTP: async (data) => {
+    const { phone } = data;
+
+    const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
+    if (!isWhatsAppOtpSent) {
+      throw createError(500, "Failed to send OTP", {
+        expose: false,
+        code: "TWILIO_OTP_SEND_FAILED",
+        operation: "send_whatsapp_otp",
+        context: {
+          phone,
+        },
+      });
+    }
+
+    return { success: true, message: "OTP sent successfully" };
+  },
+
   verifyOTP: async (data) => {
     const { phone, code } = data;
 
