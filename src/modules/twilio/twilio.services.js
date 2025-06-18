@@ -17,6 +17,8 @@ export const twilioServices = {
         operation: "send_whatsapp_otp",
         context: {
           phone,
+          channel: "whatsapp",
+          service: "twilio_verify",
         },
       });
     }
