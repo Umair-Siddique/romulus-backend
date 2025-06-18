@@ -1,6 +1,9 @@
 import createError from "http-errors";
 
 import { verifyWhatsAppOTP } from "#utils/twilio.utils.js";
+import { dataAccess } from "#dataAccess/index.js";
+
+const { update } = dataAccess;
 
 export const twilioServices = {
   verifyOTP: async (data) => {
@@ -22,6 +25,10 @@ export const twilioServices = {
         },
       });
     }
+
+    await update.userByPhone(phone, {
+      isPhoneVerified: true,
+    });
 
     return { success: true, message: "OTP verified successfully" };
   },

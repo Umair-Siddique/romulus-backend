@@ -56,11 +56,15 @@ export const userDataAccess = {
       });
     },
 
+    userByPhone: async (phone, userData) => {
+      return await UserModel.findOneAndUpdate({ phone }, userData);
+    },
+
     forgottenPassword: async (email, password) => {
       return await UserModel.findOneAndUpdate(
         { email },
         { password },
-        { new: true, upsert: true },
+        { new: true, upsert: true }
       );
     },
   },
