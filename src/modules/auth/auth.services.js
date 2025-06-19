@@ -48,18 +48,6 @@ export const authServices = {
       });
     }
 
-    const verificationToken = generateToken(newUser._id);
-    if (!verificationToken) {
-      await remove.userById(newUser._id);
-      throw createError(500, "An error occurred while generating the token.", {
-        expose: false,
-        code: "TOKEN_GENERATION_FAILED",
-        operation: "generateToken",
-        userId: newUser._id,
-        context: { purpose: "email_verification" },
-      });
-    }
-
     const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
     if (!isWhatsAppOtpSent) {
       await remove.userById(newUser._id);
@@ -75,10 +63,22 @@ export const authServices = {
       });
     }
 
+    const verificationToken = generateToken(newUser._id);
+    if (!verificationToken) {
+      await remove.userById(newUser._id);
+      throw createError(500, "An error occurred while generating the token.", {
+        expose: false,
+        code: "TOKEN_GENERATION_FAILED",
+        operation: "generateToken",
+        userId: newUser._id,
+        context: { purpose: "email_verification" },
+      });
+    }
+
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email"
+      "verify-email",
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -113,20 +113,62 @@ export const authServices = {
       throw createError(401, "Invalid credentials.", {
         expose: true,
         code: "INVALID_CREDENTIALS",
-        // field: "email",
+        field: "email",
         operation: "sign_in",
         headers: { "www-authenticate": "Bearer" },
       });
     }
 
     if (!user.isEmailVerified) {
-      throw createError(403, "Email not verified. Please check your inbox.", {
-        expose: true,
-        code: "EMAIL_NOT_VERIFIED",
-        userId: user._id,
-        operation: "sign_in",
-        context: { action: "verify_email" },
-      });
+      // Generate new verification token
+      const verificationToken = generateToken(user._id);
+      if (!verificationToken) {
+        await remove.userById(user._id);
+        throw createError(
+          500,
+          "An error occurred while generating the token.",
+          {
+            expose: false,
+            code: "TOKEN_GENERATION_FAILED",
+            operation: "generateToken",
+            userId: user._id,
+            context: { purpose: "email_verification" },
+          },
+        );
+      }
+
+      // Send verification email
+      const isEmailSent = await sendVerificationEmail(
+        email,
+        verificationToken,
+        "verify-email",
+      );
+      if (!isEmailSent) {
+        await remove.userById(user._id);
+        throw createError(500, "Failed to send the verification email.", {
+          expose: false,
+          code: "EMAIL_SEND_FAILED",
+          operation: "sendVerificationEmail",
+          userId: user._id,
+          context: {
+            emailType: "verify-email",
+            recipient: email,
+          },
+        });
+      }
+
+      // Then throw error informing the user
+      throw createError(
+        403,
+        "Email not verified. A new verification link has been sent to your inbox.",
+        {
+          expose: true,
+          code: "EMAIL_NOT_VERIFIED",
+          userId: user._id,
+          operation: "sign_in",
+          context: { action: "verify_email" },
+        },
+      );
     }
 
     if (user.role === "educator" && !user.isPhoneVerified) {
@@ -142,7 +184,7 @@ export const authServices = {
             role: user.role,
             action: "verify_phone",
           },
-        }
+        },
       );
     }
 
@@ -204,7 +246,7 @@ export const authServices = {
           operation: "save.blacklistedToken",
           userId: id,
           context: { expiresAt: expiresAt.toISOString() },
-        }
+        },
       );
     }
 
@@ -242,7 +284,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password"
+      "reset-password",
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email", {

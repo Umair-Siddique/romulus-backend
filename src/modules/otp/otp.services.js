@@ -76,8 +76,8 @@ export const otpServices = {
 
     const comparisonResults = await Promise.all(
       existingOtps.map((existingOtp) =>
-        bcrypt.compare(otp, existingOtp.otpHash)
-      )
+        bcrypt.compare(otp, existingOtp.otpHash),
+      ),
     );
 
     const isOtpValid = comparisonResults.some((result) => result === true);
