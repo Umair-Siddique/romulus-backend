@@ -34,8 +34,6 @@ export const authServices = {
         operation: "sign_up",
         context: { role },
       });
-    } else if (role === "admin" || (role === "organization" && phone)) {
-      phone = undefined; // Phone number is not required for admin or organization roles
     }
 
     const newUser = await save.user(phone, email, password, role);
@@ -48,19 +46,21 @@ export const authServices = {
       });
     }
 
-    const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
-    if (!isWhatsAppOtpSent) {
-      await remove.userById(newUser._id);
-      throw createError(500, "Failed to send OTP", {
-        expose: false,
-        code: "TWILIO_OTP_SEND_FAILED",
-        operation: "send_whatsapp_otp",
-        context: {
-          phone,
-          channel: "whatsapp",
-          service: "twilio_verify",
-        },
-      });
+    if (role === "educator") {
+      const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
+      if (!isWhatsAppOtpSent) {
+        await remove.userById(newUser._id);
+        throw createError(500, "Failed to send OTP", {
+          expose: false,
+          code: "TWILIO_OTP_SEND_FAILED",
+          operation: "send_whatsapp_otp",
+          context: {
+            phone,
+            channel: "whatsapp",
+            service: "twilio_verify",
+          },
+        });
+      }
     }
 
     const verificationToken = generateToken(newUser._id);
