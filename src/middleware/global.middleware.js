@@ -13,6 +13,7 @@ const corsOptions = {
   credentials: true,
 };
 
+// eslint-disable-next-line no-unused-vars
 const errorHandler = async (err, req, res, next) => {
   const isProduction = process.env.NODE_ENV === "production";
   const status = err.statusCode || err.status || 500;
