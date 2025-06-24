@@ -6,7 +6,6 @@ import { env } from "#config/index.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const uploadDirectory = path.join(__dirname, "../../public/uploads");
 const viewsDirectory = path.join(__dirname, "../views");
 
 const {
@@ -23,4 +22,4 @@ const backendUrl =
 const frontendUrl =
   NODE_ENV === "production" ? FRONTEND_BASE_URL_PROD : FRONTEND_BASE_URL_DEV;
 
-export { uploadDirectory, viewsDirectory, backendUrl, frontendUrl };
+export { viewsDirectory, backendUrl, frontendUrl };
