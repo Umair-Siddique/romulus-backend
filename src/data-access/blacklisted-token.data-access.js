@@ -1,15 +1,15 @@
-import { BlacklistedToken } from "#models/index.js";
+import { BlacklistedTokenModel } from "#models/index.js";
 
 export const blacklistedTokenDataAccess = {
   save: {
     blacklistedToken: async (token) => {
-      return await BlacklistedToken.create({ token });
+      return await BlacklistedTokenModel.create({ token });
     },
   },
 
   read: {
     blacklistedToken: async (token) => {
-      return await BlacklistedToken.findOne({ token });
+      return await BlacklistedTokenModel.findOne({ token });
     },
   },
 };
