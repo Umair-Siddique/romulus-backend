@@ -13,16 +13,14 @@ const corsOptions = {
   credentials: true,
 };
 
-// eslint-disable-next-line no-unused-vars
 const errorHandler = async (err, req, res, next) => {
   const isProduction = process.env.NODE_ENV === "production";
   const status = err.statusCode || err.status || 500;
   const message = err.message || "Internal Server Error";
   const stack = err.stack || "No stack trace available";
 
-  // Extract standardized error properties
   const {
-    expose = status < 500, // Default: expose client errors, hide server errors
+    expose = status < 500,
     code,
     field,
     userId,
@@ -31,8 +29,7 @@ const errorHandler = async (err, req, res, next) => {
     headers = {},
   } = err;
 
-  // Build client response based on expose setting
-  const clientResponse = {
+  const baseResponse = {
     success: false,
     message: expose || !isProduction ? message : "Internal Server Error",
     ...(code && { code }),
@@ -40,15 +37,12 @@ const errorHandler = async (err, req, res, next) => {
     ...(operation && expose && { operation }),
   };
 
-  // Build detailed logging response
   const logResponse = {
     success: false,
     message,
     status,
-    ...(code && { code }),
-    ...(field && { field }),
     ...(userId && { userId }),
-    ...(operation && { operation }),
+    ...(operation && !expose && { operation }), // Log operation even if not exposed
     ...(context && { context }),
     requestInfo: {
       method: req.method,
@@ -60,21 +54,13 @@ const errorHandler = async (err, req, res, next) => {
     stack: isProduction ? undefined : stack,
   };
 
-  // Set custom headers if provided
-  if (Object.keys(headers).length > 0) {
-    res.set(headers);
-  }
+  Object.keys(headers).length && res.set(headers);
 
-  // Log error with different levels based on status
-  if (status >= 500) {
-    logger.error(JSON.stringify(logResponse, null, 2));
-  } else if (status >= 400) {
-    logger.warn(JSON.stringify(logResponse, null, 2));
-  } else {
-    logger.info(JSON.stringify(logResponse, null, 2));
-  }
+  // Log with appropriate level
+  const logMethod = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
+  logger[logMethod](JSON.stringify(logResponse, null, 2));
 
-  res.status(status).json(clientResponse);
+  res.status(status).json(baseResponse);
 };
 
 const invalidRouteHandler = (req, res) => {
