@@ -50,13 +50,7 @@ const UserSchema = new Schema(
   },
   {
     timestamps: true,
-    toJSON: {
-      transform: (doc, ret) => {
-        delete ret.password;
-        return ret;
-      },
-    },
-  },
+  }
 );
 
 UserSchema.pre("save", async function (next) {
@@ -76,7 +70,7 @@ UserSchema.methods.generateAuthToken = function () {
     {
       expiresIn: JWT_EXPIRY,
       algorithm: JWT_ALGORITHM,
-    },
+    }
   );
 };
 
