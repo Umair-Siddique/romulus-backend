@@ -110,6 +110,7 @@ export const educatorServices = {
     return {
       success: true,
       message: "Educator Profile Created Successfully",
+      data: educatorData,
     };
   },
 

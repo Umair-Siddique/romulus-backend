@@ -100,6 +100,7 @@ export const organizationServices = {
     return {
       success: true,
       message: "Organization profile created successfully.",
+      data: organizationData,
     };
   },
 
