@@ -153,10 +153,14 @@ const EducatorSchema = new Schema(
         message: "Diploma must be a valid document URL",
       },
     },
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 // Pre-save middleware to normalize data
