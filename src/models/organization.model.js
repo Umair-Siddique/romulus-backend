@@ -188,10 +188,6 @@ const OrganizationSchema = new Schema(
         message: "At least one branch is required",
       },
     },
-    isApproved: {
-      type: Boolean,
-      default: false,
-    },
   },
   {
     timestamps: true,
