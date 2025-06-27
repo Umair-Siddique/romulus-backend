@@ -1,0 +1,34 @@
+import { asyncHandler } from "#utils/index.js";
+import { missionServices } from "./mission.services.js";
+
+export const missionControllers = {
+  create: asyncHandler(async (req, res) => {
+    const payload = req.body;
+    const files = req.files;
+
+    const result = await missionServices.create({ ...payload, ...files });
+
+    res.status(200).json(result);
+  }),
+
+  getAll: asyncHandler(async (req, res) => {
+    const result = await missionServices.getAll();
+
+    res.status(200).json(result);
+  }),
+
+  getById: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await missionServices.getById(id);
+
+    res.status(200).json(result);
+  }),
+
+  updateById: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const payload = req.body;
+    const result = await missionServices.updateById(id, payload);
+
+    res.status(200).json(result);
+  }),
+};
