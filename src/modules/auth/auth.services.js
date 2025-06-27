@@ -78,7 +78,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       verificationToken,
-      "verify-email",
+      "verify-email"
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -119,11 +119,28 @@ export const authServices = {
       });
     }
 
+    const userId = user._id;
+    let educatorId;
+    let organizationId;
+
+    const [existingEducator, existingOrganization] = await Promise.all([
+      read.educatorByUserId(userId),
+      read.organizationByUserId(userId),
+    ]);
+    if (existingEducator) {
+      educatorId = existingEducator._id;
+    } else if (existingOrganization) {
+      organizationId = existingOrganization._id;
+    } else {
+      educatorId = undefined;
+      organizationId = undefined;
+    }
+
     if (!user.isEmailVerified) {
       // Generate new verification token
-      const verificationToken = generateToken(user._id);
+      const verificationToken = generateToken(userId);
       if (!verificationToken) {
-        await remove.userById(user._id);
+        await remove.userById(userId);
         throw createError(
           500,
           "An error occurred while generating the token.",
@@ -131,9 +148,9 @@ export const authServices = {
             expose: false,
             code: "TOKEN_GENERATION_FAILED",
             operation: "generateToken",
-            userId: user._id,
+            userId: userId,
             context: { purpose: "email_verification" },
-          },
+          }
         );
       }
 
@@ -141,7 +158,7 @@ export const authServices = {
       const isEmailSent = await sendVerificationEmail(
         email,
         verificationToken,
-        "verify-email",
+        "verify-email"
       );
       if (!isEmailSent) {
         await remove.userById(user._id);
@@ -167,7 +184,7 @@ export const authServices = {
           userId: user._id,
           operation: "sign_in",
           context: { action: "verify_email" },
-        },
+        }
       );
     }
 
@@ -184,7 +201,7 @@ export const authServices = {
             role: user.role,
             action: "verify_phone",
           },
-        },
+        }
       );
     }
 
@@ -215,6 +232,8 @@ export const authServices = {
       message: "Signed in successfully.",
       data: {
         userId: user._id,
+        educatorId,
+        organizationId,
         role: user.role,
       },
       token,
@@ -246,7 +265,7 @@ export const authServices = {
           operation: "save.blacklistedToken",
           userId: id,
           context: { expiresAt: expiresAt.toISOString() },
-        },
+        }
       );
     }
 
@@ -284,7 +303,7 @@ export const authServices = {
     const isEmailSent = await sendVerificationEmail(
       email,
       resetToken,
-      "reset-password",
+      "reset-password"
     );
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email", {
