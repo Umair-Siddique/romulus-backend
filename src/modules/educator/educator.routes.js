@@ -14,4 +14,5 @@ educatorRoutes
     validateDto(createEducatorDto),
     educatorControllers.create,
   )
+  .get("/", educatorControllers.getAll)
   .get("/:userId", educatorControllers.getByUserId);

@@ -114,6 +114,23 @@ export const educatorServices = {
     };
   },
 
+  getAll: async () => {
+    const educators = await read.allEducators();
+    if (!educators || educators.length === 0) {
+      throw createError(404, "No educators found.", {
+        expose: true,
+        code: "EDUCATORS_NOT_FOUND",
+        operation: "list_educators",
+      });
+    }
+
+    return {
+      success: true,
+      message: "Educators retrieved successfully.",
+      data: educators,
+    };
+  },
+
   getByUserId: async (userId) => {
     const educator = await read.educatorByUserId(userId);
     if (!educator) {
