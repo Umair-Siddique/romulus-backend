@@ -13,7 +13,7 @@ export const userDataAccess = {
         email,
         password,
         role,
-        isPhoneVerified: role === "educator" ? false : true,
+        isPhoneVerified: role === "educator" ? false : undefined,
       });
     },
   },
