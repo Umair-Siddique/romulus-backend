@@ -45,12 +45,19 @@ const UserSchema = new Schema(
     },
     isPhoneVerified: {
       type: Boolean,
-      default: false,
+    },
+    status: {
+      type: String,
+      enum: {
+        values: ["active", "inactive", "pending"],
+        message: "Status must be active, inactive, or pending",
+      },
+      default: "pending",
     },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 UserSchema.pre("save", async function (next) {
@@ -70,7 +77,7 @@ UserSchema.methods.generateAuthToken = function () {
     {
       expiresIn: JWT_EXPIRY,
       algorithm: JWT_ALGORITHM,
-    },
+    }
   );
 };
 
