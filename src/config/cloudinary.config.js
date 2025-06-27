@@ -25,15 +25,23 @@ cloudinary.api.ping((error) => {
 export const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: (req, file) => {
-    // Extract user ID from the form data
-    const userId = req.body.user;
-    const folderPath = `users/${userId}`;
+    const userId = req.body.user || req.body.organization;
+    const fileType = file.fieldname;
     const fileExtension = path.extname(file.originalname).substring(1);
-    const publicId = file.fieldname;
+
+    // Default path for user-related uploads
+    let folderPath = `users/${userId}/${fileType}`;
+
+    // If mission upload, add timestamp-based folder
+    if (fileType === "technicalDocument") {
+      const isoTime = new Date().toISOString().replace(/[:.]/g, "-");
+      const missionFolder = `mission-${isoTime}`;
+      folderPath = `missions/${userId}/${missionFolder}/${fileType}`;
+    }
 
     return {
       folder: folderPath,
-      public_id: publicId,
+      public_id: file.fieldname,
       format: fileExtension,
     };
   },
