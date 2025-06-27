@@ -2,7 +2,7 @@ import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
 
-const { save, read } = dataAccess;
+const { save, read, update } = dataAccess;
 
 export const educatorServices = {
   create: async (data) => {
@@ -120,6 +120,7 @@ export const educatorServices = {
       throw createError(404, "No educators found.", {
         expose: true,
         code: "EDUCATORS_NOT_FOUND",
+        operation: "read.allEducators",
         operation: "list_educators",
       });
     }
@@ -137,6 +138,7 @@ export const educatorServices = {
       throw createError(404, "Educator profile not found.", {
         expose: true,
         code: "EDUCATOR_NOT_FOUND",
+        operation: "read.educatorById",
         field: "userId",
         userId: userId,
         operation: "get_educator_profile",
@@ -156,18 +158,19 @@ export const educatorServices = {
       throw createError(404, "Educator profile not found.", {
         expose: true,
         code: "EDUCATOR_NOT_FOUND",
+        operation: "read.educatorById",
         field: "id",
         id: id,
         operation: "update_educator_profile",
       });
     }
 
-    const updatedEducator = await update.educator(id, data);
+    const updatedEducator = await update.educatorById(id, data);
     if (!updatedEducator) {
       throw createError(500, "An error occurred while updating the profile.", {
         expose: false,
         code: "EDUCATOR_UPDATE_FAILED",
-        operation: "update.educator",
+        operation: "update.educatorById",
         id: id,
         context: {
           hasProfilePicture: !!data.profilePicture,
