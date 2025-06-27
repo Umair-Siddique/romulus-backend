@@ -1,7 +1,7 @@
 import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 
-const { save, read } = dataAccess;
+const { save, read, update } = dataAccess;
 
 export const organizationServices = {
   create: async (data) => {
@@ -81,8 +81,8 @@ export const organizationServices = {
       branches: processedBranches,
     };
 
-    const isOrganizationSaved = await save.organization(organizationData);
-    if (!isOrganizationSaved) {
+    const newOrganization = await save.organization(organizationData);
+    if (!newOrganization) {
       throw createError(500, "Failed to create organization.", {
         expose: false,
         code: "ORGANIZATION_CREATION_FAILED",
@@ -100,7 +100,7 @@ export const organizationServices = {
     return {
       success: true,
       message: "Organization profile created successfully.",
-      data: organizationData,
+      data: newOrganization,
     };
   },
 
@@ -121,22 +121,51 @@ export const organizationServices = {
     };
   },
 
-  getByUserId: async (userId) => {
-    const organization = await read.organizationByUserId(userId);
+  getById: async (id) => {
+    const organization = await read.organizationById(id);
     if (!organization) {
-      throw createError(404, "Organization profile not found.", {
+      throw createError(404, "Organization not found.", {
         expose: true,
         code: "ORGANIZATION_NOT_FOUND",
-        field: "userId",
-        userId: userId,
-        operation: "get_organization_profile",
+        field: "id",
+        id: id,
+        operation: "get_organization_by_id",
       });
     }
 
     return {
       success: true,
-      message: "Organization profile retrieved successfully.",
+      message: "Organization retrieved successfully.",
       data: organization,
+    };
+  },
+
+  updateById: async (id, data) => {
+    const existingOrganization = await read.organizationById(id);
+    if (!existingOrganization) {
+      throw createError(404, "Organization not found.", {
+        expose: true,
+        code: "ORGANIZATION_NOT_FOUND",
+        field: "id",
+        id: id,
+        operation: "update_organization_by_id",
+      });
+    }
+
+    const updatedOrganization = await update.organizationById(id, data);
+    if (!updatedOrganization) {
+      throw createError(500, "Failed to update organization.", {
+        expose: false,
+        code: "ORGANIZATION_UPDATE_FAILED",
+        operation: "updateOrganizationById",
+        id: id,
+      });
+    }
+
+    return {
+      success: true,
+      message: "Organization updated successfully.",
+      data: updatedOrganization,
     };
   },
 };

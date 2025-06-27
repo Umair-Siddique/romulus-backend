@@ -12,8 +12,17 @@ export const organizationDataAccess = {
       return await OrganizationModel.find().populate("user");
     },
 
-    organizationByUserId: async (user) => {
-      return await OrganizationModel.findOne({ user }).populate("user");
+    organizationById: async (id) => {
+      return await OrganizationModel.findOne({ _id: id }).populate("user");
+    },
+  },
+
+  update: {
+    organizationById: async (id, data) => {
+      return await OrganizationModel.findByIdAndUpdate(id, data, {
+        new: true,
+        upsert: true,
+      });
     },
   },
 };

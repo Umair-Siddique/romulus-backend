@@ -14,4 +14,5 @@ organizationRoutes
     organizationControllers.create,
   )
   .get("/", organizationControllers.getAll)
-  .get("/:userId", organizationControllers.getByUserId);
+  .get("/:id", organizationControllers.getById)
+  .patch("/:id", organizationControllers.updateById);
