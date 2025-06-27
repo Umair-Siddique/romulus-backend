@@ -13,4 +13,5 @@ organizationRoutes
     validateDto(createOrganizationDto),
     organizationControllers.create,
   )
+  .get("/", organizationControllers.getAll)
   .get("/:userId", organizationControllers.getByUserId);

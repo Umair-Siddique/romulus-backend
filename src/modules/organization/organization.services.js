@@ -104,6 +104,23 @@ export const organizationServices = {
     };
   },
 
+  getAll: async () => {
+    const organizations = await read.allOrganizations();
+    if (!organizations || organizations.length === 0) {
+      throw createError(404, "No organizations found.", {
+        expose: true,
+        code: "ORGANIZATIONS_NOT_FOUND",
+        operation: "get_all_organizations",
+      });
+    }
+
+    return {
+      success: true,
+      message: "Organizations retrieved successfully.",
+      data: organizations,
+    };
+  },
+
   getByUserId: async (userId) => {
     const organization = await read.organizationByUserId(userId);
     if (!organization) {
