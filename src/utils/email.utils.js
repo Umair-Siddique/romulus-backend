@@ -53,26 +53,6 @@ export const sendVerificationEmail = async (
   return true;
 };
 
-export const sendEmailOtp = async (email, otpCode) => {
-  const emailHtml = readEmailTemplate("otp-email", "index.html").replace(
-    /\$\{otpCode\}/g,
-    otpCode,
-  );
-
-  const mailOptions = {
-    from: USER_EMAIL,
-    to: email,
-    subject: "Romulus - Password Reset Code",
-    html: emailHtml,
-  };
-
-  await transporter.sendMail(mailOptions);
-
-  logger.info(`OTP email sent to ${email}`);
-
-  return true;
-};
-
 export const sendVerificationNotification = () => {
   return readEmailTemplate("verification-notification", "index.html").replace(
     /\$\{frontendUrl\}/g,
