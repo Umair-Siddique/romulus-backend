@@ -15,6 +15,10 @@ export const organizationDataAccess = {
     organizationById: async (id) => {
       return await OrganizationModel.findOne({ _id: id }).populate("user");
     },
+
+    organizationByUserId: async (userId) => {
+      return await OrganizationModel.findOne({ user: userId }).populate("user");
+    },
   },
 
   update: {
