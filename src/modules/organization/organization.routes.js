@@ -11,8 +11,8 @@ organizationRoutes
     "/",
     uploadMiddleware,
     validateDto(createOrganizationDto),
-    organizationControllers.create,
+    organizationControllers.create
   )
   .get("/", organizationControllers.getAll)
   .get("/:id", organizationControllers.getById)
-  .patch("/:id", organizationControllers.updateById);
+  .patch("/:id", uploadMiddleware, organizationControllers.updateById);

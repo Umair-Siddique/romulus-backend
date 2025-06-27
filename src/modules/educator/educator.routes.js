@@ -16,4 +16,4 @@ educatorRoutes
   )
   .get("/", educatorControllers.getAll)
   .get("/:id", educatorControllers.getById)
-  .patch("/:id", educatorControllers.updateById);
+  .patch("/:id", uploadMiddleware, educatorControllers.updateById);
