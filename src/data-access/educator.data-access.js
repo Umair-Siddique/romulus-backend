@@ -12,8 +12,12 @@ export const educatorDataAccess = {
       return await EducatorModel.find().populate("user");
     },
 
-    educatorByUserId: async (user) => {
-      return await EducatorModel.findOne({ user }).populate("user");
+    educatorById: async (id) => {
+      return await EducatorModel.findOne({ _id: id }).populate("user");
+    },
+
+    educatorByUserId: async (userId) => {
+      return await EducatorModel.findOne({ user: userId }).populate("user");
     },
   },
 };

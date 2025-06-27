@@ -92,8 +92,8 @@ export const educatorServices = {
       diploma: getFilePath(diploma),
     };
 
-    const isEducatorSaved = await save.educator(educatorData);
-    if (!isEducatorSaved) {
+    const newEducator = await save.educator(educatorData);
+    if (!newEducator) {
       throw createError(500, "An error occurred while creating the profile.", {
         expose: false,
         code: "EDUCATOR_CREATION_FAILED",
@@ -110,7 +110,7 @@ export const educatorServices = {
     return {
       success: true,
       message: "Educator Profile Created Successfully",
-      data: educatorData,
+      data: newEducator,
     };
   },
 
@@ -131,8 +131,8 @@ export const educatorServices = {
     };
   },
 
-  getByUserId: async (userId) => {
-    const educator = await read.educatorByUserId(userId);
+  getById: async (id) => {
+    const educator = await read.educatorById(id);
     if (!educator) {
       throw createError(404, "Educator profile not found.", {
         expose: true,
@@ -147,6 +147,40 @@ export const educatorServices = {
       success: true,
       message: "Educator profile retrieved successfully.",
       data: educator,
+    };
+  },
+
+  updateById: async (id, data) => {
+    const existingEducator = await read.educatorById(id);
+    if (!existingEducator) {
+      throw createError(404, "Educator profile not found.", {
+        expose: true,
+        code: "EDUCATOR_NOT_FOUND",
+        field: "id",
+        id: id,
+        operation: "update_educator_profile",
+      });
+    }
+
+    const updatedEducator = await update.educator(id, data);
+    if (!updatedEducator) {
+      throw createError(500, "An error occurred while updating the profile.", {
+        expose: false,
+        code: "EDUCATOR_UPDATE_FAILED",
+        operation: "update.educator",
+        id: id,
+        context: {
+          hasProfilePicture: !!data.profilePicture,
+          hasIdentityProof: !!data.identityProof,
+          skillsCount: data.skills?.length || 0,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      message: "Educator Profile Updated Successfully",
+      data: updatedEducator,
     };
   },
 };

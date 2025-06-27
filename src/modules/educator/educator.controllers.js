@@ -17,10 +17,19 @@ export const educatorControllers = {
     res.status(200).json(result);
   }),
 
-  getByUserId: asyncHandler(async (req, res) => {
-    const { userId } = req.params;
+  getById: asyncHandler(async (req, res) => {
+    const { id } = req.params;
 
-    const result = await educatorServices.getByUserId(userId);
+    const result = await educatorServices.getById(id);
+
+    res.status(200).json(result);
+  }),
+
+  updateById: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const payload = req.body;
+
+    const result = await educatorServices.updateById(id, payload);
 
     res.status(200).json(result);
   }),

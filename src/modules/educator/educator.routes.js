@@ -12,7 +12,8 @@ educatorRoutes
     "/",
     uploadMiddleware,
     validateDto(createEducatorDto),
-    educatorControllers.create,
+    educatorControllers.create
   )
   .get("/", educatorControllers.getAll)
-  .get("/:userId", educatorControllers.getByUserId);
+  .get("/:id", educatorControllers.getById)
+  .patch("/:id", educatorControllers.updateById);
