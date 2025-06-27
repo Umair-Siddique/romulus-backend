@@ -7,6 +7,16 @@ import colors from "colors";
 
 import { logger, swaggerSpec } from "#config/index.js";
 
+colors.setTheme({
+  database: ["green", "bold", "underline"],
+  server: ["white", "bold"],
+  service: ["brightMagenta", "bold"],
+  error: ["red", "bold", "inverse"],
+  success: ["brightGreen", "bold"],
+  warning: ["yellow", "bold"],
+  info: ["brightCyan", "bold"],
+});
+
 const corsOptions = {
   origin: true,
   credentials: true,

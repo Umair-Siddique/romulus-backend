@@ -17,9 +17,9 @@ const createTransporter = () => {
 
   transporter.verify((error) => {
     if (error) {
-      logger.error(`Email server connection error: ${error.message}`.red);
+      logger.error(`Email server connection error: ${error.message}`.error);
     } else {
-      logger.info("Email server is ready to send messages.".brightMagenta);
+      logger.info("Email server is ready to send messages.".service);
     }
   });
 

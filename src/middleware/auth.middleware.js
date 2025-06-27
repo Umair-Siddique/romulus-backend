@@ -11,7 +11,7 @@ const verifyAuthToken = asyncHandler(async (req, res, next) => {
 
   const token = authHeader.split(" ")[1]; // Get token after 'Bearer '
 
-  const decoded = await decodeToken(token);
+  const decoded = decodeToken(token);
   if (!decoded) {
     throw createError(401, "Invalid or expired token.");
   }

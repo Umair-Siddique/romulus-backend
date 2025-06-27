@@ -11,7 +11,7 @@ const startServer = asyncHandler(async () => {
   await connectDatabase();
   const server = createServer(app);
   server.listen(PORT || 5000, () => {
-    logger.info(`Server running on http://localhost:${PORT}`);
+    logger.info(`Server running on http://localhost:${PORT}`.server);
   });
 });
 
