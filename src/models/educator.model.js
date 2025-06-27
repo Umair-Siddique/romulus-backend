@@ -76,6 +76,23 @@ const EducatorSchema = new Schema(
       minlength: [10, "Full address must be at least 10 characters"],
       maxlength: [500, "Full address cannot exceed 500 characters"],
     },
+    fullAddressCoordinates: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+        default: [0, 0],
+        validate: {
+          validator: (v) => v.length === 2,
+          message:
+            "Coordinates must be an array of two numbers [longitude, latitude]",
+        },
+      },
+    },
     bio: {
       type: String,
       trim: true,
@@ -160,7 +177,7 @@ const EducatorSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 // Pre-save middleware to normalize data

@@ -54,6 +54,23 @@ const BranchSchema = new Schema(
       minlength: [10, "Branch full address must be at least 10 characters"],
       maxlength: [500, "Branch full address cannot exceed 500 characters"],
     },
+    branchAddressCoordinates: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+        default: [0, 0],
+        validate: {
+          validator: (v) => v.length === 2,
+          message:
+            "Coordinates must be an array of two numbers [longitude, latitude]",
+        },
+      },
+    },
     residenceGuidelines: {
       type: String, // Store file paths/URLs - Optional field
       default: "", // Default to empty string
@@ -61,7 +78,7 @@ const BranchSchema = new Schema(
   },
   {
     _id: false, // Disable automatic _id generation for subdocuments
-  },
+  }
 );
 
 const OrganizationSchema = new Schema(
@@ -146,6 +163,23 @@ const OrganizationSchema = new Schema(
       minlength: [10, "Office address must be at least 10 characters"],
       maxlength: [500, "Office address cannot exceed 500 characters"],
     },
+    officeAddressCoordinates: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+        default: [0, 0],
+        validate: {
+          validator: (v) => v.length === 2,
+          message:
+            "Coordinates must be an array of two numbers [longitude, latitude]",
+        },
+      },
+    },
     branches: {
       type: [BranchSchema],
       required: [true, "At least one branch is required"],
@@ -161,7 +195,7 @@ const OrganizationSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const OrganizationModel = model("Organization", OrganizationSchema);
