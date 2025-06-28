@@ -128,7 +128,7 @@ export const organizationServices = {
         expose: true,
         code: "ORGANIZATION_NOT_FOUND",
         field: "id",
-        id: id,
+        id,
         operation: "get_organization_by_id",
       });
     }
@@ -147,7 +147,7 @@ export const organizationServices = {
         expose: true,
         code: "ORGANIZATION_NOT_FOUND",
         field: "id",
-        id: id,
+        id,
         operation: "update_organization_by_id",
       });
     }
@@ -158,7 +158,7 @@ export const organizationServices = {
         expose: false,
         code: "ORGANIZATION_UPDATE_FAILED",
         operation: "updateOrganizationById",
-        id: id,
+        id,
       });
     }
 
