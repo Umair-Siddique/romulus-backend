@@ -2,7 +2,7 @@ import morgan from "morgan";
 import cors from "cors";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
-// eslint-disable-next-line no-unused-vars
+import cookieParser from "cookie-parser";
 import colors from "colors";
 
 import { logger, swaggerSpec } from "#config/index.js";
@@ -84,6 +84,7 @@ const invalidRouteHandler = (req, res) => {
 const applyGlobalMiddleware = (app, rootRouter) => {
   app.use(morgan("dev"));
   app.use(cors(corsOptions));
+  app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

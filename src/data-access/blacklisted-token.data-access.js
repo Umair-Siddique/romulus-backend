@@ -2,8 +2,12 @@ import { BlacklistedTokenModel } from "#models/index.js";
 
 export const blacklistedTokenDataAccess = {
   save: {
-    blacklistedToken: async (token) => {
-      return await BlacklistedTokenModel.create({ token });
+    blacklistedToken: async (token, id, expiresAt) => {
+      return await BlacklistedTokenModel.create({
+        token,
+        userId: id,
+        expiresAt,
+      });
     },
   },
 

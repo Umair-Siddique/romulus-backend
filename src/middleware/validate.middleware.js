@@ -1,6 +1,6 @@
 import createError from "http-errors";
 
-import { asyncHandler } from "#utils/index.js";
+import { asyncHandler, decodeToken } from "#utils/index.js";
 
 export const validate = {
   dto: (schema) =>
@@ -26,12 +26,9 @@ export const validate = {
 
     const token = authHeader.split(" ")[1]; // Get token after 'Bearer '
 
-    const decoded = decodeToken(token);
-    if (!decoded) {
-      throw createError(401, "Invalid or expired token.");
-    }
+    const decodedToken = decodeToken(token);
 
-    req.user = decoded;
+    req.user = decodedToken;
     next();
   }),
 

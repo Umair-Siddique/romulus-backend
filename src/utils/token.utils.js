@@ -1,13 +1,34 @@
+import createError from "http-errors";
 import jwt from "jsonwebtoken";
 
 import { env } from "#config/index.js";
 
-const { JWT_SECRET_KEY, JWT_EXPIRY } = env;
+const { JWT_SECRET_KEY } = env;
 
-const generateToken = (userId, role) => {
-  return jwt.sign({ userId, role }, JWT_SECRET_KEY, {
-    expiresIn: JWT_EXPIRY,
-  });
+const generateToken = (payload, tokenType) => {
+  const options = {
+    expiresIn: null,
+    algorithm: "HS256",
+  };
+
+  switch (tokenType) {
+    case "accountVerificationToken":
+      options.expiresIn = "10m";
+      break;
+    case "accessToken":
+      options.expiresIn = "1h";
+      break;
+    case "refreshToken":
+      options.expiresIn = "30d";
+      break;
+    case "passwordResetToken":
+      options.expiresIn = "15m";
+      break;
+    default:
+      throw createError(400, "Invalid token type specified.");
+  }
+
+  return jwt.sign(payload, JWT_SECRET_KEY, options);
 };
 
 const decodeToken = (token) => {

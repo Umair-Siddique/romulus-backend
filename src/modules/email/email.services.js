@@ -11,10 +11,11 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, update, remove } = dataAccess;
 
 export const emailServices = {
-  check: async (verificationToken) => {
-    const decoded = decodeToken(verificationToken);
+  check: async (token) => {
+    const decodedToken = decodeToken(token);
 
-    const id = decoded["userId"];
+    const { id } = decodedToken;
+
     if (!id) {
       throw createError(400, "Token does not contain the user id", {
         expose: true,
@@ -53,7 +54,10 @@ export const emailServices = {
       });
     }
 
-    const verificationToken = generateToken(user._id);
+    const verificationToken = generateToken(
+      { id: newUser._id },
+      "accountVerificationToken"
+    );
     if (!verificationToken) {
       await remove.userById(user._id);
       throw createError(500, "An error occurred while generating the token.", {
