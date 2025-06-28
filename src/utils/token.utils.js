@@ -12,7 +12,7 @@ const generateToken = (payload, tokenType) => {
   };
 
   switch (tokenType) {
-    case "accountVerificationToken":
+    case "verificationToken":
       options.expiresIn = "10m";
       break;
     case "accessToken":
