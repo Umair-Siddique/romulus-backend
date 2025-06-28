@@ -25,10 +25,10 @@ const BlacklistedTokenSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export const BlacklistedTokenModel = model(
   "BlacklistedToken",
-  BlacklistedTokenSchema
+  BlacklistedTokenSchema,
 );

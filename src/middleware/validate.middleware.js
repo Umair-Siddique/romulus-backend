@@ -12,7 +12,7 @@ export const validate = {
         const errorMessages = error.details.map(({ message }) => message);
         throw createError(
           400,
-          `Validation failed: ${errorMessages.join(", ")}`
+          `Validation failed: ${errorMessages.join(", ")}`,
         );
       }
       req.body = value;
@@ -42,7 +42,7 @@ export const validate = {
       if (req.user.role !== authorizedRole) {
         throw createError(
           403,
-          `Access denied: ${authorizedRole} role required.`
+          `Access denied: ${authorizedRole} role required.`,
         );
       }
       next();

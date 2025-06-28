@@ -31,7 +31,7 @@ export const twilioServices = {
 
     const isWhatsAppOtpVerified = await twilioUtils.verifyWhatsAppOTP(
       phone,
-      code
+      code,
     );
 
     if (!isWhatsAppOtpVerified || isWhatsAppOtpVerified.status !== "approved") {

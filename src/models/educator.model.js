@@ -173,7 +173,7 @@ const EducatorSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Pre-save middleware to normalize data

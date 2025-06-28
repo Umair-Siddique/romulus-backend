@@ -12,7 +12,7 @@ organizationRoutes
     "/",
     upload,
     validate.dto(createOrganizationDto),
-    organizationControllers.create
+    organizationControllers.create,
   )
   .get("/", organizationControllers.getAll)
   .get("/:id", organizationControllers.getById)

@@ -12,7 +12,7 @@ educatorRoutes
     "/",
     upload,
     validate.dto(createEducatorDto),
-    educatorControllers.create
+    educatorControllers.create,
   )
   .get("/", educatorControllers.getAll)
   .get("/:id", educatorControllers.getById)

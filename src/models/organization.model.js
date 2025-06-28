@@ -78,7 +78,7 @@ const BranchSchema = new Schema(
   },
   {
     _id: false, // Disable automatic _id generation for subdocuments
-  }
+  },
 );
 
 const OrganizationSchema = new Schema(
@@ -191,7 +191,7 @@ const OrganizationSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export const OrganizationModel = model("Organization", OrganizationSchema);

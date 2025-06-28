@@ -51,7 +51,7 @@ export const emailServices = {
 
     const verificationToken = tokenUtils.generate(
       { id: user._id },
-      "verificationToken"
+      "verificationToken",
     );
     if (!verificationToken) {
       await remove.userById(user._id);
@@ -66,7 +66,7 @@ export const emailServices = {
 
     const isEmailSent = await emailUtils.sendAccountVerification(
       email,
-      verificationToken
+      verificationToken,
     );
     if (!isEmailSent) {
       await remove.userById(user._id);

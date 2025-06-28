@@ -31,7 +31,7 @@ const getEmailTemplate = async (folder, filename) => {
     return template;
   } catch (error) {
     throw new Error(
-      `Failed to read email template: ${cacheKey}. ${error.message}`
+      `Failed to read email template: ${cacheKey}. ${error.message}`,
     );
   }
 };
@@ -46,7 +46,7 @@ const processTemplate = (template, variables) => {
   return Object.entries(variables).reduce(
     (processed, [key, value]) =>
       processed.replace(new RegExp(`\\$\\{${key}\\}`, "g"), value),
-    template
+    template,
   );
 };
 
@@ -94,7 +94,7 @@ export const emailUtils = {
   sendVerificationNotification: async () => {
     const template = await getEmailTemplate(
       "verification-notification",
-      "index.html"
+      "index.html",
     );
     return processTemplate(template, {
       frontendUrl: `${frontendUrl}/login`,
