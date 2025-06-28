@@ -508,7 +508,7 @@ paths:
         Permanently removes a user account from the system.
 
         **Authentication:** Bearer token required
-        **Authorization:** Admin role required (enforced by verifyAuthRole middleware)
+        **Authorization:** Admin role required (enforced by validateAuthRole middleware)
         **Security:** This operation is irreversible
 
         **Features:**

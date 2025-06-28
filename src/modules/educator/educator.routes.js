@@ -1,8 +1,8 @@
 import express from "express";
 
 import { createEducatorDto } from "#dtos/index.js";
-import { validateDto } from "#middleware/index.js";
-import { uploadMiddleware } from "#middleware/index.js";
+import { validate } from "#middleware/index.js";
+import { upload } from "#middleware/index.js";
 import { educatorControllers } from "./educator.controllers.js";
 
 export const educatorRoutes = express.Router();
@@ -10,10 +10,10 @@ export const educatorRoutes = express.Router();
 educatorRoutes
   .post(
     "/",
-    uploadMiddleware,
-    validateDto(createEducatorDto),
+    upload,
+    validate.dto(createEducatorDto),
     educatorControllers.create
   )
   .get("/", educatorControllers.getAll)
   .get("/:id", educatorControllers.getById)
-  .patch("/:id", uploadMiddleware, educatorControllers.updateById);
+  .patch("/:id", upload, educatorControllers.updateById);

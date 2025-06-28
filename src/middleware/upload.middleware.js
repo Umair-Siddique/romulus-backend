@@ -19,7 +19,7 @@ for (let i = 0; i < 10; i++) {
   });
 }
 
-export const uploadMiddleware = multer({
+export const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
 }).fields(knownFields);

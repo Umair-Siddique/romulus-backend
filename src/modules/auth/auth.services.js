@@ -120,27 +120,21 @@ export const authServices = {
     }
 
     const userId = user._id;
-    let educatorId;
-    let organizationId;
 
     const [existingEducator, existingOrganization] = await Promise.all([
       read.educatorByUserId(userId),
       read.organizationByUserId(userId),
     ]);
-    if (existingEducator) {
-      educatorId = existingEducator._id;
-    } else if (existingOrganization) {
-      organizationId = existingOrganization._id;
-    } else {
-      educatorId = undefined;
-      organizationId = undefined;
-    }
+
+    const educatorId = existingEducator?._id;
+    const organizationId = existingEducator
+      ? undefined
+      : existingOrganization?._id;
 
     if (!user.isEmailVerified) {
       // Generate new verification token
       const verificationToken = generateToken(userId);
       if (!verificationToken) {
-        await remove.userById(userId);
         throw createError(
           500,
           "An error occurred while generating the token.",
@@ -210,14 +204,14 @@ export const authServices = {
       throw createError(401, "Invalid credentials.", {
         expose: true,
         code: "INVALID_CREDENTIALS",
-        // field: "password",
+        field: "password",
         operation: "sign_in",
         headers: { "www-authenticate": "Bearer" },
       });
     }
 
-    const token = generateToken(user._id, user.role);
-    if (!token) {
+    const accessToken = generateToken(user._id, user.role);
+    if (!accessToken) {
       throw createError(500, "Token generation failed.", {
         expose: false,
         code: "TOKEN_GENERATION_FAILED",
@@ -236,7 +230,7 @@ export const authServices = {
         organizationId,
         role: user.role,
       },
-      token,
+      accessToken,
     };
   },
 
