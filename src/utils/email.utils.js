@@ -9,12 +9,6 @@ const { USER_EMAIL } = env;
 // Template cache for better performance
 const templateCache = new Map();
 
-/**
- * Reads and caches email templates
- * @param {string} folder - Template folder name
- * @param {string} filename - Template filename
- * @returns {Promise<string>} Template content
- */
 const getEmailTemplate = async (folder, filename) => {
   const cacheKey = `${folder}/${filename}`;
 
@@ -31,30 +25,19 @@ const getEmailTemplate = async (folder, filename) => {
     return template;
   } catch (error) {
     throw new Error(
-      `Failed to read email template: ${cacheKey}. ${error.message}`,
+      `Failed to read email template: ${cacheKey}. ${error.message}`
     );
   }
 };
 
-/**
- * Replaces template variables with actual values
- * @param {string} template - HTML template string
- * @param {Object} variables - Key-value pairs for replacement
- * @returns {string} Processed template
- */
 const processTemplate = (template, variables) => {
   return Object.entries(variables).reduce(
     (processed, [key, value]) =>
       processed.replace(new RegExp(`\\$\\{${key}\\}`, "g"), value),
-    template,
+    template
   );
 };
 
-/**
- * Sends email using the configured transporter
- * @param {Object} mailOptions - Email configuration
- * @returns {Promise} Transporter response
- */
 const sendMail = async (mailOptions) => {
   try {
     return await transporter.sendMail({
@@ -67,12 +50,6 @@ const sendMail = async (mailOptions) => {
 };
 
 export const emailUtils = {
-  /**
-   * Sends account verification email
-   * @param {string} email - Recipient email address
-   * @param {string} verificationToken - Verification token
-   * @returns {Promise} Email send result
-   */
   sendAccountVerification: async (email, verificationToken) => {
     const template = await getEmailTemplate("verification-email", "index.html");
     const html = processTemplate(template, {
@@ -87,26 +64,16 @@ export const emailUtils = {
     });
   },
 
-  /**
-   * Gets verification notification template
-   * @returns {Promise<string>} Processed HTML template
-   */
   sendVerificationNotification: async () => {
     const template = await getEmailTemplate(
       "verification-notification",
-      "index.html",
+      "index.html"
     );
     return processTemplate(template, {
       frontendUrl: `${frontendUrl}/login`,
     });
   },
 
-  /**
-   * Sends password reset email
-   * @param {string} email - Recipient email address
-   * @param {string} resetToken - Password reset token
-   * @returns {Promise} Email send result
-   */
   sendResetPassword: async (email, resetToken) => {
     const template = await getEmailTemplate("reset-password", "index.html");
     const html = processTemplate(template, {
