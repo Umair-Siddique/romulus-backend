@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Email Verification | Romulus</title>
+    <title>Reset Password | Romulus</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -52,21 +52,18 @@
   </head>
   <body>
     <div class="container">
-      <h2>Verify Your Email</h2>
+      <h2>Reset Your Password</h2>
 
-      <p>
-        Thank you for signing up! Please verify your email address to complete
-        your registration.
-      </p>
+      <p>To reset your password, please click the button below.</p>
 
       <a
-        href="${backendUrl}/api/v1/email/check-verification-token/${verificationToken}"
+        href="${frontendUrl}/update-password?token=${verificationToken}"
         class="button"
         style="color: #fff; text-decoration: none"
-        >Verify Email</a
+        >Reset Password</a
       >
 
-      <p>If you did not sign up for this account, please ignore this email.</p>
+      <p>If you didn't request a password reset, please ignore this email.</p>
 
       <div class="footer">
         <p>Best regards,<br />Romulus Team</p>

@@ -1,11 +1,6 @@
 import createError from "http-errors";
 
-import {
-  decodeToken,
-  generateToken,
-  sendVerificationNotification,
-  sendVerificationEmail,
-} from "#utils/index.js";
+import { decodeToken, generateToken, sendEmail } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { read, update, remove } = dataAccess;
@@ -39,7 +34,7 @@ export const emailServices = {
       });
     }
 
-    return sendVerificationNotification();
+    return sendEmail.verificationNotification();
   },
 
   send: async (email) => {
@@ -69,13 +64,16 @@ export const emailServices = {
       });
     }
 
-    const isEmailSent = await sendVerificationEmail(email, verificationToken);
+    const isEmailSent = await sendEmail.accountVerification(
+      email,
+      verificationToken
+    );
     if (!isEmailSent) {
       await remove.userById(user._id);
       throw createError(500, "Failed to send the welcome email.", {
         expose: false,
         code: "EMAIL_SEND_FAILED",
-        operation: "sendVerificationEmail",
+        operation: "sendEmail.accountVerification",
         userId: user._id,
         context: {
           emailType: "verification",

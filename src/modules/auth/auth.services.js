@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import {
   generateToken,
   decodeToken,
-  sendVerificationEmail,
+  sendEmail,
   sendWhatsAppOTP,
 } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
@@ -78,10 +78,9 @@ export const authServices = {
       });
     }
 
-    const isEmailSent = await sendVerificationEmail(
+    const isEmailSent = await sendEmail.accountVerification(
       email,
-      verificationToken,
-      "verify-email"
+      verificationToken
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -155,17 +154,16 @@ export const authServices = {
       }
 
       // Send verification email
-      const isEmailSent = await sendVerificationEmail(
+      const isEmailSent = await sendEmail.accountVerification(
         email,
-        verificationToken,
-        "verify-email"
+        verificationToken
       );
       if (!isEmailSent) {
         await remove.userById(userId);
         throw createError(500, "Failed to send the verification email.", {
           expose: false,
           code: "EMAIL_SEND_FAILED",
-          operation: "sendVerificationEmail",
+          operation: "sendEmail.accountVerification",
           id: userId,
           context: {
             emailType: "verify-email",
@@ -308,16 +306,12 @@ export const authServices = {
       });
     }
 
-    const isEmailSent = await sendVerificationEmail(
-      email,
-      resetToken,
-      "reset-password"
-    );
+    const isEmailSent = await sendEmail.resetPassword(email, resetToken);
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email", {
         expose: false,
         code: "EMAIL_SEND_FAILED",
-        operation: "sendVerificationEmail",
+        operation: "sendEmail.resetPassword",
         id: existingUser._id,
         context: {
           emailType: "reset-password",
