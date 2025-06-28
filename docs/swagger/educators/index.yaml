@@ -8,7 +8,9 @@ info:
     **Features:**
     - Educator profile creation with comprehensive validation
     - File upload support for documents and images
-    - Profile retrieval by user ID
+    - Profile retrieval by ID or user ID
+    - Profile updates with partial data support
+    - List all educators
     - Duplicate profile prevention (educator/organization conflict detection)
     - Skill management with flexible input formats
 
@@ -186,18 +188,22 @@ components:
         - city
         - country
         - fullAddress
+        - fullAddressCoordinates
         - profession
         - hourlyRate
         - skills
         - education
+        - isApproved
         - createdAt
         - updatedAt
       properties:
         _id:
           $ref: "#/components/schemas/ID"
         user:
-          $ref: "#/components/schemas/UserProfile"
-          description: Associated user account (always populated)
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - $ref: "#/components/schemas/UserProfile"
+          description: Associated user account (ObjectId in create response, populated object in get responses)
         profilePicture:
           $ref: "#/components/schemas/ImageUrl"
           description: Profile picture URL
@@ -239,6 +245,27 @@ components:
           example: "123 Education St, New York, NY 10001"
           minLength: 10
           maxLength: 500
+        fullAddressCoordinates:
+          type: object
+          description: Geographic coordinates for the full address
+          required:
+            - type
+            - coordinates
+          properties:
+            type:
+              type: string
+              enum: [Point]
+              default: "Point"
+              description: GeoJSON type for point location
+            coordinates:
+              type: array
+              description: Array of [longitude, latitude] coordinates
+              items:
+                type: number
+              minItems: 2
+              maxItems: 2
+              example: [0, 0]
+              default: [0, 0]
         bio:
           type: string
           description: Professional biography
@@ -289,6 +316,11 @@ components:
           $ref: "#/components/schemas/DocumentUrl"
           description: Academic diploma or degree certificate
           default: "https://example.com/default-diploma.png"
+        isApproved:
+          type: boolean
+          description: Approval status of the educator profile
+          default: false
+          example: false
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
@@ -391,23 +423,272 @@ components:
           format: binary
           description: Academic diploma file (jpg, jpeg, png, gif, pdf)
 
+    EducatorUpdateRequest:
+      type: object
+      description: Partial update request - at least one field required
+      properties:
+        firstName:
+          type: string
+          description: Educator's first name
+          minLength: 2
+          maxLength: 50
+        lastName:
+          type: string
+          description: Educator's last name
+          minLength: 2
+          maxLength: 50
+        gender:
+          $ref: "#/components/schemas/Gender"
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth (must result in age 18-100)
+        city:
+          type: string
+          description: City of residence
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          description: Country of residence
+          minLength: 2
+          maxLength: 100
+        fullAddress:
+          type: string
+          description: Complete residential address
+          minLength: 10
+          maxLength: 500
+        bio:
+          type: string
+          description: Professional biography
+          maxLength: 500
+        profession:
+          type: string
+          description: Professional title or occupation
+          minLength: 2
+          maxLength: 100
+        hourlyRate:
+          type: number
+          description: Hourly teaching rate
+          minimum: 0
+          maximum: 10000
+        skills:
+          type: string
+          description: Teaching skills (comma-separated string or array)
+          example: "mathematics,algebra,calculus,statistics"
+        education:
+          type: string
+          description: Educational background
+          minLength: 2
+          maxLength: 200
+
     # ================================
     # RESPONSE SCHEMAS
     # ================================
+    EducatorCreateData:
+      type: object
+      description: Educator profile data in create response (user field as ObjectId)
+      required:
+        - _id
+        - user
+        - firstName
+        - lastName
+        - gender
+        - dateOfBirth
+        - city
+        - country
+        - fullAddress
+        - fullAddressCoordinates
+        - profession
+        - hourlyRate
+        - skills
+        - education
+        - isApproved
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        user:
+          $ref: "#/components/schemas/ID"
+          description: Associated user account ObjectId
+        profilePicture:
+          $ref: "#/components/schemas/ImageUrl"
+          description: Profile picture URL
+        firstName:
+          type: string
+          description: Educator's first name
+          example: "Sharjeel"
+        lastName:
+          type: string
+          description: Educator's last name
+          example: "Faiq"
+        gender:
+          $ref: "#/components/schemas/Gender"
+          example: "male"
+        dateOfBirth:
+          type: string
+          format: date-time
+          description: Date of birth stored as ISO datetime
+          example: "1998-11-16T00:00:00.000Z"
+        city:
+          type: string
+          description: City of residence
+          example: "Islamabad"
+        country:
+          type: string
+          description: Country of residence
+          example: "Pakistan"
+        fullAddress:
+          type: string
+          description: Complete address
+          example: "Islamabad, Pakistan"
+        fullAddressCoordinates:
+          type: object
+          description: Geographic coordinates for the full address
+          required:
+            - type
+            - coordinates
+          properties:
+            type:
+              type: string
+              enum: [Point]
+              example: "Point"
+            coordinates:
+              type: array
+              description: Array of [longitude, latitude] coordinates
+              items:
+                type: number
+              example: [0, 0]
+        bio:
+          type: string
+          description: Professional biography
+          example: "Software Engineer"
+          nullable: true
+        identityProof:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Identity verification document
+        criminalRecord:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Criminal background check document
+        profession:
+          type: string
+          description: Professional title or occupation
+          example: "Software Engineer"
+        hourlyRate:
+          type: number
+          description: Hourly teaching rate
+          example: 20
+        skills:
+          type: array
+          description: Teaching skills and specializations
+          items:
+            type: string
+          example: ["engineer", "engineer", "engineer"]
+        education:
+          type: string
+          description: Educational background
+          example: "ava"
+        certificateOfHonor:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Certificate of honor or achievement
+        diploma:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Academic diploma or degree certificate
+        isApproved:
+          type: boolean
+          description: Approval status of the educator profile
+          example: false
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+          example: "2025-06-27T18:29:27.832Z"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+          example: "2025-06-27T18:29:27.832Z"
+        __v:
+          type: integer
+          description: MongoDB version key
+          example: 0
+
     EducatorCreateResponse:
       allOf:
         - $ref: "#/components/schemas/BaseResponse"
         - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/EducatorCreateData"
           example:
             success: true
             message: "Educator Profile Created Successfully"
+            data:
+              user: "685ec9b47d7c68774fab517c"
+              profilePicture: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048824/users/685ec9b47d7c68774fab517c/profilePicture.jpg"
+              firstName: "Sharjeel"
+              lastName: "Faiq"
+              gender: "male"
+              dateOfBirth: "1998-11-16T00:00:00.000Z"
+              city: "Islamabad"
+              country: "Pakistan"
+              fullAddress: "Islamabad, Pakistan"
+              fullAddressCoordinates:
+                type: "Point"
+                coordinates: [0, 0]
+              bio: "Software Engineer"
+              identityProof: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/identityProof.jpg"
+              criminalRecord: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/criminalRecord.jpg"
+              profession: "Software Engineer"
+              hourlyRate: 20
+              skills: ["engineer", "engineer", "engineer"]
+              education: "ava"
+              certificateOfHonor: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/certificateOfHonor.jpg"
+              diploma: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/diploma.jpg"
+              isApproved: false
+              _id: "685ee307dcf7fb2891637d3b"
+              createdAt: "2025-06-27T18:29:27.832Z"
+              updatedAt: "2025-06-27T18:29:27.832Z"
+              __v: 0
+
+    EducatorListResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/EducatorProfile"
+          example:
+            success: true
+            message: "Educators retrieved successfully."
+
+    EducatorSingleResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/EducatorProfile"
+          example:
+            success: true
+            message: "Educator profile retrieved successfully."
+
+    EducatorUpdateResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/EducatorProfile"
+          example:
+            success: true
+            message: "Educator Profile Updated Successfully"
 
   parameters:
-    UserIdPath:
+    EducatorIdPath:
       in: path
-      name: userId
+      name: id
       required: true
-      description: MongoDB ObjectId of the user account
+      description: MongoDB ObjectId of the educator profile
       schema:
         $ref: "#/components/schemas/ID"
 
@@ -431,43 +712,64 @@ components:
           schema:
             $ref: "#/components/schemas/EducatorCreateResponse"
 
+    EducatorListSuccess:
+      description: Educators list retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EducatorListResponse"
+
     EducatorProfileResponse:
       description: Educator profile retrieved successfully
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/EducatorProfile"
+            $ref: "#/components/schemas/EducatorSingleResponse"
           example:
-            _id: "684c741db41d25d0e5997b0e"
-            user:
-              _id: "684a460b15669c37873dfb06"
-              email: "educator@example.com"
-              role: "educator"
-              isEmailVerified: true
-              isPhoneVerified: true
-              createdAt: "2025-06-12T03:14:19.534Z"
-              updatedAt: "2025-06-12T03:15:47.735Z"
+            success: true
+            message: "Educator profile retrieved successfully."
+            data:
+              _id: "684c741db41d25d0e5997b0e"
+              user:
+                _id: "684a460b15669c37873dfb06"
+                email: "educator@example.com"
+                role: "educator"
+                isEmailVerified: true
+                isPhoneVerified: true
+                createdAt: "2025-06-12T03:14:19.534Z"
+                updatedAt: "2025-06-12T03:15:47.735Z"
+                __v: 0
+              profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/profilePicture.png"
+              firstName: "Sarah"
+              lastName: "Johnson"
+              gender: "female"
+              dateOfBirth: "1990-05-15T00:00:00.000Z"
+              city: "Islamabad"
+              country: "Pakistan"
+              fullAddress: "Islamabad, Pakistan"
+              fullAddressCoordinates:
+                type: "Point"
+                coordinates: [0, 0]
+              bio: "Experienced mathematics teacher with 10+ years in secondary education"
+              identityProof: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/identityProof.png"
+              criminalRecord: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/criminalRecord.png"
+              profession: "Mathematics Teacher"
+              hourlyRate: 35
+              skills: ["mathematics", "algebra", "calculus", "statistics"]
+              education: "Master's in Mathematics Education"
+              certificateOfHonor: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/certificateOfHonor.png"
+              diploma: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/diploma.png"
+              isApproved: false
+              createdAt: "2025-06-13T18:55:25.227Z"
+              updatedAt: "2025-06-13T18:55:25.227Z"
               __v: 0
-            profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/profilePicture.png"
-            firstName: "Sarah"
-            lastName: "Johnson"
-            gender: "female"
-            dateOfBirth: "1990-05-15T00:00:00.000Z"
-            city: "Islamabad"
-            country: "Pakistan"
-            fullAddress: "Islamabad, Pakistan"
-            bio: "Experienced mathematics teacher with 10+ years in secondary education"
-            identityProof: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/identityProof.png"
-            criminalRecord: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/criminalRecord.png"
-            profession: "Mathematics Teacher"
-            hourlyRate: 35
-            skills: ["mathematics", "algebra", "calculus", "statistics"]
-            education: "Master's in Mathematics Education"
-            certificateOfHonor: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/certificateOfHonor.png"
-            diploma: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/diploma.png"
-            createdAt: "2025-06-13T18:55:25.227Z"
-            updatedAt: "2025-06-13T18:55:25.227Z"
-            __v: 0
+
+    EducatorUpdateSuccess:
+      description: Educator profile updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/EducatorUpdateResponse"
 
     # ================================
     # ERROR RESPONSES
@@ -504,6 +806,11 @@ components:
               value:
                 success: false
                 message: "At least one skill is required"
+            updateMinFields:
+              summary: Update requires at least one field
+              value:
+                success: false
+                message: "At least one field must be provided for update."
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -540,6 +847,11 @@ components:
               value:
                 success: false
                 message: "Educator profile not found."
+            noEducatorsFound:
+              summary: No educators exist in the system
+              value:
+                success: false
+                message: "No educators found."
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -553,6 +865,11 @@ components:
               value:
                 success: false
                 message: "An error occurred while creating the profile."
+            profileUpdateFailed:
+              summary: Database update operation failed
+              value:
+                success: false
+                message: "An error occurred while updating the profile."
 
 security:
   - BearerAuth: []
@@ -587,6 +904,7 @@ paths:
         - Prevents educator profile if user has organization profile
         - Processes comma-separated strings into arrays for skills
         - Handles both file uploads and uses defaults for optional files
+        - Automatically creates fullAddressCoordinates with default [0, 0]
 
       operationId: create-educator-profile
       tags: [Educator Management]
@@ -642,11 +960,41 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/educators/{userId}:
     get:
-      summary: Get educator profile by user ID
+      summary: Get all educator profiles
       description: |
-        Retrieves an educator profile associated with a specific user ID.
+        Retrieves all educator profiles in the system with populated user information.
+
+        **Response Details:**
+        - Returns array of complete educator profiles
+        - Each profile includes populated user object with email, role, verification status
+        - All document URLs and file paths are included in response
+        - Returns 404 if no educators exist in the system
+
+        **Use Cases:**
+        - List all available educators
+        - Admin dashboard for educator management
+        - Browse educators for matching with students
+
+      operationId: get-all-educators
+      tags: [Educator Management]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          $ref: "#/components/responses/EducatorListSuccess"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/educators/{id}:
+    get:
+      summary: Get educator profile by ID
+      description: |
+        Retrieves an educator profile by its MongoDB ObjectId.
 
         **Response Details:**
         - Returns complete educator profile with populated user information
@@ -655,15 +1003,15 @@ paths:
 
         **Use Cases:**
         - Display educator profile information
-        - Verify educator account exists for a user
+        - Verify educator account exists
         - Retrieve profile for editing or updates
 
-      operationId: get-educator-by-user-id
+      operationId: get-educator-by-id
       tags: [Educator Management]
       security:
         - BearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/UserIdPath"
+        - $ref: "#/components/parameters/EducatorIdPath"
       responses:
         200:
           $ref: "#/components/responses/EducatorProfileResponse"
@@ -673,3 +1021,63 @@ paths:
           $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      summary: Update educator profile
+      description: |
+        Updates an existing educator profile with partial data.
+
+        **Update Rules:**
+        - At least one field must be provided for update
+        - All validation rules apply to updated fields
+        - File uploads supported for document updates
+        - Uses upsert: true for database operations
+        - Skills processing handles comma-separated strings
+
+        **Validation:**
+        - Age validation applies if dateOfBirth is updated
+        - Skills array validation if skills are updated
+        - All text field length validations apply
+        - Hourly rate range validation applies
+
+        **Business Logic:**
+        - Profile must exist before update
+        - File uploads replace existing document URLs
+        - Skills are normalized to lowercase
+        - Response includes updated profile data
+
+      operationId: update-educator-profile
+      tags: [Educator Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/EducatorIdPath"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/EducatorUpdateRequest"
+            examples:
+              partialUpdate:
+                summary: Update selected fields
+                value:
+                  firstName: "UpdatedName"
+                  hourlyRate: 40.00
+                  skills: "mathematics,physics,chemistry"
+              bioUpdate:
+                summary: Update bio only
+                value:
+                  bio: "Updated professional biography with new achievements"
+      responses:
+        200:
+          $ref: "#/components/responses/EducatorUpdateSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+

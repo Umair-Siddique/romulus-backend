@@ -9,7 +9,9 @@ info:
     - Organization profile creation with comprehensive validation
     - Multi-branch management with individual file uploads
     - File upload support for documents and images
-    - Profile retrieval by user ID
+    - Profile retrieval by organization ID
+    - List all organizations
+    - Profile updates with partial data support
     - Duplicate profile prevention (educator/organization conflict detection)
     - SIRET number validation for French business registration
 
@@ -277,8 +279,10 @@ components:
         _id:
           $ref: "#/components/schemas/ID"
         user:
-          $ref: "#/components/schemas/UserProfile"
-          description: Associated user account (always populated)
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - $ref: "#/components/schemas/UserProfile"
+          description: Associated user account (ObjectId in create response, populated object in get responses)
         profilePicture:
           $ref: "#/components/schemas/ImageUrl"
           description: Organization profile picture URL
@@ -410,23 +414,135 @@ components:
         - Phone, city, country are optional for branches
         - Residence guidelines files are mapped dynamically to each branch
 
+    OrganizationUpdateRequest:
+      type: object
+      description: Partial update request - at least one field required
+      properties:
+        organizationName:
+          type: string
+          description: Official name of the organization
+          minLength: 2
+          maxLength: 100
+        foundedYear:
+          type: string
+          format: date
+          description: Year when organization was founded (1900-current year)
+        phone:
+          $ref: "#/components/schemas/PhoneNumber"
+          description: Primary contact phone number
+        siretNumber:
+          $ref: "#/components/schemas/SiretNumber"
+          description: French SIRET business registration number
+        city:
+          type: string
+          description: City where main office is located
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          description: Country where main office is located
+          minLength: 2
+          maxLength: 100
+        officeAddress:
+          type: string
+          description: Complete address of main office
+          minLength: 10
+          maxLength: 500
+        branches:
+          type: array
+          description: Array of branch locations
+          items:
+            $ref: "#/components/schemas/BranchCreateRequest"
+          minItems: 1
+
     # ================================
     # RESPONSE SCHEMAS
     # ================================
+    OrganizationCreateData:
+      type: object
+      description: Organization profile data in create response (user field as ObjectId)
+      allOf:
+        - $ref: "#/components/schemas/OrganizationProfile"
+        - type: object
+          properties:
+            user:
+              $ref: "#/components/schemas/ID"
+              description: Associated user account ObjectId
+
     OrganizationCreateResponse:
       allOf:
         - $ref: "#/components/schemas/BaseResponse"
         - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/OrganizationCreateData"
           example:
             success: true
             message: "Organization profile created successfully."
+            data:
+              _id: "684c742fb41d25d0e5997b13"
+              user: "684a9654caa07bcde4138271"
+              profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/profilePicture.png"
+              organizationName: "Global Education Solutions"
+              foundedYear: "1998-11-16T00:00:00.000Z"
+              phone: "+923368856575"
+              siretNumber: "12345678901234"
+              city: "Islamabad"
+              country: "Pakistan"
+              officeAddress: "Islamabad, Pakistan"
+              branches:
+                - branchName: "Downtown Branch"
+                  branchEmail: "downtown@example.com"
+                  branchPhone: "+1234688941"
+                  branchCity: "Islamabad"
+                  branchCountry: "Pakistan"
+                  branchAddress: "Islamabad, Pakistan"
+                  residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
+              createdAt: "2025-06-13T18:55:43.735Z"
+              updatedAt: "2025-06-13T18:55:43.735Z"
+              __v: 0
+
+    OrganizationListResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrganizationProfile"
+          example:
+            success: true
+            message: "Organizations retrieved successfully."
+
+    OrganizationSingleResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/OrganizationProfile"
+          example:
+            success: true
+            message: "Organization retrieved successfully."
+
+    OrganizationUpdateResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/OrganizationProfile"
+          example:
+            success: true
+            message: "Organization updated successfully."
 
   parameters:
-    UserIdPath:
+    OrganizationIdPath:
       in: path
-      name: userId
+      name: id
       required: true
-      description: MongoDB ObjectId of the user account
+      description: MongoDB ObjectId of the organization profile
       schema:
         $ref: "#/components/schemas/ID"
 
@@ -450,49 +566,66 @@ components:
           schema:
             $ref: "#/components/schemas/OrganizationCreateResponse"
 
+    OrganizationListSuccess:
+      description: Organizations list retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/OrganizationListResponse"
+
     OrganizationProfileResponse:
       description: Organization profile retrieved successfully
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/OrganizationProfile"
+            $ref: "#/components/schemas/OrganizationSingleResponse"
           example:
-            _id: "684c742fb41d25d0e5997b13"
-            user:
-              _id: "684a9654caa07bcde4138271"
-              email: "organization@example.com"
-              role: "organization"
-              isEmailVerified: true
-              isPhoneVerified: true
-              createdAt: "2025-06-12T08:56:52.808Z"
-              updatedAt: "2025-06-12T08:56:52.808Z"
+            success: true
+            message: "Organization retrieved successfully."
+            data:
+              _id: "684c742fb41d25d0e5997b13"
+              user:
+                _id: "684a9654caa07bcde4138271"
+                email: "organization@example.com"
+                role: "organization"
+                isEmailVerified: true
+                isPhoneVerified: true
+                createdAt: "2025-06-12T08:56:52.808Z"
+                updatedAt: "2025-06-12T08:56:52.808Z"
+                __v: 0
+              profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/profilePicture.png"
+              organizationName: "Global Education Solutions"
+              foundedYear: "1998-11-16T00:00:00.000Z"
+              phone: "+923368856575"
+              siretNumber: "12345678901234"
+              city: "Islamabad"
+              country: "Pakistan"
+              officeAddress: "Islamabad, Pakistan"
+              branches:
+                - branchName: "Downtown Branch"
+                  branchEmail: "downtown@example.com"
+                  branchPhone: "+1234688941"
+                  branchCity: "Islamabad"
+                  branchCountry: "Pakistan"
+                  branchAddress: "Islamabad, Pakistan"
+                  residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
+                - branchName: "Suburb Branch"
+                  branchEmail: "suburb@example.com"
+                  branchPhone: "+1234688941"
+                  branchCity: "Lyon"
+                  branchCountry: "France"
+                  branchAddress: "789 Education Ave, Lyon 69001"
+                  residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B1%5D%5BresidenceGuidelines%5D.png"
+              createdAt: "2025-06-13T18:55:43.735Z"
+              updatedAt: "2025-06-13T18:55:43.735Z"
               __v: 0
-            profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/profilePicture.png"
-            organizationName: "Global Education Solutions"
-            foundedYear: "1998-11-16T00:00:00.000Z"
-            phone: "+923368856575"
-            siretNumber: "12345678901234"
-            city: "Islamabad"
-            country: "Pakistan"
-            officeAddress: "Islamabad, Pakistan"
-            branches:
-              - branchName: "Downtown Branch"
-                branchEmail: "downtown@example.com"
-                branchPhone: "+1234688941"
-                branchCity: "Islamabad"
-                branchCountry: "Pakistan"
-                branchAddress: "Islamabad, Pakistan"
-                residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
-              - branchName: "Suburb Branch"
-                branchEmail: "suburb@example.com"
-                branchPhone: "+1234688941"
-                branchCity: "Lyon"
-                branchCountry: "France"
-                branchAddress: "789 Education Ave, Lyon 69001"
-                residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B1%5D%5BresidenceGuidelines%5D.png"
-            createdAt: "2025-06-13T18:55:43.735Z"
-            updatedAt: "2025-06-13T18:55:43.735Z"
-            __v: 0
+
+    OrganizationUpdateSuccess:
+      description: Organization profile updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/OrganizationUpdateResponse"
 
     # ================================
     # ERROR RESPONSES
@@ -534,6 +667,11 @@ components:
               value:
                 success: false
                 message: "At least one branch is required"
+            updateMinFields:
+              summary: Update requires at least one field
+              value:
+                success: false
+                message: "At least one field must be provided for update."
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -569,7 +707,12 @@ components:
               summary: Organization profile not found
               value:
                 success: false
-                message: "Organization profile not found."
+                message: "Organization not found."
+            noOrganizationsFound:
+              summary: No organizations exist in the system
+              value:
+                success: false
+                message: "No organizations found."
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -583,6 +726,11 @@ components:
               value:
                 success: false
                 message: "Failed to create organization."
+            profileUpdateFailed:
+              summary: Database update operation failed
+              value:
+                success: false
+                message: "Failed to update organization."
 
 security:
   - BearerAuth: []
@@ -617,6 +765,7 @@ paths:
         - Prevents organization profile if user has educator profile
         - Processes branch array with dynamic file mappings
         - Handles both file uploads and uses defaults for optional files
+        - Maps residence guidelines files to branches using dynamic keys: `branches[index][residenceGuidelines]`
 
       operationId: create-organization-profile
       tags: [Organization Management]
@@ -677,11 +826,42 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/organizations/{userId}:
     get:
-      summary: Get organization profile by user ID
+      summary: Get all organization profiles
       description: |
-        Retrieves an organization profile associated with a specific user ID.
+        Retrieves all organization profiles in the system with populated user information.
+
+        **Response Details:**
+        - Returns array of complete organization profiles
+        - Each profile includes populated user object with email, role, verification status
+        - All branches with their respective details and file URLs
+        - All document URLs and file paths are included in response
+        - Returns 404 if no organizations exist in the system
+
+        **Use Cases:**
+        - List all available organizations
+        - Admin dashboard for organization management
+        - Browse organizations for partnerships or connections
+
+      operationId: get-all-organizations
+      tags: [Organization Management]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          $ref: "#/components/responses/OrganizationListSuccess"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/organizations/{id}:
+    get:
+      summary: Get organization profile by ID
+      description: |
+        Retrieves an organization profile by its MongoDB ObjectId.
 
         **Response Details:**
         - Returns complete organization profile with populated user information
@@ -691,19 +871,81 @@ paths:
 
         **Use Cases:**
         - Display organization profile information
-        - Verify organization account exists for a user
+        - Verify organization account exists
         - Retrieve profile for editing or updates
         - Access branch details and residence guidelines
 
-      operationId: get-organization-by-user-id
+      operationId: get-organization-by-id
       tags: [Organization Management]
       security:
         - BearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/UserIdPath"
+        - $ref: "#/components/parameters/OrganizationIdPath"
       responses:
         200:
           $ref: "#/components/responses/OrganizationProfileResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      summary: Update organization profile
+      description: |
+        Updates an existing organization profile with partial data.
+
+        **Update Rules:**
+        - At least one field must be provided for update
+        - All validation rules apply to updated fields
+        - File uploads supported for document updates
+        - Uses database upsert operations
+        - Branch array processing with dynamic file mappings
+
+        **Validation:**
+        - Founded year validation applies if foundedYear is updated
+        - SIRET number validation if siretNumber is updated
+        - All text field length validations apply
+        - Phone number format validation applies
+
+        **Business Logic:**
+        - Profile must exist before update
+        - File uploads replace existing document URLs
+        - Branch updates replace entire branches array
+        - Response includes updated profile data
+
+      operationId: update-organization-profile
+      tags: [Organization Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationIdPath"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/OrganizationUpdateRequest"
+            examples:
+              partialUpdate:
+                summary: Update selected fields
+                value:
+                  organizationName: "Updated Organization Name"
+                  phone: "+33999888777"
+                  city: "Updated City"
+              branchUpdate:
+                summary: Update branches
+                value:
+                  branches:
+                    - branchName: "Updated Branch"
+                      branchEmail: "updated@example.com"
+                      branchAddress: "Updated Branch Address"
+      responses:
+        200:
+          $ref: "#/components/responses/OrganizationUpdateSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
         404:

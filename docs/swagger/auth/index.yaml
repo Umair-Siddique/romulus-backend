@@ -49,6 +49,22 @@ components:
       minLength: 24
       maxLength: 24
 
+    EducatorID:
+      type: string
+      description: MongoDB ObjectId identifier for the educator
+      example: "60d0fe4f5311236168a109cb"
+      pattern: "^[0-9a-fA-F]{24}$"
+      minLength: 24
+      maxLength: 24
+
+    OrganizationID:
+      type: string
+      description: MongoDB ObjectId identifier for the organization
+      example: "60d0fe4f5311236168a109cc"
+      pattern: "^[0-9a-fA-F]{24}$"
+      minLength: 24
+      maxLength: 24
+
     Email:
       type: string
       format: email
@@ -71,13 +87,10 @@ components:
       format: password
       description: |
         Secure password with requirements:
-        - Minimum 8 characters
-        - At least one uppercase letter
-        - At least one lowercase letter  
-        - At least one number
-        - At least one special character
+        - Minimum 6 characters (as per DTO validation)
+        - Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (as per User model)
       example: "SecurePass123!"
-      minLength: 8
+      minLength: 6
       maxLength: 128
 
     Role:
@@ -198,15 +211,38 @@ components:
     UserData:
       type: object
       required:
+        - id
+        - role
+      properties:
+        id:
+          $ref: "#/components/schemas/UserID"
+        role:
+          $ref: "#/components/schemas/Role"
+      example:
+        id: "60d0fe4f5311236168a109ca"
+        role: "educator"
+
+    SignInUserData:
+      type: object
+      required:
         - userId
         - role
       properties:
         userId:
           $ref: "#/components/schemas/UserID"
+        educatorId:
+          allOf:
+            - $ref: "#/components/schemas/EducatorID"
+          description: Present only for educator users
+        organizationId:
+          allOf:
+            - $ref: "#/components/schemas/OrganizationID"
+          description: Present only for organization users
         role:
           $ref: "#/components/schemas/Role"
       example:
         userId: "60d0fe4f5311236168a109ca"
+        educatorId: "60d0fe4f5311236168a109cb"
         role: "educator"
 
     # ================================
@@ -225,7 +261,7 @@ components:
             success: true
             message: "Account registered successfully. Please verify your email address."
             data:
-              userId: "60d0fe4f5311236168a109ca"
+              id: "60d0fe4f5311236168a109ca"
               role: "educator"
 
     SignInResponse:
@@ -234,19 +270,20 @@ components:
         - type: object
           required:
             - data
-            - token
+            - accessToken
           properties:
             data:
-              $ref: "#/components/schemas/UserData"
-            token:
+              $ref: "#/components/schemas/SignInUserData"
+            accessToken:
               $ref: "#/components/schemas/Token"
           example:
             success: true
             message: "Signed in successfully"
             data:
               userId: "60d0fe4f5311236168a109ca"
+              educatorId: "60d0fe4f5311236168a109cb"
               role: "educator"
-            token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
   responses:
     # ================================
@@ -261,17 +298,6 @@ components:
 
     SignInSuccess:
       description: User authenticated successfully
-      headers:
-        Authorization:
-          description: Bearer token for subsequent authenticated requests
-          schema:
-            type: string
-            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        Access-Control-Expose-Headers:
-          description: Exposed headers for CORS compatibility
-          schema:
-            type: string
-            example: "Authorization"
       content:
         application/json:
           schema:
@@ -287,37 +313,31 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            passwordValidation:
-              summary: Password validation failed
+            validationFailed:
+              summary: Request validation failed
               value:
                 success: false
-                message: "Password must meet security requirements"
-                error:
-                  code: "PASSWORD_VALIDATION"
-                  details:
-                    requirements:
-                      ["uppercase", "lowercase", "number", "special"]
-            userExists:
+                message: "Validation failed: Email is required, Password must be at least 6 characters long"
+            emailExists:
               summary: Email already registered
               value:
                 success: false
                 message: "A user with this email already exists"
-                error:
-                  code: "USER_EXISTS"
             phoneRequired:
               summary: Missing required phone for educator
               value:
                 success: false
                 message: "Phone number is required for educators"
-                error:
-                  code: "PHONE_REQUIRED"
-            tokenMissing:
-              summary: Missing authentication token
+            tokenBlacklisted:
+              summary: Token already blacklisted
               value:
                 success: false
-                message: "Authentication token is required"
-                error:
-                  code: "TOKEN_MISSING"
+                message: "Token is already blacklisted"
+            noTokenFound:
+              summary: No token provided for sign-out
+              value:
+                success: false
+                message: "No token found"
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -330,7 +350,12 @@ components:
               summary: Wrong email or password
               value:
                 success: false
-                message: "Invalid email or password"
+                message: "Invalid credentials"
+            tokenMissingOrMalformed:
+              summary: Missing or malformed authorization token
+              value:
+                success: false
+                message: "Authorization token missing or malformed"
 
     Forbidden:
       description: Account exists but verification requirements not met
@@ -343,7 +368,7 @@ components:
               summary: Email verification pending
               value:
                 success: false
-                message: "Email not verified. Please check your inbox"
+                message: "Email not verified. A new verification link has been sent to your inbox"
             phoneNotVerified:
               summary: Phone verification required for educators
               value:
@@ -403,7 +428,7 @@ paths:
         3. User must complete verification before signing in
 
         **Response:**
-        Returns user ID and role for client-side handling
+        Returns user ID and role for client-side handling. For educators, WhatsApp OTP is sent automatically after successful registration.
       operationId: sign-up
       tags: [Authentication]
       requestBody:
@@ -451,9 +476,10 @@ paths:
         - Phone must be verified for educators
 
         **Response:**
-        - JWT token provided in Authorization header
-        - Token expires based on server configuration
-        - User ID and role included for client-side routing
+        - JWT access token provided in response body
+        - Token expires in 1 hour (as per token configuration)
+        - User ID, role, and role-specific IDs (educatorId/organizationId) included for client-side routing
+        - For unverified emails: automatically sends new verification email before returning error
       operationId: sign-in
       tags: [Authentication]
       requestBody:
@@ -478,10 +504,14 @@ paths:
       description: |
         Signs out the current user by invalidating their JWT token.
 
+        **Authentication Required:**
+        - Must provide valid JWT token in Authorization header
+        - Token is validated via middleware before processing
+
         **Security:**
         - Token is added to blacklist to prevent reuse
-        - Requires valid JWT token in Authorization header
         - Blacklisted tokens expire automatically after 1 hour
+        - Returns error if token is already blacklisted
       operationId: sign-out
       tags: [Authentication]
       security:
@@ -511,9 +541,9 @@ paths:
 
         **Process:**
         1. Validates email exists in system
-        2. Generates secure reset token
+        2. Generates secure reset token (expires in 15 minutes)
         3. Sends reset link via email
-        4. Token expires after configured duration
+        4. Returns success message regardless of email existence (security best practice)
       operationId: forgot-password
       tags: [Authentication]
       requestBody:
@@ -531,7 +561,7 @@ paths:
                 $ref: "#/components/schemas/BaseResponse"
               example:
                 success: true
-                message: "Password reset email sent successfully"
+                message: "Reset password email sent successfully"
         404:
           $ref: "#/components/responses/NotFound"
         500:

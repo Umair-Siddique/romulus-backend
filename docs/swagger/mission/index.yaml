@@ -1,0 +1,846 @@
+openapi: 3.0.3
+info:
+  title: Mission API
+  version: v1
+  description: |
+    Comprehensive API for managing educational missions and training opportunities.
+
+    **Features:**
+    - Mission creation with comprehensive validation and file upload support
+    - Organization-based mission management with role-based access control
+    - Multi-skill mission support with flexible input formats
+    - Date and time scheduling with validation
+    - Mission status tracking throughout lifecycle
+    - Technical document upload and management
+
+    **Authentication & Authorization:**
+    - All endpoints require valid JWT authentication token
+    - Mission creation and updates require organization role
+    - Organization must exist before creating missions
+    - Tokens obtained from Authentication API sign-in endpoint
+
+    **Mission Lifecycle:**
+    - `pending`: Newly created missions awaiting approval (default)
+    - `ongoing`: Active missions in progress
+    - `completed`: Successfully finished missions
+    - `rejected`: Missions that were denied
+    - `cancelled`: Missions that were terminated
+
+    **File Upload Support:**
+    - Technical documents (jpg, jpeg, png, gif, pdf)
+    - Automatic file processing and cloud storage
+
+  contact:
+    name: API Support
+    email: support@yourapi.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.yourapp.com
+    description: Production server
+  - url: https://romulus-backend.onrender.com
+    description: Staging server
+  - url: http://localhost:5000
+    description: Development server
+
+tags:
+  - name: Mission Management
+    description: Educational mission creation and management operations
+
+components:
+  schemas:
+    # ================================
+    # PRIMITIVE TYPES
+    # ================================
+    ID:
+      type: string
+      description: MongoDB ObjectId identifier
+      example: "60d0fe4f5311236168a109ca"
+      pattern: "^[0-9a-fA-F]{24}$"
+      minLength: 24
+      maxLength: 24
+
+    Timestamp:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp with timezone
+      example: "2024-01-15T10:30:00.000Z"
+
+    DocumentUrl:
+      type: string
+      description: URL or file path for uploaded technical documents
+      example: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/60d0fe4f5311236168a109ca/technicalDocument.pdf"
+      pattern: "^https?:\\/\\/.+\\.(jpg|jpeg|png|gif|pdf)$"
+
+    MissionStatus:
+      type: string
+      enum: [pending, ongoing, completed, rejected, cancelled]
+      description: |
+        Mission status throughout its lifecycle:
+        - `pending`: Newly created mission awaiting approval (default)
+        - `ongoing`: Active mission in progress
+        - `completed`: Successfully finished mission
+        - `rejected`: Mission that was denied approval
+        - `cancelled`: Mission that was terminated before completion
+      default: pending
+      example: pending
+
+    TimeFormat:
+      type: string
+      description: Time in 24-hour HH:MM format
+      example: "14:30"
+      pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+
+    # ================================
+    # RESPONSE STRUCTURES
+    # ================================
+    BaseResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the operation completed successfully
+        message:
+          type: string
+          description: Human-readable response message
+          example: "Operation completed successfully"
+
+    ErrorResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            success:
+              example: false
+            message:
+              example: "An error occurred processing your request"
+
+    # ================================
+    # ORGANIZATION REFERENCE SCHEMA
+    # ================================
+    OrganizationReference:
+      type: object
+      required:
+        - _id
+        - organizationName
+        - city
+        - country
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        organizationName:
+          type: string
+          description: Name of the organization
+          example: "Global Education Solutions"
+        city:
+          type: string
+          description: Organization's city
+          example: "Paris"
+        country:
+          type: string
+          description: Organization's country
+          example: "France"
+        phone:
+          type: string
+          description: Organization's contact phone
+          example: "+33123456789"
+        branches:
+          type: array
+          description: Organization's branch locations
+          items:
+            type: object
+            properties:
+              branchName:
+                type: string
+                example: "Downtown Branch"
+              branchEmail:
+                type: string
+                format: email
+                example: "downtown@example.com"
+
+    # ================================
+    # MISSION SCHEMAS
+    # ================================
+    Mission:
+      type: object
+      required:
+        - _id
+        - organization
+        - title
+        - description
+        - branch
+        - skills
+        - startDate
+        - endDate
+        - startTime
+        - endTime
+        - technicalDocument
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        organization:
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - $ref: "#/components/schemas/OrganizationReference"
+          description: Associated organization (ObjectId in create response, populated object in get responses)
+        title:
+          type: string
+          description: Mission title or name
+          example: "Advanced Mathematics Training Program"
+          minLength: 2
+          maxLength: 200
+        description:
+          type: string
+          description: Detailed mission description
+          example: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
+          minLength: 10
+          maxLength: 2000
+        branch:
+          type: string
+          description: Specific branch location for the mission
+          example: "Downtown Branch"
+          minLength: 2
+          maxLength: 100
+        skills:
+          type: array
+          description: Required skills for the mission
+          items:
+            type: string
+            minLength: 1
+            maxLength: 100
+          example: ["mathematics", "algebra", "calculus", "statistics"]
+          minItems: 1
+          maxItems: 20
+        startDate:
+          type: string
+          format: date-time
+          description: Mission start date (must be in the future for creation)
+          example: "2025-07-01T00:00:00.000Z"
+        endDate:
+          type: string
+          format: date-time
+          description: Mission end date (must be after start date)
+          example: "2025-08-30T00:00:00.000Z"
+        startTime:
+          $ref: "#/components/schemas/TimeFormat"
+          description: Daily start time for the mission
+        endTime:
+          $ref: "#/components/schemas/TimeFormat"
+          description: Daily end time for the mission
+        technicalDocument:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Technical documentation or requirements document
+          default: "https://example.com/default-document.pdf"
+        status:
+          $ref: "#/components/schemas/MissionStatus"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    # ================================
+    # REQUEST SCHEMAS
+    # ================================
+    MissionCreateRequest:
+      type: object
+      required:
+        - organization
+        - title
+        - description
+        - branch
+        - skills
+        - startDate
+        - endDate
+        - startTime
+        - endTime
+      properties:
+        organization:
+          $ref: "#/components/schemas/ID"
+          description: ID of the organization creating the mission
+        title:
+          type: string
+          description: Mission title or name
+          minLength: 2
+          maxLength: 200
+        description:
+          type: string
+          description: Detailed mission description
+          minLength: 10
+          maxLength: 2000
+        branch:
+          type: string
+          description: Specific branch location for the mission
+          minLength: 2
+          maxLength: 100
+        skills:
+          type: string
+          description: Required skills (comma-separated string)
+          example: "mathematics,algebra,calculus,statistics"
+          minLength: 2
+          maxLength: 100
+        startDate:
+          type: string
+          format: date
+          description: Mission start date (must be in the future)
+        endDate:
+          type: string
+          format: date
+          description: Mission end date (must be after start date)
+        startTime:
+          $ref: "#/components/schemas/TimeFormat"
+          description: Daily start time for the mission
+        endTime:
+          $ref: "#/components/schemas/TimeFormat"
+          description: Daily end time for the mission
+        status:
+          $ref: "#/components/schemas/MissionStatus"
+          description: Initial mission status (optional, defaults to pending)
+        technicalDocument:
+          type: string
+          format: binary
+          description: Technical documentation file (jpg, jpeg, png, gif, pdf)
+
+    MissionUpdateRequest:
+      type: object
+      description: Partial update request - at least one field required
+      properties:
+        title:
+          type: string
+          description: Mission title or name
+          minLength: 2
+          maxLength: 200
+        description:
+          type: string
+          description: Detailed mission description
+          minLength: 10
+          maxLength: 2000
+        branch:
+          type: string
+          description: Specific branch location for the mission
+          minLength: 2
+          maxLength: 100
+        startDate:
+          type: string
+          format: date
+          description: Mission start date (must be in the future)
+        endDate:
+          type: string
+          format: date
+          description: Mission end date (must be after start date)
+        startTime:
+          $ref: "#/components/schemas/TimeFormat"
+          description: Daily start time for the mission
+        endTime:
+          $ref: "#/components/schemas/TimeFormat"
+          description: Daily end time for the mission
+        status:
+          $ref: "#/components/schemas/MissionStatus"
+          description: Updated mission status
+
+    # ================================
+    # RESPONSE SCHEMAS
+    # ================================
+    MissionCreateData:
+      type: object
+      description: Mission data in create response (organization field as ObjectId)
+      allOf:
+        - $ref: "#/components/schemas/Mission"
+        - type: object
+          properties:
+            organization:
+              $ref: "#/components/schemas/ID"
+              description: Associated organization ObjectId
+
+    MissionCreateResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/MissionCreateData"
+          example:
+            success: true
+            message: "Mission created successfully"
+            data:
+              _id: "60d0fe4f5311236168a109ca"
+              organization: "684a9654caa07bcde4138271"
+              title: "Advanced Mathematics Training Program"
+              description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
+              branch: "Downtown Branch"
+              skills: ["mathematics", "algebra", "calculus", "statistics"]
+              startDate: "2025-07-01T00:00:00.000Z"
+              endDate: "2025-08-30T00:00:00.000Z"
+              startTime: "09:00"
+              endTime: "17:00"
+              technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/684a9654caa07bcde4138271/technicalDocument.pdf"
+              status: "pending"
+              createdAt: "2025-06-27T14:30:00.000Z"
+              updatedAt: "2025-06-27T14:30:00.000Z"
+
+    MissionListResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/Mission"
+          example:
+            success: true
+            message: "Missions retrieved successfully"
+
+    MissionSingleResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Mission"
+          example:
+            success: true
+            message: "Mission retrieved successfully"
+
+    MissionUpdateResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/Mission"
+          example:
+            success: true
+            message: "Mission updated successfully"
+
+  parameters:
+    MissionIdPath:
+      in: path
+      name: id
+      required: true
+      description: MongoDB ObjectId of the mission
+      schema:
+        $ref: "#/components/schemas/ID"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from the authentication sign-in endpoint.
+        Include in the Authorization header as: `Bearer <token>`
+
+  responses:
+    # ================================
+    # SUCCESS RESPONSES
+    # ================================
+    MissionCreateSuccess:
+      description: Mission created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MissionCreateResponse"
+
+    MissionListSuccess:
+      description: Missions list retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MissionListResponse"
+
+    MissionProfileResponse:
+      description: Mission retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MissionSingleResponse"
+          example:
+            success: true
+            message: "Mission retrieved successfully"
+            data:
+              _id: "60d0fe4f5311236168a109ca"
+              organization:
+                _id: "684a9654caa07bcde4138271"
+                organizationName: "Global Education Solutions"
+                city: "Paris"
+                country: "France"
+                phone: "+33123456789"
+                branches:
+                  - branchName: "Downtown Branch"
+                    branchEmail: "downtown@example.com"
+              title: "Advanced Mathematics Training Program"
+              description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
+              branch: "Downtown Branch"
+              skills: ["mathematics", "algebra", "calculus", "statistics"]
+              startDate: "2025-07-01T00:00:00.000Z"
+              endDate: "2025-08-30T00:00:00.000Z"
+              startTime: "09:00"
+              endTime: "17:00"
+              technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/684a9654caa07bcde4138271/technicalDocument.pdf"
+              status: "ongoing"
+              createdAt: "2025-06-27T14:30:00.000Z"
+              updatedAt: "2025-06-28T10:15:00.000Z"
+
+    MissionUpdateSuccess:
+      description: Mission updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/MissionUpdateResponse"
+
+    # ================================
+    # ERROR RESPONSES
+    # ================================
+    BadRequest:
+      description: Invalid request data or business logic violation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            validationError:
+              summary: Field validation failed
+              value:
+                success: false
+                message: "Title must be at least 2 characters long"
+            dateValidation:
+              summary: Date validation failed
+              value:
+                success: false
+                message: "Start date cannot be in the past"
+            endDateValidation:
+              summary: End date validation failed
+              value:
+                success: false
+                message: "End date must be after start date"
+            timeFormatError:
+              summary: Time format validation failed
+              value:
+                success: false
+                message: "Time must be in HH:MM format (24-hour)"
+            skillsRequired:
+              summary: Skills validation failed
+              value:
+                success: false
+                message: "At least one skill is required"
+            updateMinFields:
+              summary: Update requires at least one field
+              value:
+                success: false
+                message: "At least one field must be provided for update"
+
+    Unauthorized:
+      description: Authentication failed or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missingToken:
+              summary: No authentication token provided
+              value:
+                success: false
+                message: "Authorization token missing or malformed"
+            invalidToken:
+              summary: Token expired or malformed
+              value:
+                success: false
+                message: "Invalid or expired token"
+
+    Forbidden:
+      description: Insufficient permissions for the operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            roleRequired:
+              summary: Organization role required
+              value:
+                success: false
+                message: "Access denied: organization role required"
+            wrongRole:
+              summary: User does not have organization role
+              value:
+                success: false
+                message: "Access denied: organization role required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            organizationNotFound:
+              summary: Associated organization not found
+              value:
+                success: false
+                message: "Organization not found"
+            missionNotFound:
+              summary: Mission not found
+              value:
+                success: false
+                message: "Mission not found"
+
+    InternalServerError:
+      description: Unexpected server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            missionCreationFailed:
+              summary: Database operation failed
+              value:
+                success: false
+                message: "Failed to create mission"
+            missionUpdateFailed:
+              summary: Database update operation failed
+              value:
+                success: false
+                message: "Failed to update mission"
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/v1/missions:
+    post:
+      summary: Create new mission
+      description: |
+        Creates a new educational mission for an organization.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+        - Organization must exist in the system
+        - Start date must be in the future
+        - End date must be after start date
+
+        **File Upload Support:**
+        - Content-Type: multipart/form-data
+        - Technical document formats: jpg, jpeg, png, gif, pdf
+        - Files are processed and stored with generated paths
+        - Default URL provided if no document uploaded
+
+        **Validation Rules:**
+        - Title: 2-200 characters
+        - Description: 10-2000 characters
+        - Branch: 2-100 characters
+        - Skills: Comma-separated string, processed into array
+        - Start date: Must be in future
+        - End date: Must be after start date
+        - Time format: HH:MM (24-hour)
+        - Status: Optional, defaults to "pending"
+
+        **Business Logic:**
+        - Validates organization existence
+        - Processes skills from comma-separated string to array
+        - Handles file upload for technical documents
+        - Sets default status to "pending" if not provided
+
+      operationId: create-mission
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/MissionCreateRequest"
+            examples:
+              completeMission:
+                summary: Complete mission with all fields
+                value:
+                  organization: "684a9654caa07bcde4138271"
+                  title: "Advanced Mathematics Training Program"
+                  description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
+                  branch: "Downtown Branch"
+                  skills: "mathematics,algebra,calculus,statistics"
+                  startDate: "2025-07-01"
+                  endDate: "2025-08-30"
+                  startTime: "09:00"
+                  endTime: "17:00"
+                  status: "pending"
+              minimalMission:
+                summary: Minimal required fields
+                value:
+                  organization: "684a9654caa07bcde4138271"
+                  title: "Basic Science Workshop"
+                  description: "Introduction to basic scientific principles for primary educators"
+                  branch: "Main Branch"
+                  skills: "science,biology"
+                  startDate: "2025-08-15"
+                  endDate: "2025-09-15"
+                  startTime: "10:00"
+                  endTime: "16:00"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionCreateSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    get:
+      summary: Get all missions
+      description: |
+        Retrieves all missions in the system with populated organization information.
+
+        **Response Details:**
+        - Returns array of all missions
+        - Each mission includes populated organization object
+        - Organization includes basic info and branch details
+        - All document URLs and file paths are included
+        - No pagination applied - returns all missions
+
+        **Use Cases:**
+        - Browse available missions
+        - Admin dashboard for mission management
+        - Mission discovery for educators
+        - Analytics and reporting
+
+      operationId: get-all-missions
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          $ref: "#/components/responses/MissionListSuccess"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/{id}:
+    get:
+      summary: Get mission by ID
+      description: |
+        Retrieves a specific mission by its MongoDB ObjectId.
+
+        **Response Details:**
+        - Returns complete mission with populated organization information
+        - Organization object includes name, location, contact details, and branches
+        - All technical documents and file paths are included
+        - Shows current mission status and scheduling details
+
+        **Use Cases:**
+        - Display detailed mission information
+        - Mission application process
+        - Mission management and tracking
+        - Educator mission evaluation
+
+      operationId: get-mission-by-id
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/MissionIdPath"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionProfileResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/update:
+    patch:
+      summary: Update mission
+      description: |
+        Updates an existing mission with partial data.
+
+        **Important Note:** This endpoint uses a static `/update` path. The mission ID 
+        must be provided in the request body or as a query parameter (implementation-specific).
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+        - Mission must exist in the system
+
+        **Update Rules:**
+        - At least one field must be provided for update
+        - All validation rules apply to updated fields
+        - File uploads supported for technical document updates
+        - Date validations apply if dates are updated
+
+        **Validation:**
+        - Same validation rules as creation apply to updated fields
+        - Start date validation if startDate is updated
+        - End date must be after start date if either date is updated
+        - Time format validation if times are updated
+
+        **Business Logic:**
+        - Mission must exist before update
+        - File uploads replace existing technical documents
+        - Status transitions are allowed based on mission lifecycle
+        - Response includes updated mission data
+
+      operationId: update-mission
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/MissionUpdateRequest"
+                - type: object
+                  properties:
+                    id:
+                      $ref: "#/components/schemas/ID"
+                      description: Mission ID (required for update)
+            examples:
+              statusUpdate:
+                summary: Update mission status
+                value:
+                  id: "60d0fe4f5311236168a109ca"
+                  status: "ongoing"
+              scheduleUpdate:
+                summary: Update mission schedule
+                value:
+                  id: "60d0fe4f5311236168a109ca"
+                  startDate: "2025-08-01"
+                  endDate: "2025-09-30"
+                  startTime: "08:30"
+                  endTime: "16:30"
+              partialUpdate:
+                summary: Update multiple fields
+                value:
+                  id: "60d0fe4f5311236168a109ca"
+                  title: "Updated Mission Title"
+                  description: "Updated comprehensive mission description"
+                  status: "ongoing"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionUpdateSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
