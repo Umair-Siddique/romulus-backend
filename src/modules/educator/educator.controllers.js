@@ -1,5 +1,7 @@
-import { asyncHandler } from "#utils/index.js";
+import { globalUtils } from "#utils/index.js";
 import { educatorServices } from "./educator.services.js";
+
+const { asyncHandler } = globalUtils;
 
 export const educatorControllers = {
   create: asyncHandler(async (req, res) => {

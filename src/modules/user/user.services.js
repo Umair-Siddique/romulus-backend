@@ -1,14 +1,8 @@
 import createError from "http-errors";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
 
-import { deleteFile } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { read, update, remove } = dataAccess;
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export const userServices = {
   getAll: async () => {
@@ -57,15 +51,6 @@ export const userServices = {
         userId: id,
         operation: "update_user_by_id",
       });
-    }
-
-    if (userData.profilePicture && existingUser.profilePicture) {
-      const oldProfilePicturePath = path.join(
-        __dirname,
-        "../../../public",
-        existingUser.profilePicture,
-      );
-      deleteFile(oldProfilePicturePath);
     }
 
     const updatedUser = await update.userById(id, userData);

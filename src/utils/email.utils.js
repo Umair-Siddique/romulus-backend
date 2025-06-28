@@ -66,14 +66,14 @@ const sendMail = async (mailOptions) => {
   }
 };
 
-export const sendEmail = {
+export const emailUtils = {
   /**
    * Sends account verification email
    * @param {string} email - Recipient email address
    * @param {string} verificationToken - Verification token
    * @returns {Promise} Email send result
    */
-  accountVerification: async (email, verificationToken) => {
+  sendAccountVerification: async (email, verificationToken) => {
     const template = await getEmailTemplate("verification-email", "index.html");
     const html = processTemplate(template, {
       backendUrl,
@@ -91,7 +91,7 @@ export const sendEmail = {
    * Gets verification notification template
    * @returns {Promise<string>} Processed HTML template
    */
-  verificationNotification: async () => {
+  sendVerificationNotification: async () => {
     const template = await getEmailTemplate(
       "verification-notification",
       "index.html"
@@ -107,7 +107,7 @@ export const sendEmail = {
    * @param {string} resetToken - Password reset token
    * @returns {Promise} Email send result
    */
-  resetPassword: async (email, resetToken) => {
+  sendResetPassword: async (email, resetToken) => {
     const template = await getEmailTemplate("reset-password", "index.html");
     const html = processTemplate(template, {
       frontendUrl,

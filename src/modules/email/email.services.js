@@ -1,13 +1,13 @@
 import createError from "http-errors";
 
-import { token, sendEmail } from "#utils/index.js";
+import { tokenUtils, emailUtils } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { read, update, remove } = dataAccess;
 
 export const emailServices = {
   checkVerificationToken: async (verificationToken) => {
-    const decodedToken = token.decode(verificationToken);
+    const decodedToken = tokenUtils.decode(verificationToken);
 
     const { id } = decodedToken;
 
@@ -34,7 +34,7 @@ export const emailServices = {
       });
     }
 
-    return sendEmail.verificationNotification();
+    return emailUtils.sendVerificationNotification();
   },
 
   sendVerificationToken: async (email) => {
@@ -49,7 +49,7 @@ export const emailServices = {
       });
     }
 
-    const verificationToken = token.generate(
+    const verificationToken = tokenUtils.generate(
       { id: user._id },
       "verificationToken"
     );
@@ -58,13 +58,13 @@ export const emailServices = {
       throw createError(500, "An error occurred while generating the token.", {
         expose: false,
         code: "TOKEN_GENERATION_FAILED",
-        operation: "token.generate",
+        operation: "tokenUtils.tils.generate",
         userId: user._id,
         context: { purpose: "email_verification", resend: true },
       });
     }
 
-    const isEmailSent = await sendEmail.accountVerification(
+    const isEmailSent = await emailUtils.sendAccountVerification(
       email,
       verificationToken
     );
@@ -73,7 +73,7 @@ export const emailServices = {
       throw createError(500, "Failed to send the welcome email.", {
         expose: false,
         code: "EMAIL_SEND_FAILED",
-        operation: "sendEmail.accountVerification",
+        operation: "emailUtils.sendAccountVerification",
         userId: user._id,
         context: {
           emailType: "verification",

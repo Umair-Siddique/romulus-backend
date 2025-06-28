@@ -1,7 +1,7 @@
 import createError from "http-errors";
 import bcrypt from "bcryptjs";
 
-import { token, sendEmail, sendWhatsAppOTP } from "#utils/index.js";
+import { tokenUtils, emailUtils, twilioUtils } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { save, read, remove, update } = dataAccess;
@@ -42,7 +42,7 @@ export const authServices = {
     }
 
     if (role === "educator") {
-      const isWhatsAppOtpSent = await sendWhatsAppOTP(phone);
+      const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
       if (!isWhatsAppOtpSent) {
         await remove.userById(newUser._id);
         throw createError(500, "Failed to send OTP", {
@@ -58,7 +58,7 @@ export const authServices = {
       }
     }
 
-    const verificationToken = token.generate(
+    const verificationToken = tokenUtils.generate(
       { id: newUser._id },
       "verificationToken"
     );
@@ -73,7 +73,7 @@ export const authServices = {
       });
     }
 
-    const isEmailSent = await sendEmail.accountVerification(
+    const isEmailSent = await emailUtils.sendAccountVerification(
       email,
       verificationToken
     );
@@ -130,7 +130,7 @@ export const authServices = {
 
     if (!user.isEmailVerified) {
       // Generate new verification token
-      const verificationToken = token.generate(
+      const verificationToken = tokenUtils.generate(
         { id: userId },
         "verificationToken"
       );
@@ -141,7 +141,7 @@ export const authServices = {
           {
             expose: false,
             code: "TOKEN_GENERATION_FAILED",
-            operation: "token.generate",
+            operation: "tokenUtils.generate",
             id: userId,
             context: { purpose: "email_verification" },
           }
@@ -149,7 +149,7 @@ export const authServices = {
       }
 
       // Send verification email
-      const isEmailSent = await sendEmail.accountVerification(
+      const isEmailSent = await emailUtils.sendAccountVerification(
         email,
         verificationToken
       );
@@ -158,7 +158,7 @@ export const authServices = {
         throw createError(500, "Failed to send the verification email.", {
           expose: false,
           code: "EMAIL_SEND_FAILED",
-          operation: "sendEmail.accountVerification",
+          operation: "emailUtils.sendAccountVerification",
           id: userId,
           context: {
             emailType: "verify-email",
@@ -209,7 +209,7 @@ export const authServices = {
       });
     }
 
-    const accessToken = token.generate(
+    const accessToken = tokenUtils.generate(
       { id: userId, role: user.role },
       "accessToken"
     );
@@ -217,7 +217,7 @@ export const authServices = {
       throw createError(500, "Token generation failed.", {
         expose: false,
         code: "TOKEN_GENERATION_FAILED",
-        operation: "token.generate",
+        operation: "tokenUtils.generate",
         id: userId,
         context: { role: user.role, purpose: "authentication" },
       });
@@ -247,7 +247,7 @@ export const authServices = {
       });
     }
 
-    const decodedToken = token.decode(accessToken);
+    const decodedToken = tokenUtils.decode(accessToken);
     const { id } = decodedToken;
 
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1-hour expiration
@@ -291,7 +291,7 @@ export const authServices = {
       });
     }
 
-    const resetToken = token.generate(
+    const resetToken = tokenUtils.generate(
       { id: existingUser._id },
       "passwordResetToken"
     );
@@ -299,18 +299,18 @@ export const authServices = {
       throw createError(500, "Failed to generate reset token", {
         expose: false,
         code: "TOKEN_GENERATION_FAILED",
-        operation: "token.generate",
+        operation: "tokenUtils.generate",
         id: existingUser._id,
         context: { purpose: "password_reset" },
       });
     }
 
-    const isEmailSent = await sendEmail.resetPassword(email, resetToken);
+    const isEmailSent = await emailUtils.sendResetPassword(email, resetToken);
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email", {
         expose: false,
         code: "EMAIL_SEND_FAILED",
-        operation: "sendEmail.resetPassword",
+        operation: "emailUtils.sendResetPassword",
         id: existingUser._id,
         context: {
           emailType: "reset-password",
@@ -328,7 +328,7 @@ export const authServices = {
   updatePassword: async (data) => {
     const { password, resetToken } = data;
 
-    const decodedToken = token.decode(resetToken);
+    const decodedToken = tokenUtils.decode(resetToken);
 
     const { id } = decodedToken;
 

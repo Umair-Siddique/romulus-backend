@@ -1,5 +1,7 @@
-import { asyncHandler } from "#utils/index.js";
+import { globalUtils } from "#utils/index.js";
 import { organizationServices } from "./organization.services.js";
+
+const { asyncHandler } = globalUtils;
 
 export const organizationControllers = {
   create: asyncHandler(async (req, res) => {

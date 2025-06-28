@@ -5,7 +5,7 @@ import { env } from "#config/index.js";
 
 const { JWT_SECRET_KEY } = env;
 
-export const token = {
+export const tokenUtils = {
   generate: (payload, tokenType) => {
     const options = {
       expiresIn: null,

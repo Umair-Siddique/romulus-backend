@@ -1,5 +1,7 @@
-import { asyncHandler } from "#utils/index.js";
+import { globalUtils } from "#utils/index.js";
 import { missionServices } from "./mission.services.js";
+
+const { asyncHandler } = globalUtils;
 
 export const missionControllers = {
   create: asyncHandler(async (req, res) => {

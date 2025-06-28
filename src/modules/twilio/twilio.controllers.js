@@ -1,5 +1,7 @@
-import { asyncHandler } from "#utils/index.js";
+import { globalUtils } from "#utils/index.js";
 import { twilioServices } from "./twilio.services.js";
+
+const { asyncHandler } = globalUtils;
 
 export const twilioControllers = {
   sendOTP: asyncHandler(async (req, res) => {

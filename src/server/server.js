@@ -2,10 +2,11 @@ import { createServer } from "node:http";
 
 import { connectDatabase } from "#config/index.js";
 import { logger, env } from "#config/index.js";
-import { asyncHandler } from "#utils/index.js";
+import { globalUtils } from "#utils/index.js";
 import app from "./app.js";
 
 const { PORT } = env;
+const { asyncHandler } = globalUtils;
 
 const startServer = asyncHandler(async () => {
   await connectDatabase();
