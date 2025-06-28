@@ -12,6 +12,7 @@ missionRoutes
     "/",
     upload,
     validate.dto(createMissionDto),
+    validate.authRole("organization"),
     missionControllers.create
   )
   .get("/", missionControllers.getAll)
@@ -20,5 +21,6 @@ missionRoutes
     "/update",
     upload,
     validate.dto(updateMissionDto),
+    validate.authRole("organization"),
     missionControllers.updateById
   );

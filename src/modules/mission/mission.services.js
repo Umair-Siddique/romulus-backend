@@ -1,3 +1,5 @@
+import createHttpError from "http-errors";
+
 import { dataAccess } from "#dataAccess/index.js";
 
 const { save, read, update } = dataAccess;
@@ -16,6 +18,17 @@ export const missionServices = {
       endTime,
       technicalDocument,
     } = data;
+
+    const existingOrganization = await read.organizationById(organizationId);
+    if (!existingOrganization) {
+      throw createHttpError(404, "Organization not found", {
+        expose: true,
+        code: "ORGANIZATION_NOT_FOUND",
+        field: "organization",
+        id: organizationId,
+        operation: "create_mission",
+      });
+    }
 
     // Handle file URLs - extract path if file object exists
     const getFilePath = (file) => {
