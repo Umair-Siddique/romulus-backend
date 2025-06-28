@@ -53,10 +53,10 @@ const forgotPasswordDto = Joi.object({
 
 const updatePasswordDto = Joi.object({
   password: passwordValidation.required(),
-  token: Joi.string().required().messages({
-    "string.base": "Verification token should be a type of text.",
-    "string.empty": "Verification token should not be empty.",
-    "any.required": "Verification token is required.",
+  resetToken: Joi.string().required().messages({
+    "string.base": "Reset token should be a type of text.",
+    "string.empty": "Reset token should not be empty.",
+    "any.required": "Reset token is required.",
   }),
 });
 

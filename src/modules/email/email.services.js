@@ -1,13 +1,13 @@
 import createError from "http-errors";
 
-import { decodeToken, generateToken, sendEmail } from "#utils/index.js";
+import { token, sendEmail } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { read, update, remove } = dataAccess;
 
 export const emailServices = {
-  check: async (token) => {
-    const decodedToken = decodeToken(token);
+  checkVerificationToken: async (verificationToken) => {
+    const decodedToken = token.decode(verificationToken);
 
     const { id } = decodedToken;
 
@@ -37,7 +37,7 @@ export const emailServices = {
     return sendEmail.verificationNotification();
   },
 
-  send: async (email) => {
+  sendVerificationToken: async (email) => {
     const user = await read.userByEmail(email);
     if (!user) {
       throw createError(404, "User not found", {
@@ -49,16 +49,16 @@ export const emailServices = {
       });
     }
 
-    const verificationToken = generateToken(
-      { id: newUser._id },
-      "accountVerificationToken"
+    const verificationToken = token.generate(
+      { id: user._id },
+      "verificationToken"
     );
     if (!verificationToken) {
       await remove.userById(user._id);
       throw createError(500, "An error occurred while generating the token.", {
         expose: false,
         code: "TOKEN_GENERATION_FAILED",
-        operation: "generateToken",
+        operation: "token.generate",
         userId: user._id,
         context: { purpose: "email_verification", resend: true },
       });

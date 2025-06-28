@@ -1,6 +1,6 @@
 import createError from "http-errors";
 
-import { asyncHandler, decodeToken } from "#utils/index.js";
+import { asyncHandler, token } from "#utils/index.js";
 
 export const validate = {
   dto: (schema) =>
@@ -26,7 +26,7 @@ export const validate = {
 
     const accessToken = authHeader.split(" ")[1]; // Get token after 'Bearer '
 
-    const decodedToken = decodeToken(accessToken);
+    const decodedToken = token.decode(accessToken);
 
     req.user = decodedToken;
     next();

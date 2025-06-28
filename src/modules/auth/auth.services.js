@@ -1,12 +1,7 @@
 import createError from "http-errors";
 import bcrypt from "bcryptjs";
 
-import {
-  generateToken,
-  decodeToken,
-  sendEmail,
-  sendWhatsAppOTP,
-} from "#utils/index.js";
+import { token, sendEmail, sendWhatsAppOTP } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { save, read, remove, update } = dataAccess;
@@ -63,9 +58,9 @@ export const authServices = {
       }
     }
 
-    const verificationToken = generateToken(
+    const verificationToken = token.generate(
       { id: newUser._id },
-      "accountVerificationToken"
+      "verificationToken"
     );
     if (!verificationToken) {
       await remove.userById(newUser._id);
@@ -135,7 +130,7 @@ export const authServices = {
 
     if (!user.isEmailVerified) {
       // Generate new verification token
-      const verificationToken = generateToken(
+      const verificationToken = token.generate(
         { id: userId },
         "verificationToken"
       );
@@ -146,7 +141,7 @@ export const authServices = {
           {
             expose: false,
             code: "TOKEN_GENERATION_FAILED",
-            operation: "generateToken",
+            operation: "token.generate",
             id: userId,
             context: { purpose: "email_verification" },
           }
@@ -214,7 +209,7 @@ export const authServices = {
       });
     }
 
-    const accessToken = generateToken(
+    const accessToken = token.generate(
       { id: userId, role: user.role },
       "accessToken"
     );
@@ -222,7 +217,7 @@ export const authServices = {
       throw createError(500, "Token generation failed.", {
         expose: false,
         code: "TOKEN_GENERATION_FAILED",
-        operation: "generateToken",
+        operation: "token.generate",
         id: userId,
         context: { role: user.role, purpose: "authentication" },
       });
@@ -241,8 +236,8 @@ export const authServices = {
     };
   },
 
-  signOut: async (token) => {
-    const existingBlacklistedToken = await read.blacklistedToken(token);
+  signOut: async (accessToken) => {
+    const existingBlacklistedToken = await read.blacklistedToken(accessToken);
     if (existingBlacklistedToken) {
       throw createError(400, "Token is already blacklisted.", {
         expose: true,
@@ -252,16 +247,20 @@ export const authServices = {
       });
     }
 
-    const decodedToken = decodeToken(token);
+    const decodedToken = token.decode(accessToken);
     const { id } = decodedToken;
 
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1-hour expiration
 
-    const blacklistedToken = await save.blacklistedToken(token, id, expiresAt);
+    const blacklistedToken = await save.blacklistedToken(
+      accessToken,
+      id,
+      expiresAt
+    );
     if (!blacklistedToken) {
       throw createError(
         500,
-        "An error occurred while blacklisting the token.",
+        "An error occurred while blacklisting the accessToken.",
         {
           expose: false,
           code: "TOKEN_BLACKLIST_FAILED",
@@ -292,7 +291,7 @@ export const authServices = {
       });
     }
 
-    const resetToken = generateToken(
+    const resetToken = token.generate(
       { id: existingUser._id },
       "passwordResetToken"
     );
@@ -300,7 +299,7 @@ export const authServices = {
       throw createError(500, "Failed to generate reset token", {
         expose: false,
         code: "TOKEN_GENERATION_FAILED",
-        operation: "generateToken",
+        operation: "token.generate",
         id: existingUser._id,
         context: { purpose: "password_reset" },
       });
@@ -327,9 +326,9 @@ export const authServices = {
   },
 
   updatePassword: async (data) => {
-    const { password, token } = data;
+    const { password, resetToken } = data;
 
-    const decodedToken = decodeToken(token);
+    const decodedToken = token.decode(resetToken);
 
     const { id } = decodedToken;
 
