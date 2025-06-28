@@ -14,8 +14,9 @@ info:
     - Duplicate profile prevention (educator/organization conflict detection)
     - Skill management with flexible input formats
 
-    **Authentication:**
+    **Authentication & Authorization:**
     - All endpoints require valid JWT authentication token
+    - Educator creation and updates require educator role
     - User must have an existing account before creating educator profile
     - Tokens obtained from Authentication API sign-in endpoint
 
@@ -193,7 +194,6 @@ components:
         - hourlyRate
         - skills
         - education
-        - isApproved
         - createdAt
         - updatedAt
       properties:
@@ -316,15 +316,14 @@ components:
           $ref: "#/components/schemas/DocumentUrl"
           description: Academic diploma or degree certificate
           default: "https://example.com/default-diploma.png"
-        isApproved:
-          type: boolean
-          description: Approval status of the educator profile
-          default: false
-          example: false
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
           $ref: "#/components/schemas/Timestamp"
+        __v:
+          type: integer
+          description: MongoDB version key
+          example: 0
 
     # ================================
     # REQUEST SCHEMAS
@@ -503,7 +502,6 @@ components:
         - hourlyRate
         - skills
         - education
-        - isApproved
         - createdAt
         - updatedAt
       properties:
@@ -595,10 +593,6 @@ components:
         diploma:
           $ref: "#/components/schemas/DocumentUrl"
           description: Academic diploma or degree certificate
-        isApproved:
-          type: boolean
-          description: Approval status of the educator profile
-          example: false
         createdAt:
           $ref: "#/components/schemas/Timestamp"
           example: "2025-06-27T18:29:27.832Z"
@@ -642,7 +636,6 @@ components:
               education: "ava"
               certificateOfHonor: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/certificateOfHonor.jpg"
               diploma: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/diploma.jpg"
-              isApproved: false
               _id: "685ee307dcf7fb2891637d3b"
               createdAt: "2025-06-27T18:29:27.832Z"
               updatedAt: "2025-06-27T18:29:27.832Z"
@@ -759,7 +752,6 @@ components:
               education: "Master's in Mathematics Education"
               certificateOfHonor: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/certificateOfHonor.png"
               diploma: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/diploma.png"
-              isApproved: false
               createdAt: "2025-06-13T18:55:25.227Z"
               updatedAt: "2025-06-13T18:55:25.227Z"
               __v: 0
@@ -823,12 +815,25 @@ components:
               summary: No authentication token provided
               value:
                 success: false
-                message: "Authentication token is required"
+                message: "Authorization token missing or malformed."
             invalidToken:
               summary: Token expired or malformed
               value:
                 success: false
                 message: "Invalid or expired token"
+
+    Forbidden:
+      description: Insufficient permissions for the operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            roleRequired:
+              summary: Educator role required
+              value:
+                success: false
+                message: "Access denied: educator role required."
 
     NotFound:
       description: Resource not found
@@ -883,6 +888,7 @@ paths:
 
         **Prerequisites:**
         - Valid JWT authentication token
+        - User must have educator role
         - Existing user account (referenced by user ID)
         - User must not have existing educator or organization profile
 
@@ -960,36 +966,6 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-    get:
-      summary: Get all educator profiles
-      description: |
-        Retrieves all educator profiles in the system with populated user information.
-
-        **Response Details:**
-        - Returns array of complete educator profiles
-        - Each profile includes populated user object with email, role, verification status
-        - All document URLs and file paths are included in response
-        - Returns 404 if no educators exist in the system
-
-        **Use Cases:**
-        - List all available educators
-        - Admin dashboard for educator management
-        - Browse educators for matching with students
-
-      operationId: get-all-educators
-      tags: [Educator Management]
-      security:
-        - BearerAuth: []
-      responses:
-        200:
-          $ref: "#/components/responses/EducatorListSuccess"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
   /api/v1/educators/{id}:
     get:
       summary: Get educator profile by ID
@@ -1026,6 +1002,11 @@ paths:
       summary: Update educator profile
       description: |
         Updates an existing educator profile with partial data.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have educator role
+        - Educator profile must exist in the system
 
         **Update Rules:**
         - At least one field must be provided for update
@@ -1076,6 +1057,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
         404:
           $ref: "#/components/responses/NotFound"
         500:

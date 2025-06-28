@@ -685,7 +685,7 @@ paths:
                   startTime: "10:00"
                   endTime: "16:00"
       responses:
-        200:
+        201:
           $ref: "#/components/responses/MissionCreateSuccess"
         400:
           $ref: "#/components/responses/BadRequest"
@@ -762,14 +762,10 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/missions/update:
     patch:
-      summary: Update mission
+      summary: Update mission by ID
       description: |
         Updates an existing mission with partial data.
-
-        **Important Note:** This endpoint uses a static `/update` path. The mission ID 
-        must be provided in the request body or as a query parameter (implementation-specific).
 
         **Prerequisites:**
         - Valid JWT authentication token
@@ -794,32 +790,26 @@ paths:
         - Status transitions are allowed based on mission lifecycle
         - Response includes updated mission data
 
-      operationId: update-mission
+      operationId: update-mission-by-id
       tags: [Mission Management]
       security:
         - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/MissionIdPath"
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              allOf:
-                - $ref: "#/components/schemas/MissionUpdateRequest"
-                - type: object
-                  properties:
-                    id:
-                      $ref: "#/components/schemas/ID"
-                      description: Mission ID (required for update)
+              $ref: "#/components/schemas/MissionUpdateRequest"
             examples:
               statusUpdate:
                 summary: Update mission status
                 value:
-                  id: "60d0fe4f5311236168a109ca"
                   status: "ongoing"
               scheduleUpdate:
                 summary: Update mission schedule
                 value:
-                  id: "60d0fe4f5311236168a109ca"
                   startDate: "2025-08-01"
                   endDate: "2025-09-30"
                   startTime: "08:30"
@@ -827,7 +817,6 @@ paths:
               partialUpdate:
                 summary: Update multiple fields
                 value:
-                  id: "60d0fe4f5311236168a109ca"
                   title: "Updated Mission Title"
                   description: "Updated comprehensive mission description"
                   status: "ongoing"

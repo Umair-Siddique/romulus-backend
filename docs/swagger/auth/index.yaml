@@ -87,8 +87,9 @@ components:
       format: password
       description: |
         Secure password with requirements:
-        - Minimum 6 characters (as per DTO validation)
+        - Minimum 8 characters (as per User model)
         - Must contain at least one uppercase letter, one lowercase letter, one number, and one special character (as per User model)
+        - DTO validation requires minimum 6 characters
       example: "SecurePass123!"
       minLength: 6
       maxLength: 128
@@ -195,15 +196,15 @@ components:
       type: object
       required:
         - password
-        - token
+        - resetToken
       properties:
         password:
           $ref: "#/components/schemas/Password"
-        token:
+        resetToken:
           $ref: "#/components/schemas/Token"
       example:
         password: "NewSecurePass456!"
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        resetToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
     # ================================
     # RESPONSE DATA SCHEMAS
@@ -278,7 +279,7 @@ components:
               $ref: "#/components/schemas/Token"
           example:
             success: true
-            message: "Signed in successfully"
+            message: "Signed in successfully."
             data:
               userId: "60d0fe4f5311236168a109ca"
               educatorId: "60d0fe4f5311236168a109cb"

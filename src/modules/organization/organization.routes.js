@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createOrganizationDto } from "#dtos/index.js";
+import { createOrganizationDto, updateOrganizationDto } from "#dtos/index.js";
 import { validate } from "#middleware/index.js";
 import { organizationControllers } from "./organization.controllers.js";
 import { upload } from "#middleware/index.js";
@@ -12,8 +12,15 @@ organizationRoutes
     "/",
     upload,
     validate.dto(createOrganizationDto),
-    organizationControllers.create,
+    validate.authRole("organization"),
+    organizationControllers.create
   )
   .get("/", organizationControllers.getAll)
   .get("/:id", organizationControllers.getById)
-  .patch("/:id", upload, organizationControllers.updateById);
+  .patch(
+    "/:id",
+    upload,
+    validate.dto(updateOrganizationDto),
+    validate.authRole("organization"),
+    organizationControllers.updateById
+  );

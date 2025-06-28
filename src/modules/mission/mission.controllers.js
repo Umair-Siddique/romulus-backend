@@ -10,7 +10,7 @@ export const missionControllers = {
 
     const result = await missionServices.create({ ...payload, ...files });
 
-    res.status(200).json(result);
+    res.status(201).json(result);
   }),
 
   getAll: asyncHandler(async (req, res) => {

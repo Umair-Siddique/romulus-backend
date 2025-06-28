@@ -15,8 +15,9 @@ info:
     - Duplicate profile prevention (educator/organization conflict detection)
     - SIRET number validation for French business registration
 
-    **Authentication:**
+    **Authentication & Authorization:**
     - All endpoints require valid JWT authentication token
+    - Organization creation and updates require organization role
     - User must have an existing account before creating organization profile
     - Tokens obtained from Authentication API sign-in endpoint
 
@@ -218,9 +219,31 @@ components:
           example: "123 Business St, Downtown District, Paris 75001"
           minLength: 10
           maxLength: 500
+        branchAddressCoordinates:
+          type: object
+          description: Geographic coordinates for the branch address
+          required:
+            - type
+            - coordinates
+          properties:
+            type:
+              type: string
+              enum: [Point]
+              default: "Point"
+              description: GeoJSON type for point location
+            coordinates:
+              type: array
+              description: Array of [longitude, latitude] coordinates
+              items:
+                type: number
+              minItems: 2
+              maxItems: 2
+              example: [0, 0]
+              default: [0, 0]
         residenceGuidelines:
-          $ref: "#/components/schemas/DocumentUrl"
-          description: Residence guidelines document for this branch
+          type: string
+          description: Residence guidelines document for this branch (optional)
+          example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
           nullable: true
 
     BranchCreateRequest:
@@ -322,6 +345,27 @@ components:
           example: "456 Corporate Blvd, Business District, Paris 75008"
           minLength: 10
           maxLength: 500
+        officeAddressCoordinates:
+          type: object
+          description: Geographic coordinates for the office address
+          required:
+            - type
+            - coordinates
+          properties:
+            type:
+              type: string
+              enum: [Point]
+              default: "Point"
+              description: GeoJSON type for point location
+            coordinates:
+              type: array
+              description: Array of [longitude, latitude] coordinates
+              items:
+                type: number
+              minItems: 2
+              maxItems: 2
+              example: [0, 0]
+              default: [0, 0]
         branches:
           type: array
           description: Array of branch locations
@@ -335,11 +379,18 @@ components:
               branchCity: "Paris"
               branchCountry: "France"
               branchAddress: "123 Business St, Downtown District, Paris 75001"
+              branchAddressCoordinates:
+                type: "Point"
+                coordinates: [0, 0]
               residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
           $ref: "#/components/schemas/Timestamp"
+        __v:
+          type: integer
+          description: MongoDB version key
+          example: 0
 
     # ================================
     # REQUEST SCHEMAS
@@ -490,6 +541,9 @@ components:
               city: "Islamabad"
               country: "Pakistan"
               officeAddress: "Islamabad, Pakistan"
+              officeAddressCoordinates:
+                type: "Point"
+                coordinates: [0, 0]
               branches:
                 - branchName: "Downtown Branch"
                   branchEmail: "downtown@example.com"
@@ -497,6 +551,9 @@ components:
                   branchCity: "Islamabad"
                   branchCountry: "Pakistan"
                   branchAddress: "Islamabad, Pakistan"
+                  branchAddressCoordinates:
+                    type: "Point"
+                    coordinates: [0, 0]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
               createdAt: "2025-06-13T18:55:43.735Z"
               updatedAt: "2025-06-13T18:55:43.735Z"
@@ -601,6 +658,9 @@ components:
               city: "Islamabad"
               country: "Pakistan"
               officeAddress: "Islamabad, Pakistan"
+              officeAddressCoordinates:
+                type: "Point"
+                coordinates: [0, 0]
               branches:
                 - branchName: "Downtown Branch"
                   branchEmail: "downtown@example.com"
@@ -608,6 +668,9 @@ components:
                   branchCity: "Islamabad"
                   branchCountry: "Pakistan"
                   branchAddress: "Islamabad, Pakistan"
+                  branchAddressCoordinates:
+                    type: "Point"
+                    coordinates: [0, 0]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
                 - branchName: "Suburb Branch"
                   branchEmail: "suburb@example.com"
@@ -615,6 +678,9 @@ components:
                   branchCity: "Lyon"
                   branchCountry: "France"
                   branchAddress: "789 Education Ave, Lyon 69001"
+                  branchAddressCoordinates:
+                    type: "Point"
+                    coordinates: [0, 0]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B1%5D%5BresidenceGuidelines%5D.png"
               createdAt: "2025-06-13T18:55:43.735Z"
               updatedAt: "2025-06-13T18:55:43.735Z"
@@ -684,12 +750,25 @@ components:
               summary: No authentication token provided
               value:
                 success: false
-                message: "Authentication token is required"
+                message: "Authorization token missing or malformed"
             invalidToken:
               summary: Token expired or malformed
               value:
                 success: false
                 message: "Invalid or expired token"
+
+    Forbidden:
+      description: Insufficient permissions for the operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            roleRequired:
+              summary: Organization role required
+              value:
+                success: false
+                message: "Access denied: organization role required"
 
     NotFound:
       description: Resource not found
@@ -744,6 +823,7 @@ paths:
 
         **Prerequisites:**
         - Valid JWT authentication token
+        - User must have organization role
         - Existing user account (referenced by user ID)
         - User must not have existing educator or organization profile
 
@@ -766,6 +846,7 @@ paths:
         - Processes branch array with dynamic file mappings
         - Handles both file uploads and uses defaults for optional files
         - Maps residence guidelines files to branches using dynamic keys: `branches[index][residenceGuidelines]`
+        - Automatically creates coordinate fields with default [0, 0] for office and branches
 
       operationId: create-organization-profile
       tags: [Organization Management]
@@ -821,6 +902,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
         404:
           $ref: "#/components/responses/NotFound"
         500:
@@ -896,6 +979,11 @@ paths:
       description: |
         Updates an existing organization profile with partial data.
 
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+        - Organization must exist in the system
+
         **Update Rules:**
         - At least one field must be provided for update
         - All validation rules apply to updated fields
@@ -948,6 +1036,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
         404:
           $ref: "#/components/responses/NotFound"
         500:

@@ -119,8 +119,8 @@ components:
         </html>
 
   parameters:
-    VerificationTokenPath:
-      in: path
+    VerificationTokenQuery:
+      in: query
       name: verificationToken
       required: true
       description: JWT verification token from email link
@@ -157,7 +157,7 @@ components:
               summary: Token missing userId field
               value:
                 success: false
-                message: "Token does not contain user identification"
+                message: "Token does not contain the user id"
             expiredToken:
               summary: Token has expired
               value:
@@ -175,7 +175,7 @@ components:
               summary: User ID from token not found
               value:
                 success: false
-                message: "User account not found"
+                message: "User not found"
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -184,14 +184,24 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            serverError:
-              summary: Internal server error
+            verificationFailed:
+              summary: Email verification update failed
               value:
                 success: false
-                message: "Internal server error occurred"
+                message: "An error occurred while verifying the email"
+            tokenGenerationFailed:
+              summary: JWT generation failed
+              value:
+                success: false
+                message: "An error occurred while generating the token."
+            emailSendFailed:
+              summary: Email delivery failed
+              value:
+                success: false
+                message: "Failed to send the welcome email."
 
 paths:
-  /api/v1/email/check-verification-token/{verificationToken}:
+  /api/v1/email/check-verification-token:
     get:
       tags:
         - Email Verification
@@ -200,21 +210,21 @@ paths:
         Validates the email verification token and activates the user account.
 
         ## Process Flow
-        1. Decodes and validates the JWT verification token
-        2. Extracts `userId` from token payload
+        1. Decodes and validates the JWT verification token from query parameter
+        2. Extracts `id` from token payload
         3. Updates user's `isEmailVerified` status to `true`
         4. Returns HTML verification success page
 
         ## Token Requirements
         - Valid JWT format signed with system secret
-        - Contains `userId` field with valid MongoDB ObjectId
-        - Must not be expired
+        - Contains `id` field with valid MongoDB ObjectId
+        - Must not be expired (10 minute expiration)
 
         ## Response Format
         Returns HTML content (not JSON) for browser display with login redirect link.
       operationId: check-verification-token
       parameters:
-        - $ref: "#/components/parameters/VerificationTokenPath"
+        - $ref: "#/components/parameters/VerificationTokenQuery"
       responses:
         200:
           $ref: "#/components/responses/EmailVerificationSuccess"
@@ -235,7 +245,7 @@ paths:
 
         ## Process Flow
         1. Validates that a user exists with the provided email
-        2. Generates JWT verification token containing user ID
+        2. Generates JWT verification token containing user ID (10 minute expiration)
         3. Sends HTML verification email via Nodemailer
         4. Returns JSON success response
 
@@ -285,24 +295,4 @@ paths:
         404:
           $ref: "#/components/responses/NotFound"
         500:
-          description: Server error during operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                tokenGeneration:
-                  summary: JWT generation failed
-                  value:
-                    success: false
-                    message: "An error occurred while generating the verification token"
-                emailSending:
-                  summary: Email delivery failed
-                  value:
-                    success: false
-                    message: "Failed to send verification email"
-                verificationUpdate:
-                  summary: Database update failed
-                  value:
-                    success: false
-                    message: "An error occurred while updating verification status"
+          $ref: "#/components/responses/InternalServerError"

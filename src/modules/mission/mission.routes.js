@@ -18,7 +18,7 @@ missionRoutes
   .get("/", missionControllers.getAll)
   .get("/:id", missionControllers.getById)
   .patch(
-    "/update",
+    "/:id",
     upload,
     validate.dto(updateMissionDto),
     validate.authRole("organization"),
