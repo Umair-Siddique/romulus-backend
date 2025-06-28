@@ -24,9 +24,9 @@ export const validate = {
       throw createError(401, "Authorization token missing or malformed.");
     }
 
-    const token = authHeader.split(" ")[1]; // Get token after 'Bearer '
+    const accessToken = authHeader.split(" ")[1]; // Get token after 'Bearer '
 
-    const decodedToken = decodeToken(token);
+    const decodedToken = decodeToken(accessToken);
 
     req.user = decodedToken;
     next();
