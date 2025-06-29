@@ -966,6 +966,46 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
+    get:
+      summary: Get all educator profiles
+      description: |
+        Retrieves a list of all educator profiles in the system.
+
+        **Response Details:**
+        - Returns array of educator profiles with populated user information
+        - Each educator object includes complete profile data
+        - User objects include email, role, verification status, and timestamps
+        - All document URLs and file paths are included in response
+
+        **Authentication:**
+        - Requires valid JWT authentication token
+        - No specific role requirements (any authenticated user can access)
+
+        **Use Cases:**
+        - List all available educators for browsing
+        - Administrative overview of educator profiles
+        - Search and filter functionality base data
+        - Public educator directory display
+
+        **Error Handling:**
+        - Returns 404 if no educators exist in the system
+        - Returns 401 for authentication failures
+        - Returns 500 for unexpected server errors
+
+      operationId: get-all-educators
+      tags: [Educator Management]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          $ref: "#/components/responses/EducatorListSuccess"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/educators/{id}:
     get:
       summary: Get educator profile by ID
