@@ -71,41 +71,40 @@ const statusValidation = Joi.string()
       "Status must be ongoing, completed, pending, rejected, or cancelled.",
   });
 
-// Main DTO schemas - designed for raw form data (before file processing)
-const createMissionDto = Joi.object({
-  organization: organizationIdValidation.required(),
-  title: titleValidation.required(),
-  description: descriptionValidation.required(),
-  branch: branchValidation.required(),
-  skills: skillsValidation.required(),
-  startDate: startDateValidation.required(),
-  endDate: endDateValidation.required(),
-  startTime: timeValidation.required(),
-  endTime: timeValidation.required(),
-  status: statusValidation.optional(),
-  // File fields are handled by multer and req.files, not validated here
-})
-  .unknown(true)
-  .messages({
-    "object.unknown": "Additional fields are allowed for file uploads.",
-  });
+export const missionDto = {
+  create: Joi.object({
+    organization: organizationIdValidation.required(),
+    title: titleValidation.required(),
+    description: descriptionValidation.required(),
+    branch: branchValidation.required(),
+    skills: skillsValidation.required(),
+    startDate: startDateValidation.required(),
+    endDate: endDateValidation.required(),
+    startTime: timeValidation.required(),
+    endTime: timeValidation.required(),
+    status: statusValidation.optional(),
+    // File fields are handled by multer and req.files, not validated here
+  })
+    .unknown(true)
+    .messages({
+      "object.unknown": "Additional fields are allowed for file uploads.",
+    }),
 
-const updateMissionDto = Joi.object({
-  title: titleValidation.optional(),
-  description: descriptionValidation.optional(),
-  branch: branchValidation.optional(),
-  startDate: startDateValidation.optional(),
-  endDate: endDateValidation.optional(),
-  startTime: timeValidation.optional(),
-  endTime: timeValidation.optional(),
-  status: statusValidation.optional(),
-  // File fields are handled by multer and req.files, not validated here
-})
-  .unknown(true)
-  .min(1)
-  .messages({
-    "object.min": "At least one field must be provided for update.",
-    "object.unknown": "Additional fields are allowed for file uploads.",
-  });
-
-export { createMissionDto, updateMissionDto };
+  update: Joi.object({
+    title: titleValidation.optional(),
+    description: descriptionValidation.optional(),
+    branch: branchValidation.optional(),
+    startDate: startDateValidation.optional(),
+    endDate: endDateValidation.optional(),
+    startTime: timeValidation.optional(),
+    endTime: timeValidation.optional(),
+    status: statusValidation.optional(),
+    // File fields are handled by multer and req.files, not validated here
+  })
+    .unknown(true)
+    .min(1)
+    .messages({
+      "object.min": "At least one field must be provided for update.",
+      "object.unknown": "Additional fields are allowed for file uploads.",
+    }),
+};

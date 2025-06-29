@@ -1,9 +1,9 @@
 import express from "express";
 
-import { createOrganizationDto, updateOrganizationDto } from "#dtos/index.js";
-import { validate } from "#middleware/index.js";
-import { organizationControllers } from "./organization.controllers.js";
 import { upload } from "#middleware/index.js";
+import { validate } from "#middleware/index.js";
+import { organizationDto } from "#dtos/index.js";
+import { organizationControllers } from "./organization.controllers.js";
 
 export const organizationRoutes = express.Router();
 
@@ -11,7 +11,7 @@ organizationRoutes
   .post(
     "/",
     upload,
-    validate.dto(createOrganizationDto),
+    validate.dto(organizationDto.create),
     validate.authRole("organization"),
     organizationControllers.create
   )
@@ -20,7 +20,7 @@ organizationRoutes
   .patch(
     "/:id",
     upload,
-    validate.dto(updateOrganizationDto),
+    validate.dto(organizationDto.update),
     validate.authRole("organization"),
     organizationControllers.updateById
   );

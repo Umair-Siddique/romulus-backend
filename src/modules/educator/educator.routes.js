@@ -1,8 +1,8 @@
 import express from "express";
 
-import { createEducatorDto, updateEducatorDto } from "#dtos/index.js";
-import { validate } from "#middleware/index.js";
 import { upload } from "#middleware/index.js";
+import { validate } from "#middleware/index.js";
+import { educatorDto } from "#dtos/index.js";
 import { educatorControllers } from "./educator.controllers.js";
 
 export const educatorRoutes = express.Router();
@@ -12,7 +12,7 @@ educatorRoutes
     "/",
     upload,
     validate.authRole("educator"),
-    validate.dto(createEducatorDto),
+    validate.dto(educatorDto.create),
     educatorControllers.create
   )
   .get("/", educatorControllers.getAll)
@@ -21,6 +21,6 @@ educatorRoutes
     "/:id",
     upload,
     validate.authRole("educator"),
-    validate.dto(updateEducatorDto),
+    validate.dto(educatorDto.update),
     educatorControllers.updateById
   );

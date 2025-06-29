@@ -118,40 +118,40 @@ const branchesValidation = Joi.array().items(branchValidation).min(1).messages({
   "any.required": "Branches are required.",
 });
 
-// Main DTO schemas - designed for raw form data (before file processing)
-const createOrganizationDto = Joi.object({
-  user: userIdValidation.required(),
-  organizationName: organizationNameValidation.required(),
-  foundedYear: foundedYearValidation.required(),
-  phone: phoneNumberValidation.required(),
-  siretNumber: siretNumberValidation.required(),
-  city: cityValidation.required(),
-  country: countryValidation.required(),
-  officeAddress: addressValidation.required(),
-  branches: branchesValidation.required(),
-  // File fields are handled by multer and req.files, not validated here
-})
-  .unknown(true)
-  .messages({
-    "object.unknown": "Additional fields are allowed for file uploads.",
-  });
+export const organizationDto = {
+  // Main DTO schemas - designed for raw form data (before file processing)
+  create: Joi.object({
+    user: userIdValidation.required(),
+    organizationName: organizationNameValidation.required(),
+    foundedYear: foundedYearValidation.required(),
+    phone: phoneNumberValidation.required(),
+    siretNumber: siretNumberValidation.required(),
+    city: cityValidation.required(),
+    country: countryValidation.required(),
+    officeAddress: addressValidation.required(),
+    branches: branchesValidation.required(),
+    // File fields are handled by multer and req.files, not validated here
+  })
+    .unknown(true)
+    .messages({
+      "object.unknown": "Additional fields are allowed for file uploads.",
+    }),
 
-const updateOrganizationDto = Joi.object({
-  organizationName: organizationNameValidation.optional(),
-  foundedYear: foundedYearValidation.optional(),
-  phone: phoneNumberValidation.optional(),
-  siretNumber: siretNumberValidation.optional(),
-  city: cityValidation.optional(),
-  country: countryValidation.optional(),
-  officeAddress: addressValidation.optional(),
-  branches: branchesValidation.optional(),
-  // File fields are handled by multer and req.files, not validated here
-})
-  .unknown(true)
-  .min(1)
-  .messages({
-    "object.min": "At least one field must be provided for update.",
-    "object.unknown": "Additional fields are allowed for file uploads.",
-  });
-
-export { createOrganizationDto, updateOrganizationDto };
+  update: Joi.object({
+    organizationName: organizationNameValidation.optional(),
+    foundedYear: foundedYearValidation.optional(),
+    phone: phoneNumberValidation.optional(),
+    siretNumber: siretNumberValidation.optional(),
+    city: cityValidation.optional(),
+    country: countryValidation.optional(),
+    officeAddress: addressValidation.optional(),
+    branches: branchesValidation.optional(),
+    // File fields are handled by multer and req.files, not validated here
+  })
+    .unknown(true)
+    .min(1)
+    .messages({
+      "object.min": "At least one field must be provided for update.",
+      "object.unknown": "Additional fields are allowed for file uploads.",
+    }),
+};

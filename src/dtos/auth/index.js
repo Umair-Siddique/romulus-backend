@@ -35,29 +35,28 @@ const roleValidation = Joi.string()
     "any.required": "Role is required.",
   });
 
-const signUpDto = Joi.object({
-  phone: phoneNumberValidation.optional(),
-  email: emailValidation.required(),
-  password: passwordValidation.required(),
-  role: roleValidation.required(),
-});
-
-const signInDto = Joi.object({
-  email: emailValidation.required(),
-  password: passwordValidation.required(),
-});
-
-const forgotPasswordDto = Joi.object({
-  email: emailValidation.required(),
-});
-
-const updatePasswordDto = Joi.object({
-  password: passwordValidation.required(),
-  resetToken: Joi.string().required().messages({
-    "string.base": "Reset token should be a type of text.",
-    "string.empty": "Reset token should not be empty.",
-    "any.required": "Reset token is required.",
+export const authDto = {
+  signUp: Joi.object({
+    phone: phoneNumberValidation.optional(),
+    email: emailValidation.required(),
+    password: passwordValidation.required(),
+    role: roleValidation.required(),
   }),
-});
 
-export { signUpDto, signInDto, forgotPasswordDto, updatePasswordDto };
+  signIn: Joi.object({
+    email: emailValidation.required(),
+    password: passwordValidation.required(),
+  }),
+
+  forgotPassword: Joi.object({
+    email: emailValidation.required(),
+  }),
+  updatePassword: Joi.object({
+    password: passwordValidation.required(),
+    resetToken: Joi.string().required().messages({
+      "string.base": "Reset token should be a type of text.",
+      "string.empty": "Reset token should not be empty.",
+      "any.required": "Reset token is required.",
+    }),
+  }),
+};

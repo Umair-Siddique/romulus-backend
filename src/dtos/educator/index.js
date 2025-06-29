@@ -105,7 +105,7 @@ const skillsValidation = Joi.alternatives()
         return helpers.error("skills.range");
       }
       return skills;
-    }),
+    })
   )
   .messages({
     "array.base": "Skills should be an array or comma-separated string.",
@@ -123,48 +123,47 @@ const educationValidation = Joi.string().trim().min(2).max(200).messages({
   "any.required": "Education is required.",
 });
 
-// Main DTO schemas - designed for raw form data (before file processing)
-const createEducatorDto = Joi.object({
-  user: userIdValidation.required(),
-  firstName: firstNameValidation.required(),
-  lastName: lastNameValidation.required(),
-  gender: genderValidation.required(),
-  dateOfBirth: dateOfBirthValidation.required(),
-  city: cityValidation.required(),
-  country: countryValidation.required(),
-  fullAddress: addressValidation.required(),
-  bio: bioValidation.optional(),
-  profession: professionValidation.required(),
-  hourlyRate: hourlyRateValidation.required(),
-  skills: skillsValidation.required(),
-  education: educationValidation.required(),
-  // File fields are handled by multer and req.files, not validated here
-})
-  .unknown(true)
-  .messages({
-    "object.unknown": "Additional fields are allowed for file uploads.",
-  });
+export const educatorDto = {
+  create: Joi.object({
+    user: userIdValidation.required(),
+    firstName: firstNameValidation.required(),
+    lastName: lastNameValidation.required(),
+    gender: genderValidation.required(),
+    dateOfBirth: dateOfBirthValidation.required(),
+    city: cityValidation.required(),
+    country: countryValidation.required(),
+    fullAddress: addressValidation.required(),
+    bio: bioValidation.optional(),
+    profession: professionValidation.required(),
+    hourlyRate: hourlyRateValidation.required(),
+    skills: skillsValidation.required(),
+    education: educationValidation.required(),
+    // File fields are handled by multer and req.files, not validated here
+  })
+    .unknown(true)
+    .messages({
+      "object.unknown": "Additional fields are allowed for file uploads.",
+    }),
 
-const updateEducatorDto = Joi.object({
-  firstName: firstNameValidation.optional(),
-  lastName: lastNameValidation.optional(),
-  gender: genderValidation.optional(),
-  dateOfBirth: dateOfBirthValidation.optional(),
-  city: cityValidation.optional(),
-  country: countryValidation.optional(),
-  fullAddress: addressValidation.optional(),
-  bio: bioValidation.optional(),
-  profession: professionValidation.optional(),
-  hourlyRate: hourlyRateValidation.optional(),
-  skills: skillsValidation.optional(),
-  education: educationValidation.optional(),
-  // File fields are handled by multer and req.files, not validated here
-})
-  .unknown(true)
-  .min(1)
-  .messages({
-    "object.min": "At least one field must be provided for update.",
-    "object.unknown": "Additional fields are allowed for file uploads.",
-  });
-
-export { createEducatorDto, updateEducatorDto };
+  update: Joi.object({
+    firstName: firstNameValidation.optional(),
+    lastName: lastNameValidation.optional(),
+    gender: genderValidation.optional(),
+    dateOfBirth: dateOfBirthValidation.optional(),
+    city: cityValidation.optional(),
+    country: countryValidation.optional(),
+    fullAddress: addressValidation.optional(),
+    bio: bioValidation.optional(),
+    profession: professionValidation.optional(),
+    hourlyRate: hourlyRateValidation.optional(),
+    skills: skillsValidation.optional(),
+    education: educationValidation.optional(),
+    // File fields are handled by multer and req.files, not validated here
+  })
+    .unknown(true)
+    .min(1)
+    .messages({
+      "object.min": "At least one field must be provided for update.",
+      "object.unknown": "Additional fields are allowed for file uploads.",
+    }),
+};

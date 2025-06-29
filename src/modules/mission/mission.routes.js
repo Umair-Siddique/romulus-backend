@@ -1,9 +1,9 @@
 import express from "express";
 
-import { createMissionDto, updateMissionDto } from "#dtos/index.js";
-import { validate } from "#middleware/index.js";
-import { missionControllers } from "./mission.controllers.js";
 import { upload } from "#middleware/index.js";
+import { validate } from "#middleware/index.js";
+import { missionDto } from "#dtos/index.js";
+import { missionControllers } from "./mission.controllers.js";
 
 export const missionRoutes = express.Router();
 
@@ -11,7 +11,7 @@ missionRoutes
   .post(
     "/",
     upload,
-    validate.dto(createMissionDto),
+    validate.dto(missionDto.create),
     validate.authRole("organization"),
     missionControllers.create,
   )
@@ -20,7 +20,7 @@ missionRoutes
   .patch(
     "/:id",
     upload,
-    validate.dto(updateMissionDto),
+    validate.dto(missionDto.update),
     validate.authRole("organization"),
     missionControllers.updateById,
   );
