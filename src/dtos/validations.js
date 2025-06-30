@@ -6,7 +6,7 @@ const createStringValidation = (
   fieldName,
   min = 2,
   max = 100,
-  pattern = null
+  pattern = null,
 ) => {
   let validation = Joi.string().trim().min(min).max(max);
 
@@ -105,20 +105,15 @@ export const organizationId = createIdValidation("Organization ID");
 export const organizationName = createStringValidation(
   "Organization name",
   2,
-  100
+  100,
 );
 
-export const foundedYear = Joi.number()
-  .integer()
-  .min(1800)
-  .max(new Date().getFullYear())
-  .messages({
-    "number.base": "Founded year should be a number.",
-    "number.integer": "Founded year must be a whole number.",
-    "number.min": "Founded year must be after 1800.",
-    "number.max": "Founded year cannot be in the future.",
-    "any.required": "Founded year is required.",
-  });
+export const foundedYear = Joi.date().min("1800-01-01").max("now").messages({
+  "date.base": "Founded year should be a valid date.",
+  "date.min": "Founded year must be after January 1st, 1800.",
+  "date.max": "Founded year cannot be in the future.",
+  "any.required": "Founded year is required.",
+});
 
 export const siretNumber = Joi.string()
   .pattern(/^\d{14}$/)
@@ -204,7 +199,7 @@ export const skills = Joi.alternatives()
           value
             .split(/[,;]/)
             .map((skill) => skill.trim())
-            .filter((skill) => skill.length > 0 && skill.length <= 50)
+            .filter((skill) => skill.length > 0 && skill.length <= 50),
         ),
       ];
 
@@ -215,7 +210,7 @@ export const skills = Joi.alternatives()
         return helpers.error("skills.tooMany");
       }
       return skillList;
-    })
+    }),
   )
   .messages({
     "array.base": "Skills should be an array or comma-separated string.",
