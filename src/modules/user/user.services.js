@@ -2,26 +2,9 @@ import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
 
-const { read, update, remove } = dataAccess;
+const { read, update } = dataAccess;
 
 export const userServices = {
-  getAll: async () => {
-    const users = await read.allUsers();
-    if (!users.length) {
-      return {
-        success: true,
-        message: "No users found",
-        data: [],
-      };
-    }
-
-    return {
-      success: true,
-      message: "Users retrieved successfully",
-      data: users,
-    };
-  },
-
   getById: async (id) => {
     const user = await read.userById(id);
     if (!user) {
@@ -72,24 +55,6 @@ export const userServices = {
       success: true,
       message: "User updated successfully",
       data: updatedUser,
-    };
-  },
-
-  deleteById: async (id) => {
-    const user = await remove.userById(id);
-    if (!user) {
-      throw createError(404, "User not found", {
-        expose: true,
-        code: "USER_NOT_FOUND",
-        field: "id",
-        userId: id,
-        operation: "delete_user_by_id",
-      });
-    }
-
-    return {
-      success: true,
-      message: "User deleted successfully",
     };
   },
 };

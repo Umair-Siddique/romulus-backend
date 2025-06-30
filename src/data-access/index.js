@@ -27,8 +27,4 @@ export const dataAccess = {
     ...missionDataAccess.update,
     ...organizationDataAccess.update,
   },
-
-  remove: {
-    ...userDataAccess.remove,
-  },
 };

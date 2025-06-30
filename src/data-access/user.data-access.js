@@ -69,14 +69,4 @@ export const userDataAccess = {
       );
     },
   },
-
-  remove: {
-    userById: async (id) => {
-      if (!isValidObjectId(id)) {
-        throw createError(400, "Invalid user ID format.");
-      }
-
-      return await UserModel.findByIdAndDelete(id);
-    },
-  },
 };
