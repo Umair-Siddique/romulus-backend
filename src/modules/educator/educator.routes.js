@@ -13,7 +13,7 @@ educatorRoutes
     upload,
     validate.authRole("educator"),
     validate.dto(educatorDto.create),
-    educatorControllers.create
+    educatorControllers.create,
   )
   .get("/", educatorControllers.getAll)
   .get("/:id", educatorControllers.getById)
@@ -22,5 +22,5 @@ educatorRoutes
     upload,
     validate.authRole("educator"),
     validate.dto(educatorDto.update),
-    educatorControllers.updateById
+    educatorControllers.updateById,
   );
