@@ -9,7 +9,7 @@
     "start": "node src/index.js",
     "format": "prettier --write \"./**/*.{js,jsx,html,yaml,env,md,json,txt}\"",
     "lint": "eslint \"./**/*.js\"",
-    "seed": "node src/scripts/seed.js"
+    "check:circularDeps": "npx madge --circular ./src"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.5.0",

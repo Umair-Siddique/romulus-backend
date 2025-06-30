@@ -81,14 +81,14 @@ const invalidRouteHandler = (req, res) => {
   });
 };
 
-export const applyGlobalMiddleware = (app, rootRouter) => {
+export const applyGlobalMiddleware = (app, appRouter) => {
   app.use(morgan("dev"));
   app.use(cors(corsOptions));
   app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-  app.use(rootRouter);
+  app.use(appRouter);
   app.use(invalidRouteHandler);
   app.use(errorHandler);
 };
