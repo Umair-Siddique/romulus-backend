@@ -1,6 +1,6 @@
 import winston from "winston";
 
-import { env } from "./index.js";
+import { env } from "./env.config.js";
 
 const { NODE_ENV } = env;
 

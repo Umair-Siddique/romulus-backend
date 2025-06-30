@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { logger } from "./index.js";
+import { logger } from "./logger.config.js";
 import { env } from "./env.config.js";
 
 let isConnected = false;

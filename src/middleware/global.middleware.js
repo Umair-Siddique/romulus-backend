@@ -81,7 +81,7 @@ const invalidRouteHandler = (req, res) => {
   });
 };
 
-const applyGlobalMiddleware = (app, rootRouter) => {
+export const applyGlobalMiddleware = (app, rootRouter) => {
   app.use(morgan("dev"));
   app.use(cors(corsOptions));
   app.use(cookieParser());
@@ -92,5 +92,3 @@ const applyGlobalMiddleware = (app, rootRouter) => {
   app.use(invalidRouteHandler);
   app.use(errorHandler);
 };
-
-export { applyGlobalMiddleware };
