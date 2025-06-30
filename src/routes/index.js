@@ -6,7 +6,6 @@ import {
   emailRoutes,
   missionRoutes,
   organizationRoutes,
-  userRoutes,
   healthRoutes,
   twilioRoutes,
 } from "#modules/index.js";
@@ -23,7 +22,6 @@ v1Router.use("/educators", validate.accessToken, educatorRoutes);
 v1Router.use("/email", emailRoutes);
 v1Router.use("/missions", validate.accessToken, missionRoutes);
 v1Router.use("/organizations", validate.accessToken, organizationRoutes);
-v1Router.use("/users", validate.accessToken, userRoutes);
 v1Router.use("/twilio", twilioRoutes);
 
 export default appRouter;
