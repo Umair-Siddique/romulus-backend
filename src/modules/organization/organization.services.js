@@ -15,7 +15,7 @@ export const organizationServices = {
       city,
       country,
       officeAddress,
-      profilePicture,
+      avatar,
       branches,
       ...rest // this will contain dynamically named file fields
     } = data;
@@ -71,7 +71,7 @@ export const organizationServices = {
 
     const organizationData = {
       user: userId,
-      profilePicture: getFilePath(profilePicture),
+      avatar: getFilePath(avatar),
       organizationName,
       foundedYear,
       phone,
@@ -92,7 +92,7 @@ export const organizationServices = {
         context: {
           organizationName,
           branchesCount: processedBranches?.length || 0,
-          hasProfilePicture: !!organizationData.profilePicture,
+          hasProfilePicture: !!organizationData.avatar,
           hasSiretNumber: !!siretNumber,
         },
       });

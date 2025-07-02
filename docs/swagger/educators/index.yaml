@@ -102,7 +102,7 @@ components:
     ImageUrl:
       type: string
       description: URL or file path for uploaded images
-      example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/profilePicture.png"
+      example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/avatar.png"
       pattern: "^https?:\\/\\/.+\\.(jpg|jpeg|png|gif|webp)$"
 
     # ================================
@@ -204,9 +204,9 @@ components:
             - $ref: "#/components/schemas/ID"
             - $ref: "#/components/schemas/UserProfile"
           description: Associated user account (ObjectId in create response, populated object in get responses)
-        profilePicture:
+        avatar:
           $ref: "#/components/schemas/ImageUrl"
-          description: Profile picture URL
+          description: Avatar URL
           default: "https://example.com/default-profile-picture.png"
         firstName:
           type: string
@@ -347,10 +347,10 @@ components:
         user:
           $ref: "#/components/schemas/ID"
           description: ID of the associated user account
-        profilePicture:
+        avatar:
           type: string
           format: binary
-          description: Profile picture file (jpg, jpeg, png, gif, webp)
+          description: Avatar file (jpg, jpeg, png, gif, webp)
         firstName:
           type: string
           description: Educator's first name
@@ -510,9 +510,9 @@ components:
         user:
           $ref: "#/components/schemas/ID"
           description: Associated user account ObjectId
-        profilePicture:
+        avatar:
           $ref: "#/components/schemas/ImageUrl"
-          description: Profile picture URL
+          description: Avatar URL
         firstName:
           type: string
           description: Educator's first name
@@ -616,7 +616,7 @@ components:
             message: "Educator Profile Created Successfully"
             data:
               user: "685ec9b47d7c68774fab517c"
-              profilePicture: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048824/users/685ec9b47d7c68774fab517c/profilePicture.jpg"
+              avatar: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048824/users/685ec9b47d7c68774fab517c/avatar.jpg"
               firstName: "Sharjeel"
               lastName: "Faiq"
               gender: "male"
@@ -732,7 +732,7 @@ components:
                 createdAt: "2025-06-12T03:14:19.534Z"
                 updatedAt: "2025-06-12T03:15:47.735Z"
                 __v: 0
-              profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/profilePicture.png"
+              avatar: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/avatar.png"
               firstName: "Sarah"
               lastName: "Johnson"
               gender: "female"

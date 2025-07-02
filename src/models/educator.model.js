@@ -10,7 +10,7 @@ const EducatorSchema = new Schema(
       ref: "User",
       index: true,
     },
-    profilePicture: {
+    avatar: {
       type: String,
       trim: true,
       default: "https://example.com/default-profile-picture.png",
@@ -18,7 +18,7 @@ const EducatorSchema = new Schema(
         validator: (v) => {
           return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(v);
         },
-        message: "Profile picture must be a valid image URL",
+        message: "Avatar must be a valid image URL",
       },
     },
     firstName: {

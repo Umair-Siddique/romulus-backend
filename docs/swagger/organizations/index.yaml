@@ -96,7 +96,7 @@ components:
     ImageUrl:
       type: string
       description: URL or file path for uploaded images
-      example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/profilePicture.png"
+      example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/avatar.png"
       pattern: "^https?:\\/\\/.+\\.(jpg|jpeg|png|gif|webp)$"
 
     SiretNumber:
@@ -306,9 +306,9 @@ components:
             - $ref: "#/components/schemas/ID"
             - $ref: "#/components/schemas/UserProfile"
           description: Associated user account (ObjectId in create response, populated object in get responses)
-        profilePicture:
+        avatar:
           $ref: "#/components/schemas/ImageUrl"
-          description: Organization profile picture URL
+          description: Organization avatar  URL
           default: "https://example.com/default-profile-picture.png"
         organizationName:
           type: string
@@ -411,10 +411,10 @@ components:
         user:
           $ref: "#/components/schemas/ID"
           description: ID of the associated user account
-        profilePicture:
+        avatar:
           type: string
           format: binary
-          description: Organization profile picture file (jpg, jpeg, png, gif, webp)
+          description: Organization avatar  file (jpg, jpeg, png, gif, webp)
         organizationName:
           type: string
           description: Official name of the organization
@@ -455,7 +455,7 @@ components:
         Organization profile creation data with file upload support.
 
         **File Upload Fields:**
-        - profilePicture: Organization profile image
+        - avatar: Organization profile image
         - branches[0][residenceGuidelines]: Residence guidelines for first branch
         - branches[1][residenceGuidelines]: Residence guidelines for second branch
         - etc. (dynamic based on number of branches)
@@ -533,7 +533,7 @@ components:
             data:
               _id: "684c742fb41d25d0e5997b13"
               user: "684a9654caa07bcde4138271"
-              profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/profilePicture.png"
+              avatar: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/avatar.png"
               organizationName: "Global Education Solutions"
               foundedYear: "1998-11-16T00:00:00.000Z"
               phone: "+923368856575"
@@ -650,7 +650,7 @@ components:
                 createdAt: "2025-06-12T08:56:52.808Z"
                 updatedAt: "2025-06-12T08:56:52.808Z"
                 __v: 0
-              profilePicture: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/profilePicture.png"
+              avatar: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749839528/users/684a9654caa07bcde4138271/avatar.png"
               organizationName: "Global Education Solutions"
               foundedYear: "1998-11-16T00:00:00.000Z"
               phone: "+923368856575"

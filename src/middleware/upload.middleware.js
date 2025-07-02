@@ -3,7 +3,7 @@ import multer from "multer";
 import { storage } from "#config/index.js";
 
 const knownFields = [
-  { name: "profilePicture", maxCount: 1 },
+  { name: "avatar", maxCount: 1 },
   { name: "identityProof", maxCount: 1 },
   { name: "criminalRecord", maxCount: 1 },
   { name: "certificateOfHonor", maxCount: 1 },

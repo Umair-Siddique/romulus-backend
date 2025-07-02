@@ -20,7 +20,7 @@ export const educatorServices = {
       hourlyRate,
       skills,
       education,
-      profilePicture,
+      avatar,
       identityProof,
       criminalRecord,
       certificateOfHonor,
@@ -73,7 +73,7 @@ export const educatorServices = {
 
     const educatorData = {
       user: userId,
-      profilePicture: getFilePath(profilePicture),
+      avatar: getFilePath(avatar),
       firstName,
       lastName,
       gender,
@@ -100,7 +100,7 @@ export const educatorServices = {
         operation: "save.educator",
         userId: userId,
         context: {
-          hasProfilePicture: !!educatorData.profilePicture,
+          hasProfilePicture: !!educatorData.avatar,
           hasIdentityProof: !!educatorData.identityProof,
           skillsCount: processedSkills?.length || 0,
         },
@@ -173,7 +173,7 @@ export const educatorServices = {
         operation: "update.educatorById",
         id: id,
         context: {
-          hasProfilePicture: !!data.profilePicture,
+          hasProfilePicture: !!data.avatar,
           hasIdentityProof: !!data.identityProof,
           skillsCount: data.skills?.length || 0,
         },
