@@ -41,6 +41,7 @@ const UserSchema = new Schema(
     },
     isEmailVerified: {
       type: Boolean,
+      default: false,
     },
     isPhoneVerified: {
       type: Boolean,
