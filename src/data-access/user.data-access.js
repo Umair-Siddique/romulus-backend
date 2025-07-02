@@ -13,6 +13,7 @@ export const userDataAccess = {
         email,
         password,
         role,
+        isEmailVerified: role === "admin" ? undefined : false,
         isPhoneVerified: role === "educator" ? false : undefined,
       });
     },
@@ -65,7 +66,7 @@ export const userDataAccess = {
       return await UserModel.findOneAndUpdate(
         { email },
         { password },
-        { new: true, upsert: true },
+        { new: true, upsert: true }
       );
     },
   },

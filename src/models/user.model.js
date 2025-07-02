@@ -41,7 +41,6 @@ const UserSchema = new Schema(
     },
     isEmailVerified: {
       type: Boolean,
-      default: false,
     },
     isPhoneVerified: {
       type: Boolean,
@@ -52,7 +51,6 @@ const UserSchema = new Schema(
         values: ["active", "inactive", "pending"],
         message: "Status must be active, inactive, or pending",
       },
-      default: "pending",
     },
   },
   {
