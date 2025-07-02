@@ -44,7 +44,7 @@ export const educatorServices = {
     ]);
 
     if (existingEducator) {
-      throw createError(400, "User already has educator profile.", {
+      throw createError(400, "User already has educator profile. Log in again.", {
         expose: true,
         code: "EDUCATOR_PROFILE_EXISTS",
         userId: userId,
