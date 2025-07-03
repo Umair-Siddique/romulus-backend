@@ -39,20 +39,16 @@ const errorHandler = async (err, req, res, next) => {
     headers = {},
   } = err;
 
-  const baseResponse = {
+  const response = {
     success: false,
     message: expose || !isProduction ? message : "Internal Server Error",
     ...(code && { code }),
     ...(field && { field }),
     ...(operation && expose && { operation }),
-  };
-
-  const logResponse = {
-    success: false,
-    message,
+    // Internal use only (will not be sent to client)
     status,
     ...(userId && { userId }),
-    ...(operation && !expose && { operation }), // Log operation even if not exposed
+    ...(operation && !expose && { operation }),
     ...(context && { context }),
     requestInfo: {
       method: req.method,
@@ -61,16 +57,33 @@ const errorHandler = async (err, req, res, next) => {
       userAgent: req.get("User-Agent"),
       timestamp: new Date().toISOString(),
     },
-    stack: isProduction ? undefined : stack,
+    ...(isProduction ? {} : { stack }),
   };
 
-  Object.keys(headers).length && res.set(headers);
+  if (Object.keys(headers).length) res.set(headers);
 
-  // Log with appropriate level
+  // Log the full response
   const logMethod = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
-  logger[logMethod](JSON.stringify(logResponse, null, 2));
+  logger[logMethod](JSON.stringify(response, null, 2));
 
-  res.status(status).json(baseResponse);
+  // Send only safe fields to client
+  const {
+    success,
+    message: clientMessage,
+    code: clientCode,
+    field: clientField,
+    operation: clientOperation,
+  } = response;
+
+  const result = {
+    success,
+    message: clientMessage,
+    ...(clientCode && { code: clientCode }),
+    ...(clientField && { field: clientField }),
+    ...(clientOperation && { operation: clientOperation }),
+  };
+
+  res.status(status).json(result);
 };
 
 const invalidRouteHandler = (req, res) => {
