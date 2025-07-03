@@ -60,7 +60,7 @@ export const authServices = {
 
     const verificationToken = tokenUtils.generate(
       { id: newUser._id },
-      "verificationToken"
+      "verificationToken",
     );
     if (!verificationToken) {
       await remove.userById(newUser._id);
@@ -75,7 +75,7 @@ export const authServices = {
 
     const isEmailSent = await emailUtils.sendAccountVerification(
       email,
-      verificationToken
+      verificationToken,
     );
     if (!isEmailSent) {
       await remove.userById(newUser._id);
@@ -132,7 +132,7 @@ export const authServices = {
       // Generate new verification token
       const verificationToken = tokenUtils.generate(
         { id: userId },
-        "verificationToken"
+        "verificationToken",
       );
       if (!verificationToken) {
         throw createError(
@@ -144,14 +144,14 @@ export const authServices = {
             operation: "tokenUtils.generate",
             id: userId,
             context: { purpose: "email_verification" },
-          }
+          },
         );
       }
 
       // Send verification email
       const isEmailSent = await emailUtils.sendAccountVerification(
         email,
-        verificationToken
+        verificationToken,
       );
       if (!isEmailSent) {
         await remove.userById(userId);
@@ -177,7 +177,7 @@ export const authServices = {
           id: userId,
           operation: "sign_in",
           context: { action: "verify_email" },
-        }
+        },
       );
     }
 
@@ -194,7 +194,7 @@ export const authServices = {
             role: user.role,
             action: "verify_phone",
           },
-        }
+        },
       );
     }
 
@@ -211,7 +211,7 @@ export const authServices = {
 
     const accessToken = tokenUtils.generate(
       { id: userId, role: user.role },
-      "accessToken"
+      "accessToken",
     );
     if (!accessToken) {
       throw createError(500, "Token generation failed.", {
@@ -255,7 +255,7 @@ export const authServices = {
     const blacklistedToken = await save.blacklistedToken(
       accessToken,
       id,
-      expiresAt
+      expiresAt,
     );
     if (!blacklistedToken) {
       throw createError(
@@ -267,7 +267,7 @@ export const authServices = {
           operation: "save.blacklistedToken",
           id,
           context: { expiresAt: expiresAt.toISOString() },
-        }
+        },
       );
     }
 
@@ -293,7 +293,7 @@ export const authServices = {
 
     const resetToken = tokenUtils.generate(
       { id: existingUser._id },
-      "passwordResetToken"
+      "passwordResetToken",
     );
     if (!resetToken) {
       throw createError(500, "Failed to generate reset token", {

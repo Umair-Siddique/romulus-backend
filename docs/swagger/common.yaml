@@ -85,7 +85,7 @@ components:
 
     ProfilePictureUrl:
       type: string
-      description: Relative URL path to uploaded avatar 
+      description: Relative URL path to uploaded avatar
       example: "/uploads/profile-picture-123.jpg"
       pattern: "^/uploads/[a-zA-Z0-9_-]+\\.(jpg|jpeg|png|gif)$"
 

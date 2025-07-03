@@ -44,13 +44,17 @@ export const educatorServices = {
     ]);
 
     if (existingEducator) {
-      throw createError(400, "User already has educator profile. Log in again.", {
-        expose: true,
-        code: "EDUCATOR_PROFILE_EXISTS",
-        userId: userId,
-        operation: "create_educator_profile",
-        context: { conflictType: "educator" },
-      });
+      throw createError(
+        400,
+        "User already has educator profile. Log in again.",
+        {
+          expose: true,
+          code: "EDUCATOR_PROFILE_EXISTS",
+          userId: userId,
+          operation: "create_educator_profile",
+          context: { conflictType: "educator" },
+        },
+      );
     } else if (existingOrganization) {
       throw createError(400, "User already has organization profile.", {
         expose: true,
