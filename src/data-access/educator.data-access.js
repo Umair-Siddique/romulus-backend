@@ -3,8 +3,7 @@ import { EducatorModel } from "#models/index.js";
 export const educatorDataAccess = {
   save: {
     educator: async (educatorData) => {
-      const educator = await EducatorModel.create(educatorData);
-      return await educator.populate("user");
+      return await EducatorModel.create(educatorData);
     },
   },
 
