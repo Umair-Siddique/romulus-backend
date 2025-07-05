@@ -7,6 +7,7 @@ import {
   resetToken,
   userId,
   organizationId,
+  educatorId,
   organizationName,
   foundedYear,
   siretNumber,
@@ -112,7 +113,7 @@ export const educatorSchemas = {
       hourlyRate: hourlyRate.required(),
       skills: skills.required(),
       education: education.required(),
-    }),
+    })
   ),
 
   update: createUpdateSchema({
@@ -131,35 +132,6 @@ export const educatorSchemas = {
   }),
 };
 
-// Mission schemas
-export const missionSchemas = {
-  create: createFileUploadSchema(
-    Joi.object({
-      organization: organizationId.required(),
-      title: title.required(),
-      description: description.required(),
-      branch: branch.required(),
-      skills: skills.required(),
-      startDate: startDate.required(),
-      endDate: endDate.required(),
-      startTime: time.required(),
-      endTime: time.required(),
-      status: status.optional(),
-    }),
-  ),
-
-  update: createUpdateSchema({
-    title: title.optional(),
-    description: description.optional(),
-    branch: branch.optional(),
-    startDate: startDate.optional(),
-    endDate: endDate.optional(),
-    startTime: time.optional(),
-    endTime: time.optional(),
-    status: status.optional(),
-  }),
-};
-
 // Organization schemas
 export const organizationSchemas = {
   create: createFileUploadSchema(
@@ -173,7 +145,7 @@ export const organizationSchemas = {
       country: country.required(),
       officeAddress: address.required(),
       branches: branches.required(),
-    }),
+    })
   ),
 
   update: createUpdateSchema({
@@ -185,5 +157,35 @@ export const organizationSchemas = {
     country: country.optional(),
     officeAddress: address.optional(),
     branches: branches.optional(),
+  }),
+};
+
+// Mission schemas
+export const missionSchemas = {
+  create: createFileUploadSchema(
+    Joi.object({
+      organization: organizationId.required(),
+      educator: educatorId.optional(),
+      title: title.required(),
+      description: description.required(),
+      branch: branch.required(),
+      skills: skills.required(),
+      startDate: startDate.required(),
+      endDate: endDate.required(),
+      startTime: time.required(),
+      endTime: time.required(),
+      status: status.optional(),
+    })
+  ),
+
+  update: createUpdateSchema({
+    title: title.optional(),
+    description: description.optional(),
+    branch: branch.optional(),
+    startDate: startDate.optional(),
+    endDate: endDate.optional(),
+    startTime: time.optional(),
+    endTime: time.optional(),
+    status: status.optional(),
   }),
 };

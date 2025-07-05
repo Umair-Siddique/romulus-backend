@@ -100,6 +100,7 @@ export const resetToken = Joi.string()
 // ID validations
 export const userId = createIdValidation("User ID");
 export const organizationId = createIdValidation("Organization ID");
+export const educatorId = createIdValidation("Educator ID");
 
 // Organization validations
 export const organizationName = createStringValidation(
@@ -235,13 +236,13 @@ export const dateOfBirth = Joi.date()
     "any.required": "Date of birth is required.",
   });
 
-export const startDate = Joi.date().min("now").messages({
+export const startDate = Joi.string().messages({
   "date.base": "Start date should be a valid date.",
   "date.min": "Start date cannot be in the past.",
   "any.required": "Start date is required.",
 });
 
-export const endDate = Joi.date().greater(Joi.ref("startDate")).messages({
+export const endDate = Joi.string().messages({
   "date.base": "End date should be a valid date.",
   "date.greater": "End date must be after start date.",
   "any.required": "End date is required.",

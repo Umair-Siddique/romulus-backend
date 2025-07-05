@@ -1,4 +1,4 @@
-import createHttpError from "http-errors";
+import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
 
@@ -21,7 +21,7 @@ export const missionServices = {
 
     const existingOrganization = await read.organizationById(organizationId);
     if (!existingOrganization) {
-      throw createHttpError(404, "Organization not found", {
+      throw createError(404, "Organization not found", {
         expose: true,
         code: "ORGANIZATION_NOT_FOUND",
         field: "organization",
@@ -40,16 +40,32 @@ export const missionServices = {
       ? skills
       : skills?.split(",").map((s) => s.trim());
 
+    // Convert date and time to ISO 8601 format
+    const toISO8601 = (dateString, timeString) => {
+      const combined = `${dateString}T${timeString}`;
+
+      const dateObj = new Date(combined);
+
+      if (isNaN(dateObj.getTime())) {
+        throw createError(400, "Invalid date or time input.", {
+          expose: true,
+          code: "INVALID_DATE_TIME",
+          field: "startDate or startTime or endDate or endTime",
+          operation: "create_mission",
+        });
+      }
+
+      return dateObj.toISOString();
+    };
+
     const missionData = {
       organization: organizationId,
       title,
       description,
       branch,
       skills: processedSkills,
-      startDate,
-      endDate,
-      startTime,
-      endTime,
+      start: toISO8601(startDate, startTime),
+      end: toISO8601(endDate, endTime),
       technicalDocument: getFilePath(technicalDocument),
     };
 

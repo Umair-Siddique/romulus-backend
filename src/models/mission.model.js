@@ -9,6 +9,10 @@ const MissionSchema = new Schema(
       required: [true, "Organization ID is required"],
       ref: "Organization",
     },
+    educator: {
+      type: Schema.Types.ObjectId,
+      ref: "Educator",
+    },
     title: {
       type: String,
       required: [true, "Title is required"],
@@ -36,35 +40,19 @@ const MissionSchema = new Schema(
         message: "At least one skill is required",
       },
     },
-    startDate: {
+    start: {
       type: Date,
-      required: [true, "Start date is required"],
+      required: [true, "Start date and time are required"],
     },
-    endDate: {
+    end: {
       type: Date,
-      required: [true, "End date is required"],
+      required: [true, "End date and time are required"],
       validate: {
         validator: function (value) {
-          return value > this.startDate;
+          return value > this.start;
         },
         message: "End date must be after start date",
       },
-    },
-    startTime: {
-      type: String,
-      required: [true, "Start time is required"],
-      match: [
-        /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
-        "Start time must be in HH:MM format (24-hour)",
-      ],
-    },
-    endTime: {
-      type: String,
-      required: [true, "End time is required"],
-      match: [
-        /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/,
-        "End time must be in HH:MM format (24-hour)",
-      ],
     },
     technicalDocument: {
       type: String,
@@ -90,7 +78,7 @@ const MissionSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const MissionModel = model("Mission", MissionSchema);
