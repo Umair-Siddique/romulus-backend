@@ -3,7 +3,8 @@ import { OrganizationModel } from "#models/index.js";
 export const organizationDataAccess = {
   save: {
     organization: async (organizationData) => {
-      return await OrganizationModel.create(organizationData);
+      const organization = await OrganizationModel.create(organizationData);
+      return await organization.populate("user");
     },
   },
 
