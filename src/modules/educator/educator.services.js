@@ -196,4 +196,33 @@ export const educatorServices = {
       data: updatedEducator,
     };
   },
+
+  getNearBy: async (coordinates, distance) => {
+    const processedCoordinates = Array.isArray(coordinates)
+      ? coordinates
+      : coordinates?.split(",").map((s) => s.trim());
+
+    const educators = await read.educatorsNearby(
+      processedCoordinates,
+      distance,
+    );
+
+    if (!educators || educators.length === 0) {
+      throw createError(404, "No nearby educators found.", {
+        expose: true,
+        code: "NEARBY_EDUCATORS_NOT_FOUND",
+        operation: "read.educatorsNearby",
+        context: {
+          coordinates,
+          distance,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      message: "Nearby educators retrieved successfully.",
+      data: educators,
+    };
+  },
 };

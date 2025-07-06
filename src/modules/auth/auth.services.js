@@ -73,7 +73,7 @@ export const authServices = {
 
     const verificationToken = tokenUtils.generate(
       { id: newUser._id },
-      "verificationToken"
+      "verificationToken",
     );
 
     if (!verificationToken) {
@@ -89,7 +89,7 @@ export const authServices = {
 
     const isEmailSent = await emailUtils.sendAccountVerification(
       email,
-      verificationToken
+      verificationToken,
     );
 
     if (!isEmailSent) {
@@ -149,7 +149,7 @@ export const authServices = {
       // Generate new verification token
       const verificationToken = tokenUtils.generate(
         { id: userId },
-        "verificationToken"
+        "verificationToken",
       );
 
       if (!verificationToken) {
@@ -162,14 +162,14 @@ export const authServices = {
             operation: "tokenUtils.generate",
             id: userId,
             context: { purpose: "email_verification" },
-          }
+          },
         );
       }
 
       // Send verification email
       const isEmailSent = await emailUtils.sendAccountVerification(
         email,
-        verificationToken
+        verificationToken,
       );
 
       if (!isEmailSent) {
@@ -195,7 +195,7 @@ export const authServices = {
           id: userId,
           operation: "sign_in",
           context: { action: "verify_email" },
-        }
+        },
       );
     }
 
@@ -212,7 +212,7 @@ export const authServices = {
             role: user.role,
             action: "verify_phone",
           },
-        }
+        },
       );
     }
 
@@ -230,7 +230,7 @@ export const authServices = {
 
     const accessToken = tokenUtils.generate(
       { id: userId, role: user.role },
-      "accessToken"
+      "accessToken",
     );
 
     if (!accessToken) {
@@ -276,7 +276,7 @@ export const authServices = {
     const blacklistedToken = await save.blacklistedToken(
       accessToken,
       id,
-      expiresAt
+      expiresAt,
     );
 
     if (!blacklistedToken) {
@@ -289,7 +289,7 @@ export const authServices = {
           operation: "save.blacklistedToken",
           id,
           context: { expiresAt: expiresAt.toISOString() },
-        }
+        },
       );
     }
 
@@ -316,7 +316,7 @@ export const authServices = {
 
     const resetToken = tokenUtils.generate(
       { id: existingUser._id },
-      "passwordResetToken"
+      "passwordResetToken",
     );
 
     if (!resetToken) {

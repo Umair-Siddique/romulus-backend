@@ -173,7 +173,7 @@ const EducatorSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 EducatorSchema.index({ fullAddressCoordinates: "2dsphere" });

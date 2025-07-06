@@ -16,6 +16,11 @@ educatorRoutes
     educatorControllers.create,
   )
   .get("/", educatorControllers.getAll)
+  .get(
+    "/near-by",
+    validate.authRole("organization"),
+    educatorControllers.getNearBy,
+  )
   .get("/:id", educatorControllers.getById)
   .patch(
     "/:id",
