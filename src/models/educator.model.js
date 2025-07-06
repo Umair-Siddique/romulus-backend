@@ -85,7 +85,7 @@ const EducatorSchema = new Schema(
       coordinates: {
         type: [Number],
         required: true,
-        default: [0, 0],
+        default: [73.14474441571859, 33.623802049520755],
         validate: {
           validator: (v) => v.length === 2,
           message:
@@ -175,8 +175,6 @@ const EducatorSchema = new Schema(
     timestamps: true,
   }
 );
-
-EducatorSchema.index({ fullAddressCoordinates: "2dsphere" });
 
 EducatorSchema.index({ fullAddressCoordinates: "2dsphere" });
 
