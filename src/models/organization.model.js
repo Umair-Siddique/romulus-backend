@@ -63,7 +63,7 @@ const BranchSchema = new Schema(
       coordinates: {
         type: [Number],
         required: true,
-        default: [0, 0],
+        default: [73.12305647540082, 33.60784209987379],
         validate: {
           validator: (v) => v.length === 2,
           message:
@@ -78,7 +78,7 @@ const BranchSchema = new Schema(
   },
   {
     _id: false, // Disable automatic _id generation for subdocuments
-  },
+  }
 );
 
 const OrganizationSchema = new Schema(
@@ -172,7 +172,7 @@ const OrganizationSchema = new Schema(
       coordinates: {
         type: [Number],
         required: true,
-        default: [0, 0],
+        default: [73.13829207001977, 33.60948427871408],
         validate: {
           validator: (v) => v.length === 2,
           message:
@@ -191,7 +191,7 @@ const OrganizationSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const OrganizationModel = model("Organization", OrganizationSchema);

@@ -19,6 +19,20 @@ export const educatorDataAccess = {
     educatorByUserId: async (userId) => {
       return await EducatorModel.findOne({ user: userId }).populate("user");
     },
+
+    educatorsNearby: async (coordinates, distance) => {
+      return await EducatorModel.find({
+        fullAddressCoordinates: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: coordinates,
+            },
+            $maxDistance: distance * 1000, // Convert km to meters
+          },
+        },
+      }).populate("user");
+    },
   },
 
   update: {
