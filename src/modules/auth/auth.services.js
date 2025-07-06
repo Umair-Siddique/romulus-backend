@@ -73,7 +73,7 @@ export const authServices = {
 
     const verificationToken = tokenUtils.generate(
       { id: newUser._id },
-      "verificationToken",
+      "verificationToken"
     );
 
     if (!verificationToken) {
@@ -89,7 +89,7 @@ export const authServices = {
 
     const isEmailSent = await emailUtils.sendAccountVerification(
       email,
-      verificationToken,
+      verificationToken
     );
 
     if (!isEmailSent) {
@@ -133,22 +133,23 @@ export const authServices = {
     }
 
     const userId = user._id;
+    const userRole = user.role;
 
-    const [existingEducator, existingOrganization] = await Promise.all([
-      read.educatorByUserId(userId),
-      read.organizationByUserId(userId),
-    ]);
+    let educatorId, organizationId;
 
-    const educatorId = existingEducator?._id;
-    const organizationId = existingEducator
-      ? undefined
-      : existingOrganization?._id;
+    if (userRole === "educator") {
+      const educator = await read.educatorByUserId(userId);
+      educatorId = educator?._id;
+    } else if (userRole === "organization") {
+      const organization = await read.organizationByUserId(userId);
+      organizationId = organization?._id;
+    }
 
     if (!user.isEmailVerified) {
       // Generate new verification token
       const verificationToken = tokenUtils.generate(
         { id: userId },
-        "verificationToken",
+        "verificationToken"
       );
 
       if (!verificationToken) {
@@ -161,18 +162,17 @@ export const authServices = {
             operation: "tokenUtils.generate",
             id: userId,
             context: { purpose: "email_verification" },
-          },
+          }
         );
       }
 
       // Send verification email
       const isEmailSent = await emailUtils.sendAccountVerification(
         email,
-        verificationToken,
+        verificationToken
       );
 
       if (!isEmailSent) {
-        await remove.userById(userId);
         throw createError(500, "Failed to send the verification email.", {
           expose: false,
           code: "EMAIL_SEND_FAILED",
@@ -195,7 +195,7 @@ export const authServices = {
           id: userId,
           operation: "sign_in",
           context: { action: "verify_email" },
-        },
+        }
       );
     }
 
@@ -212,7 +212,7 @@ export const authServices = {
             role: user.role,
             action: "verify_phone",
           },
-        },
+        }
       );
     }
 
@@ -230,7 +230,7 @@ export const authServices = {
 
     const accessToken = tokenUtils.generate(
       { id: userId, role: user.role },
-      "accessToken",
+      "accessToken"
     );
 
     if (!accessToken) {
@@ -248,8 +248,8 @@ export const authServices = {
       message: "Signed in successfully.",
       data: {
         userId,
-        educatorId,
-        organizationId,
+        educatorId: !!educatorId ? educatorId : undefined,
+        organizationId: !!organizationId ? organizationId : undefined,
         role: user.role,
       },
       accessToken,
@@ -276,7 +276,7 @@ export const authServices = {
     const blacklistedToken = await save.blacklistedToken(
       accessToken,
       id,
-      expiresAt,
+      expiresAt
     );
 
     if (!blacklistedToken) {
@@ -289,7 +289,7 @@ export const authServices = {
           operation: "save.blacklistedToken",
           id,
           context: { expiresAt: expiresAt.toISOString() },
-        },
+        }
       );
     }
 
@@ -316,7 +316,7 @@ export const authServices = {
 
     const resetToken = tokenUtils.generate(
       { id: existingUser._id },
-      "passwordResetToken",
+      "passwordResetToken"
     );
 
     if (!resetToken) {
