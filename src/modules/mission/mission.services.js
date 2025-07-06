@@ -1,8 +1,10 @@
 import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
+import { globalUtils } from "#utils/global.utils.js";
 
 const { save, read, update } = dataAccess;
+const { parseDelimitedString } = globalUtils;
 
 export const missionServices = {
   create: async (data) => {
@@ -36,11 +38,6 @@ export const missionServices = {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
     };
 
-    // Process skills array
-    const processedSkills = Array.isArray(skills)
-      ? skills
-      : skills?.split(",").map((s) => s.trim());
-
     // Convert date and time to ISO 8601 format
     const toISO8601 = (dateString, timeString) => {
       const combined = `${dateString}T${timeString}`;
@@ -64,7 +61,7 @@ export const missionServices = {
       title,
       description,
       branch,
-      skills: processedSkills,
+      skills: parseDelimitedString(skills),
       start: toISO8601(startDate, startTime),
       end: toISO8601(endDate, endTime),
       technicalDocument: getFilePath(technicalDocument),

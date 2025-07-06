@@ -1,8 +1,10 @@
 import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
+import { globalUtils } from "#utils/index.js";
 
 const { save, read, update } = dataAccess;
+const { parseDelimitedString } = globalUtils;
 
 export const educatorServices = {
   create: async (data) => {
@@ -54,7 +56,7 @@ export const educatorServices = {
           userId: userId,
           operation: "create_educator_profile",
           context: { conflictType: "educator" },
-        },
+        }
       );
     } else if (existingOrganization) {
       throw createError(400, "User already has organization profile.", {
@@ -71,11 +73,6 @@ export const educatorServices = {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
     };
 
-    // Process skills array
-    const processedSkills = Array.isArray(skills)
-      ? skills
-      : skills?.split(",").map((s) => s.trim());
-
     const educatorData = {
       user: userId,
       avatar: getFilePath(avatar),
@@ -91,7 +88,7 @@ export const educatorServices = {
       criminalRecord: getFilePath(criminalRecord),
       profession,
       hourlyRate,
-      skills: processedSkills,
+      skills: parseDelimitedString(skills),
       education,
       certificateOfHonor: getFilePath(certificateOfHonor),
       diploma: getFilePath(diploma),
@@ -198,13 +195,9 @@ export const educatorServices = {
   },
 
   getNearBy: async (coordinates, distance) => {
-    const processedCoordinates = Array.isArray(coordinates)
-      ? coordinates
-      : coordinates?.split(",").map((s) => s.trim());
-
     const educators = await read.educatorsNearby(
-      processedCoordinates,
-      distance,
+      parseDelimitedString(coordinates),
+      distance
     );
 
     if (!educators || educators.length === 0) {

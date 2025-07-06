@@ -6,4 +6,9 @@ export const globalUtils = {
       next(error);
     }
   },
+  parseDelimitedString: (input) => {
+    return Array.isArray(input)
+      ? input
+      : input?.split(",").map((s) => s.trim());
+  },
 };
