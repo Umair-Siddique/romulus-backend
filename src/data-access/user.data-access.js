@@ -36,6 +36,12 @@ export const userDataAccess = {
 
       return await UserModel.findById(id);
     },
+
+    userByPhone: async (phone) => {
+      return await UserModel.findOne({
+        phone,
+      });
+    },
   },
 
   update: {

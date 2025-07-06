@@ -24,6 +24,7 @@ export const emailServices = {
     const isUserUpdated = await update.userById(id, {
       isEmailVerified: true,
     });
+
     if (!isUserUpdated) {
       throw createError(500, "An error occurred while verifying the email", {
         expose: false,
@@ -39,6 +40,7 @@ export const emailServices = {
 
   sendVerificationToken: async (email) => {
     const user = await read.userByEmail(email);
+
     if (!user) {
       throw createError(404, "User not found", {
         expose: true,
@@ -53,6 +55,7 @@ export const emailServices = {
       { id: user._id },
       "verificationToken",
     );
+
     if (!verificationToken) {
       await remove.userById(user._id);
       throw createError(500, "An error occurred while generating the token.", {
@@ -68,6 +71,7 @@ export const emailServices = {
       email,
       verificationToken,
     );
+
     if (!isEmailSent) {
       await remove.userById(user._id);
       throw createError(500, "Failed to send the welcome email.", {

@@ -20,6 +20,7 @@ export const missionServices = {
     } = data;
 
     const existingOrganization = await read.organizationById(organizationId);
+
     if (!existingOrganization) {
       throw createError(404, "Organization not found", {
         expose: true,

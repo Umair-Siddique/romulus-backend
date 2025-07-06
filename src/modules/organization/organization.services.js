@@ -21,6 +21,7 @@ export const organizationServices = {
     } = data;
 
     const existingUser = await read.userById(userId);
+
     if (!existingUser) {
       throw createError(404, "User does not exist.", {
         expose: true,
@@ -83,6 +84,7 @@ export const organizationServices = {
     };
 
     const newOrganization = await save.organization(organizationData);
+
     if (!newOrganization) {
       throw createError(500, "Failed to create organization.", {
         expose: false,
@@ -107,6 +109,7 @@ export const organizationServices = {
 
   getAll: async () => {
     const organizations = await read.allOrganizations();
+
     if (!organizations || organizations.length === 0) {
       throw createError(404, "No organizations found.", {
         expose: true,
@@ -124,6 +127,7 @@ export const organizationServices = {
 
   getById: async (id) => {
     const organization = await read.organizationById(id);
+
     if (!organization) {
       throw createError(404, "Organization not found.", {
         expose: true,
@@ -143,6 +147,7 @@ export const organizationServices = {
 
   updateById: async (id, data) => {
     const existingOrganization = await read.organizationById(id);
+
     if (!existingOrganization) {
       throw createError(404, "Organization not found.", {
         expose: true,
@@ -154,6 +159,7 @@ export const organizationServices = {
     }
 
     const updatedOrganization = await update.organizationById(id, data);
+
     if (!updatedOrganization) {
       throw createError(500, "Failed to update organization.", {
         expose: false,

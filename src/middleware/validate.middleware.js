@@ -8,6 +8,7 @@ export const validate = {
   dto: (schema) =>
     asyncHandler(async (req, res, next) => {
       const { value, error } = schema.validate(req.body, { abortEarly: false });
+
       if (error) {
         const errorMessages = error.details.map(({ message }) => message);
         throw createError(
@@ -15,6 +16,7 @@ export const validate = {
           `Validation failed: ${errorMessages.join(", ")}`,
         );
       }
+
       req.body = value;
       next();
     }),
@@ -39,6 +41,7 @@ export const validate = {
       if (!req.user) {
         throw createError(401, "Authentication required.");
       }
+
       if (req.user.role !== authorizedRole) {
         throw createError(
           403,

@@ -113,7 +113,7 @@ export const educatorSchemas = {
       hourlyRate: hourlyRate.required(),
       skills: skills.required(),
       education: education.required(),
-    })
+    }),
   ),
 
   update: createUpdateSchema({
@@ -145,7 +145,7 @@ export const organizationSchemas = {
       country: country.required(),
       officeAddress: address.required(),
       branches: branches.required(),
-    })
+    }),
   ),
 
   update: createUpdateSchema({
@@ -175,7 +175,7 @@ export const missionSchemas = {
       startTime: time.required(),
       endTime: time.required(),
       status: status.optional(),
-    })
+    }),
   ),
 
   update: createUpdateSchema({

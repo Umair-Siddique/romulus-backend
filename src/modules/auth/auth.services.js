@@ -10,7 +10,11 @@ export const authServices = {
   signUp: async (data) => {
     const { phone, email, password, role } = data;
 
-    const existingUser = await read.userByEmail(email);
+    const [existingUser, existingPhoneUser] = await Promise.all([
+      read.userByEmail(email),
+      read.userByPhone(phone),
+    ]);
+
     if (existingUser) {
       throw createError(400, "A user with this email already exists.", {
         expose: true,
@@ -18,6 +22,14 @@ export const authServices = {
         field: "email",
         operation: "sign_up",
         context: { email, role },
+      });
+    } else if (existingPhoneUser) {
+      throw createError(400, "A user with this phone number already exists.", {
+        expose: true,
+        code: "PHONE_EXISTS",
+        field: "phone",
+        operation: "sign_up",
+        context: { phone, role },
       });
     }
 
@@ -32,6 +44,7 @@ export const authServices = {
     }
 
     const newUser = await save.user(phone, email, password, role);
+
     if (!newUser) {
       throw createError(500, "Failed to create a new user.", {
         expose: false,
@@ -62,6 +75,7 @@ export const authServices = {
       { id: newUser._id },
       "verificationToken",
     );
+
     if (!verificationToken) {
       await remove.userById(newUser._id);
       throw createError(500, "An error occurred while generating the token.", {
@@ -77,6 +91,7 @@ export const authServices = {
       email,
       verificationToken,
     );
+
     if (!isEmailSent) {
       await remove.userById(newUser._id);
       throw createError(500, "Failed to send the welcome email.", {
@@ -106,6 +121,7 @@ export const authServices = {
     const { email, password } = data;
 
     const user = await read.userByEmail(email);
+
     if (!user) {
       throw createError(401, "Invalid credentials.", {
         expose: true,
@@ -134,6 +150,7 @@ export const authServices = {
         { id: userId },
         "verificationToken",
       );
+
       if (!verificationToken) {
         throw createError(
           500,
@@ -153,6 +170,7 @@ export const authServices = {
         email,
         verificationToken,
       );
+
       if (!isEmailSent) {
         await remove.userById(userId);
         throw createError(500, "Failed to send the verification email.", {
@@ -199,6 +217,7 @@ export const authServices = {
     }
 
     const isPasswordValid = await user.comparePassword(password);
+
     if (!isPasswordValid) {
       throw createError(401, "Invalid credentials.", {
         expose: true,
@@ -213,6 +232,7 @@ export const authServices = {
       { id: userId, role: user.role },
       "accessToken",
     );
+
     if (!accessToken) {
       throw createError(500, "Token generation failed.", {
         expose: false,
@@ -238,6 +258,7 @@ export const authServices = {
 
   signOut: async (accessToken) => {
     const existingBlacklistedToken = await read.blacklistedToken(accessToken);
+
     if (existingBlacklistedToken) {
       throw createError(400, "Token is already blacklisted.", {
         expose: true,
@@ -257,6 +278,7 @@ export const authServices = {
       id,
       expiresAt,
     );
+
     if (!blacklistedToken) {
       throw createError(
         500,
@@ -281,6 +303,7 @@ export const authServices = {
     const { email } = data;
 
     const existingUser = await read.userByEmail(email);
+
     if (!existingUser) {
       throw createError(404, "User not found", {
         expose: true,
@@ -295,6 +318,7 @@ export const authServices = {
       { id: existingUser._id },
       "passwordResetToken",
     );
+
     if (!resetToken) {
       throw createError(500, "Failed to generate reset token", {
         expose: false,
@@ -306,6 +330,7 @@ export const authServices = {
     }
 
     const isEmailSent = await emailUtils.sendResetPassword(email, resetToken);
+
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email", {
         expose: false,
@@ -333,6 +358,7 @@ export const authServices = {
     const { id } = decodedToken;
 
     const existingUser = await read.userById(id);
+
     if (!existingUser) {
       throw createError(404, "User not found", {
         expose: true,
@@ -349,6 +375,7 @@ export const authServices = {
     const isPasswordUpdated = await update.userById(id, {
       password: hashedPassword,
     });
+
     if (!isPasswordUpdated) {
       throw createError(500, "Password update failed", {
         expose: false,

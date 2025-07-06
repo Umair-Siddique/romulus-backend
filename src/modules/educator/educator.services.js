@@ -28,6 +28,7 @@ export const educatorServices = {
     } = data;
 
     const existingUser = await read.userById(userId);
+
     if (!existingUser) {
       throw createError(404, "User does not exist.", {
         expose: true,
@@ -97,6 +98,7 @@ export const educatorServices = {
     };
 
     const newEducator = await save.educator(educatorData);
+
     if (!newEducator) {
       throw createError(500, "An error occurred while creating the profile.", {
         expose: false,
@@ -120,6 +122,7 @@ export const educatorServices = {
 
   getAll: async () => {
     const educators = await read.allEducators();
+
     if (!educators || educators.length === 0) {
       throw createError(404, "No educators found.", {
         expose: true,
@@ -138,6 +141,7 @@ export const educatorServices = {
 
   getById: async (id) => {
     const educator = await read.educatorById(id);
+
     if (!educator) {
       throw createError(404, "Educator profile not found.", {
         expose: true,
@@ -158,6 +162,7 @@ export const educatorServices = {
 
   updateById: async (id, data) => {
     const existingEducator = await read.educatorById(id);
+
     if (!existingEducator) {
       throw createError(404, "Educator profile not found.", {
         expose: true,
@@ -170,6 +175,7 @@ export const educatorServices = {
     }
 
     const updatedEducator = await update.educatorById(id, data);
+
     if (!updatedEducator) {
       throw createError(500, "An error occurred while updating the profile.", {
         expose: false,

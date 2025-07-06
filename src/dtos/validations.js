@@ -207,9 +207,11 @@ export const skills = Joi.alternatives()
       if (skillList.length === 0) {
         return helpers.error("skills.empty");
       }
+
       if (skillList.length > 50) {
         return helpers.error("skills.tooMany");
       }
+
       return skillList;
     }),
   )

@@ -78,7 +78,7 @@ const MissionSchema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export const MissionModel = model("Mission", MissionSchema);

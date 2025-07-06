@@ -10,6 +10,7 @@ export const twilioServices = {
     const { phone } = data;
 
     const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
+
     if (!isWhatsAppOtpSent) {
       throw createError(500, "Failed to send OTP", {
         expose: false,
