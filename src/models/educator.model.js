@@ -173,8 +173,12 @@ const EducatorSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
+
+EducatorSchema.index({ fullAddressCoordinates: "2dsphere" });
+
+EducatorSchema.index({ fullAddressCoordinates: "2dsphere" });
 
 // Pre-save middleware to normalize data
 EducatorSchema.pre("save", function (next) {
