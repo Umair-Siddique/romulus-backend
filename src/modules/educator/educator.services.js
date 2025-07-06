@@ -56,7 +56,7 @@ export const educatorServices = {
           userId: userId,
           operation: "create_educator_profile",
           context: { conflictType: "educator" },
-        }
+        },
       );
     } else if (existingOrganization) {
       throw createError(400, "User already has organization profile.", {
@@ -194,13 +194,26 @@ export const educatorServices = {
     };
   },
 
-  getNearBy: async (coordinates, distance) => {
+  getNearBy: async (coordinates, distance, skills) => {
     const educators = await read.educatorsNearby(
       parseDelimitedString(coordinates),
-      distance
+      distance,
     );
 
-    if (!educators || educators.length === 0) {
+    const parsedSkills = parseDelimitedString(skills);
+
+    function filterEducatorsBySkills(educators, skills) {
+      if (!skills || skills.length === 0) return educators;
+
+      return educators.filter((educator) => {
+        const educatorSkills = educator.skills || [];
+        return skills.some((skill) => educatorSkills.includes(skill));
+      });
+    }
+
+    const filteredEducators = filterEducatorsBySkills(educators, parsedSkills);
+
+    if (!filteredEducators || filteredEducators.length === 0) {
       throw createError(404, "No nearby educators found.", {
         expose: true,
         code: "NEARBY_EDUCATORS_NOT_FOUND",
@@ -215,7 +228,7 @@ export const educatorServices = {
     return {
       success: true,
       message: "Nearby educators retrieved successfully.",
-      data: educators,
+      data: filteredEducators,
     };
   },
 };

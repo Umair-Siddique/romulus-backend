@@ -37,9 +37,13 @@ export const educatorControllers = {
   }),
 
   getNearBy: asyncHandler(async (req, res) => {
-    const { coordinates, distance } = req.query;
+    const { coordinates, distance, skills } = req.query;
 
-    const result = await educatorServices.getNearBy(coordinates, distance);
+    const result = await educatorServices.getNearBy(
+      coordinates,
+      distance,
+      skills,
+    );
 
     res.status(200).json(result);
   }),
