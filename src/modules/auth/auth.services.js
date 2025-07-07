@@ -10,29 +10,6 @@ export const authServices = {
   signUp: async (data) => {
     const { phone, email, password, role } = data;
 
-    const [existingUser, existingPhoneUser] = await Promise.all([
-      read.userByEmail(email),
-      read.userByPhone(phone),
-    ]);
-
-    if (existingUser) {
-      throw createError(400, "A user with this email already exists.", {
-        expose: true,
-        code: "EMAIL_EXISTS",
-        field: "email",
-        operation: "sign_up",
-        context: { email, role },
-      });
-    } else if (existingPhoneUser) {
-      throw createError(400, "A user with this phone number already exists.", {
-        expose: true,
-        code: "PHONE_EXISTS",
-        field: "phone",
-        operation: "sign_up",
-        context: { phone, role },
-      });
-    }
-
     if (role === "educator" && !phone) {
       throw createError(400, "Phone number is required for educators.", {
         expose: true,
@@ -40,6 +17,33 @@ export const authServices = {
         field: "phone",
         operation: "sign_up",
         context: { role },
+      });
+    }
+
+    const [existingEmail, existingPhone] = await Promise.all([
+      read.userByEmail(email),
+      role === "educator" && phone
+        ? read.userByPhone(phone)
+        : Promise.resolve(null),
+    ]);
+
+    if (existingEmail) {
+      throw createError(400, "A user with this email already exists.", {
+        expose: true,
+        code: "EMAIL_EXISTS",
+        field: "email",
+        operation: "sign_up",
+        context: { email, role },
+      });
+    }
+
+    if (existingPhone) {
+      throw createError(400, "A user with this phone number already exists.", {
+        expose: true,
+        code: "PHONE_EXISTS",
+        field: "phone",
+        operation: "sign_up",
+        context: { phone, role },
       });
     }
 
@@ -54,67 +58,73 @@ export const authServices = {
       });
     }
 
-    if (role === "educator") {
-      const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
-      if (!isWhatsAppOtpSent) {
-        await remove.userById(newUser._id);
-        throw createError(500, "Failed to send OTP", {
+    try {
+      if (role === "educator") {
+        const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
+        if (!isWhatsAppOtpSent) {
+          throw createError(500, "Failed to send OTP", {
+            expose: false,
+            code: "TWILIO_OTP_SEND_FAILED",
+            operation: "send_whatsapp_otp",
+            context: {
+              phone,
+              channel: "whatsapp",
+              service: "twilio_verify",
+            },
+          });
+        }
+      }
+
+      const verificationToken = tokenUtils.generate(
+        { id: newUser._id },
+        "verificationToken"
+      );
+
+      if (!verificationToken) {
+        throw createError(
+          500,
+          "An error occurred while generating the token.",
+          {
+            expose: false,
+            code: "TOKEN_GENERATION_FAILED",
+            operation: "Account Verification",
+            id: newUser._id,
+            context: { purpose: "email_verification" },
+          }
+        );
+      }
+
+      const isEmailSent = await emailUtils.sendAccountVerification(
+        email,
+        verificationToken
+      );
+
+      if (!isEmailSent) {
+        throw createError(500, "Failed to send the welcome email.", {
           expose: false,
-          code: "TWILIO_OTP_SEND_FAILED",
-          operation: "send_whatsapp_otp",
+          code: "EMAIL_SEND_FAILED",
+          operation: "Sending Verification Email",
+          id: newUser._id,
           context: {
-            phone,
-            channel: "whatsapp",
-            service: "twilio_verify",
+            emailType: "verify-email",
+            recipient: email,
           },
         });
       }
-    }
 
-    const verificationToken = tokenUtils.generate(
-      { id: newUser._id },
-      "verificationToken",
-    );
-
-    if (!verificationToken) {
-      await remove.userById(newUser._id);
-      throw createError(500, "An error occurred while generating the token.", {
-        expose: false,
-        code: "TOKEN_GENERATION_FAILED",
-        operation: "Account Verification",
-        id: newUser._id,
-        context: { purpose: "email_verification" },
-      });
-    }
-
-    const isEmailSent = await emailUtils.sendAccountVerification(
-      email,
-      verificationToken,
-    );
-
-    if (!isEmailSent) {
-      await remove.userById(newUser._id);
-      throw createError(500, "Failed to send the welcome email.", {
-        expose: false,
-        code: "EMAIL_SEND_FAILED",
-        operation: "Sending Verification Email",
-        id: newUser._id,
-        context: {
-          emailType: "verify-email",
-          recipient: email,
+      return {
+        success: true,
+        message:
+          "Account registered successfully. Please verify your email address.",
+        data: {
+          id: newUser._id,
+          role: newUser.role,
         },
-      });
+      };
+    } catch (err) {
+      await remove.userById(newUser._id);
+      throw err;
     }
-
-    return {
-      success: true,
-      message:
-        "Account registered successfully. Please verify your email address.",
-      data: {
-        id: newUser._id,
-        role: newUser.role,
-      },
-    };
   },
 
   signIn: async (data) => {
@@ -149,7 +159,7 @@ export const authServices = {
       // Generate new verification token
       const verificationToken = tokenUtils.generate(
         { id: userId },
-        "verificationToken",
+        "verificationToken"
       );
 
       if (!verificationToken) {
@@ -162,14 +172,14 @@ export const authServices = {
             operation: "tokenUtils.generate",
             id: userId,
             context: { purpose: "email_verification" },
-          },
+          }
         );
       }
 
       // Send verification email
       const isEmailSent = await emailUtils.sendAccountVerification(
         email,
-        verificationToken,
+        verificationToken
       );
 
       if (!isEmailSent) {
@@ -195,7 +205,7 @@ export const authServices = {
           id: userId,
           operation: "sign_in",
           context: { action: "verify_email" },
-        },
+        }
       );
     }
 
@@ -212,7 +222,7 @@ export const authServices = {
             role: user.role,
             action: "verify_phone",
           },
-        },
+        }
       );
     }
 
@@ -230,7 +240,7 @@ export const authServices = {
 
     const accessToken = tokenUtils.generate(
       { id: userId, role: user.role },
-      "accessToken",
+      "accessToken"
     );
 
     if (!accessToken) {
@@ -276,7 +286,7 @@ export const authServices = {
     const blacklistedToken = await save.blacklistedToken(
       accessToken,
       id,
-      expiresAt,
+      expiresAt
     );
 
     if (!blacklistedToken) {
@@ -289,7 +299,7 @@ export const authServices = {
           operation: "save.blacklistedToken",
           id,
           context: { expiresAt: expiresAt.toISOString() },
-        },
+        }
       );
     }
 
@@ -316,7 +326,7 @@ export const authServices = {
 
     const resetToken = tokenUtils.generate(
       { id: existingUser._id },
-      "passwordResetToken",
+      "passwordResetToken"
     );
 
     if (!resetToken) {
