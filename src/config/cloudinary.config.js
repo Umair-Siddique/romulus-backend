@@ -18,7 +18,7 @@ cloudinary.api.ping((error) => {
   if (error) {
     logger.error(`Cloudinary connection error: ${error.message}`.error);
   } else {
-    logger.info("Cloudinary is ready and connected successfully.".service);
+    logger.info("Cloudinary connected successfully.".service);
   }
 });
 
