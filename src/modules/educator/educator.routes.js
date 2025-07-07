@@ -17,7 +17,7 @@ educatorRoutes
   )
   .get("/", educatorControllers.getAll)
   .get(
-    "/near-by",
+    "/nearby",
     validate.authRole("organization"),
     educatorControllers.getNearBy,
   )
