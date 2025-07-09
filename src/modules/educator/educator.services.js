@@ -56,7 +56,7 @@ export const educatorServices = {
           userId: userId,
           operation: "create_educator_profile",
           context: { conflictType: "educator" },
-        },
+        }
       );
     } else if (existingOrganization) {
       throw createError(400, "User already has organization profile.", {
@@ -119,15 +119,6 @@ export const educatorServices = {
 
   getAll: async () => {
     const educators = await read.allEducators();
-
-    if (!educators || educators.length === 0) {
-      throw createError(404, "No educators found.", {
-        expose: true,
-        code: "EDUCATORS_NOT_FOUND",
-        operation: "read.allEducators",
-        operation: "list_educators",
-      });
-    }
 
     return {
       success: true,
@@ -197,7 +188,7 @@ export const educatorServices = {
   getNearBy: async (coordinates, distance, skills) => {
     const educators = await read.educatorsNearby(
       parseDelimitedString(coordinates),
-      distance,
+      distance
     );
 
     const parsedSkills = parseDelimitedString(skills);
@@ -212,18 +203,6 @@ export const educatorServices = {
     }
 
     const filteredEducators = filterEducatorsBySkills(educators, parsedSkills);
-
-    if (!filteredEducators || filteredEducators.length === 0) {
-      throw createError(404, "No nearby educators found.", {
-        expose: true,
-        code: "NEARBY_EDUCATORS_NOT_FOUND",
-        operation: "read.educatorsNearby",
-        context: {
-          coordinates,
-          distance,
-        },
-      });
-    }
 
     return {
       success: true,
