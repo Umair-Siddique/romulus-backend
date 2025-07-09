@@ -47,12 +47,6 @@ const MissionSchema = new Schema(
     end: {
       type: Date,
       required: [true, "End date and time are required"],
-      validate: {
-        validator: function (value) {
-          return value > this.start;
-        },
-        message: "End date must be after start date",
-      },
     },
     technicalDocument: {
       type: String,

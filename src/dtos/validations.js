@@ -240,13 +240,11 @@ export const dateOfBirth = Joi.date()
 
 export const startDate = Joi.string().messages({
   "date.base": "Start date should be a valid date.",
-  "date.min": "Start date cannot be in the past.",
   "any.required": "Start date is required.",
 });
 
 export const endDate = Joi.string().messages({
   "date.base": "End date should be a valid date.",
-  "date.greater": "End date must be after start date.",
   "any.required": "End date is required.",
 });
 
