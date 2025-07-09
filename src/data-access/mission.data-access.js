@@ -15,6 +15,10 @@ export const missionDataAccess = {
     missionById: async (missionId) => {
       return await MissionModel.findById(missionId).populate("organization");
     },
+
+    missionsByOrganizationId: async (organizationId) => {
+      return await MissionModel.find({ organization: organizationId }).populate("organization");
+    },
   },
 
   update: {

@@ -13,14 +13,24 @@ missionRoutes
     upload,
     validate.dto(missionDto.create),
     validate.authRole("organization"),
-    missionControllers.create,
+    missionControllers.create
   )
   .get("/", missionControllers.getAll)
   .get("/:id", missionControllers.getById)
+  .get(
+    "/organization/:id",
+    validate.authRole("organization"),
+    missionControllers.getByOrganizationId
+  )
   .patch(
     "/:id",
     upload,
     validate.dto(missionDto.update),
     validate.authRole("organization"),
-    missionControllers.updateById,
+    missionControllers.updateById
+  )
+  .post(
+    "/send-invitation",
+    validate.authRole("organization"),
+    missionControllers.sendInvitation
   );

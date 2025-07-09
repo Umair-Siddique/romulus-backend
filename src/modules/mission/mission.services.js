@@ -96,6 +96,16 @@ export const missionServices = {
     };
   },
 
+  getByOrganizationId: async (id) => {
+    const result = await read.missionsByOrganizationId(id);
+
+    return {
+      success: true,
+      message: "Missions retrieved successfully",
+      data: result,
+    };
+  },
+
   updateById: async (id, data) => {
     const result = await update.missionById(id, data);
 
@@ -103,6 +113,17 @@ export const missionServices = {
       success: true,
       message: "Mission updated successfully",
       data: result,
+    };
+  },
+
+  sendInvitation: async (data) => {
+    const { missionId, invitedEducators } = data;
+
+    const response = await update.missionById(missionId, { invitedEducators });
+
+    return {
+      success: true,
+      message: `Invitations have been sent to ${response.invitedEducators.length} educators successfully.`,
     };
   },
 };

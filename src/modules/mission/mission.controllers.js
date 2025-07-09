@@ -26,10 +26,24 @@ export const missionControllers = {
     res.status(200).json(result);
   }),
 
+  getByOrganizationId: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await missionServices.getByOrganizationId(id);
+
+    res.status(200).json(result);
+  }),
+
   updateById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const payload = req.body;
     const result = await missionServices.updateById(id, payload);
+
+    res.status(200).json(result);
+  }),
+
+  sendInvitation: asyncHandler(async (req, res) => {
+    const payload = req.body;
+    const result = await missionServices.sendInvitation(payload);
 
     res.status(200).json(result);
   }),
