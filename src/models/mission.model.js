@@ -69,10 +69,22 @@ const MissionSchema = new Schema(
       default: "pending",
       index: true, // Index for status-based queries
     },
+    invitedEducators: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Educator",
+      },
+    ],
+    hiredEducators: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Educator",
+      },
+    ],
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const MissionModel = model("Mission", MissionSchema);
