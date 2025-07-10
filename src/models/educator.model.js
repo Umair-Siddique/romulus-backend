@@ -189,17 +189,20 @@ const EducatorSchema = new Schema(
       },
     },
 
-    missionsInvitedFor: {
-      mission: {
-        type: [Schema.Types.ObjectId],
-        ref: "Mission",
+    missionsInvitedFor: [
+      {
+        mission: {
+          type: Schema.Types.ObjectId,
+          ref: "Mission",
+          required: true,
+        },
+        status: {
+          type: String,
+          enum: ["pending", "accepted", "declined"],
+          default: "pending",
+        },
       },
-
-      status: {
-        type: String,
-        enum: ["pending", "accepted", "declined"],
-      },
-    },
+    ],
 
     missionsHiredFor: {
       type: [Schema.Types.ObjectId],
