@@ -106,8 +106,8 @@ export const missionServices = {
     };
   },
 
-  getByEducatorId: async (id) => {
-    const result = await read.missionByEducatorId(id);
+  getById: async (id) => {
+    const result = await read.missionById(id);
 
     return {
       success: true,
@@ -116,8 +116,18 @@ export const missionServices = {
     };
   },
 
-  getById: async (id) => {
-    const result = await read.missionById(id);
+  getByOrganizationId: async (id) => {
+    const result = await read.missionByOrganizationId(id);
+
+    return {
+      success: true,
+      message: "Mission retrieved successfully",
+      data: result,
+    };
+  },
+
+  getByEducatorId: async (id) => {
+    const result = await read.missionByEducatorId(id);
 
     return {
       success: true,

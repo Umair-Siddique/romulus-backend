@@ -19,13 +19,6 @@ export const missionControllers = {
     res.status(200).json(result);
   }),
 
-  getById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const result = await missionServices.getById(id);
-
-    res.status(200).json(result);
-  }),
-
   getAllByOrganizationId: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const result = await missionServices.getAllByOrganizationId(id);
@@ -36,6 +29,20 @@ export const missionControllers = {
   getAllByEducatorId: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const result = await missionServices.getAllByEducatorId(id);
+
+    res.status(200).json(result);
+  }),
+
+  getById: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await missionServices.getById(id);
+
+    res.status(200).json(result);
+  }),
+
+  getByOrganizationId: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await missionServices.getByOrganizationId(id);
 
     res.status(200).json(result);
   }),

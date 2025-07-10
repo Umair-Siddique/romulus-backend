@@ -12,10 +12,6 @@ export const missionDataAccess = {
       return await MissionModel.find().populate("organization");
     },
 
-    missionById: async (missionId) => {
-      return await MissionModel.findById(missionId).populate("organization");
-    },
-
     missionsByOrganizationId: async (organizationId) => {
       return await MissionModel.find({ organization: organizationId }).populate(
         "organization"
@@ -36,6 +32,16 @@ export const missionDataAccess = {
           hiredEducators: 0,
           rejectedEducators: 0,
         });
+    },
+
+    missionById: async (missionId) => {
+      return await MissionModel.findById(missionId).populate("organization");
+    },
+
+    missionByOrganizationId: async (organizationId) => {
+      return await MissionModel.findOne({
+        organization: organizationId,
+      }).populate("organization");
     },
 
     missionByEducatorId: async (educatorId) => {

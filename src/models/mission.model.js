@@ -62,9 +62,9 @@ const MissionSchema = new Schema(
     status: {
       type: String,
       enum: {
-        values: ["ongoing", "completed", "pending", "rejected", "cancelled"],
+        values: ["pending", "ongoing", "completed"],
         message:
-          "Status must be ongoing, completed, pending, rejected, or cancelled",
+          "Status must be pending, ongoing, or completed",
       },
       default: "pending",
       index: true, // Index for status-based queries
