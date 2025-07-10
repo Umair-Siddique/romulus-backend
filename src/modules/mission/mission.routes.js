@@ -35,7 +35,7 @@ missionRoutes
     missionControllers.updateById
   )
   .post(
-    "/send-invitation",
+    "/send-invitations",
     validate.authRole("organization"),
     missionControllers.sendInvitation
   );
