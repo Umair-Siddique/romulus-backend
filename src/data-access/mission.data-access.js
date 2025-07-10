@@ -37,6 +37,22 @@ export const missionDataAccess = {
           rejectedEducators: 0,
         });
     },
+
+    missionByEducatorId: async (educatorId) => {
+      return await MissionModel.findOne({
+        $or: [
+          { invitedEducators: educatorId },
+          { hiredEducators: educatorId },
+          { rejectedEducators: educatorId },
+        ],
+      })
+        .populate("educator")
+        .select({
+          invitedEducators: 0,
+          hiredEducators: 0,
+          rejectedEducators: 0,
+        });
+    },
   },
 
   update: {

@@ -18,12 +18,17 @@ missionRoutes
   .get("/", missionControllers.getAll)
   .get("/:id", missionControllers.getById)
   .get(
-    "/organization/:id",
+    "/organization/:id/all",
     validate.authRole("organization"),
-    missionControllers.getByOrganizationId
+    missionControllers.getAllByOrganizationId
   )
   .get(
-    "/educator/:id",
+    "/educator/:id/all",
+    validate.authRole("educator"),
+    missionControllers.getAllByEducatorId
+  )
+  .get(
+    "/educator/:id/one",
     validate.authRole("educator"),
     missionControllers.getByEducatorId
   )

@@ -86,17 +86,7 @@ export const missionServices = {
     };
   },
 
-  getById: async (id) => {
-    const result = await read.missionById(id);
-
-    return {
-      success: true,
-      message: "Mission retrieved successfully",
-      data: result,
-    };
-  },
-
-  getByOrganizationId: async (id) => {
+  getAllByOrganizationId: async (id) => {
     const result = await read.missionsByOrganizationId(id);
 
     return {
@@ -106,12 +96,32 @@ export const missionServices = {
     };
   },
 
-  getByEducatorId: async (id) => {
+  getAllByEducatorId: async (id) => {
     const result = await read.missionsByEducatorId(id);
 
     return {
       success: true,
       message: "Missions retrieved successfully",
+      data: result,
+    };
+  },
+
+  getByEducatorId: async (id) => {
+    const result = await read.missionByEducatorId(id);
+
+    return {
+      success: true,
+      message: "Mission retrieved successfully",
+      data: result,
+    };
+  },
+
+  getById: async (id) => {
+    const result = await read.missionById(id);
+
+    return {
+      success: true,
+      message: "Mission retrieved successfully",
       data: result,
     };
   },
@@ -129,7 +139,9 @@ export const missionServices = {
   sendInvitation: async (data) => {
     const { missionId, invitees } = data;
 
-    const response = await update.missionById(missionId, { invitedEducators: invitees });
+    const response = await update.missionById(missionId, {
+      invitedEducators: invitees,
+    });
 
     return {
       success: true,
