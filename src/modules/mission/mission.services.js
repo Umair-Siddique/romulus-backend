@@ -149,13 +149,22 @@ export const missionServices = {
   sendInvitation: async (data) => {
     const { missionId, invitees } = data;
 
-    const response = await update.missionById(missionId, {
+    await update.missionById(missionId, {
       invitedEducators: invitees,
     });
 
+    for (const invitee of invitees) {
+      await update.educatorById(invitee, {
+        missionsInvitedFor: {
+          mission: missionId,
+          status: "pending",
+        },
+      });
+    }
+
     return {
       success: true,
-      message: `Invitations have been sent to ${response.invitedEducators.length} educators successfully.`,
+      message: `Invitations have been sent to ${invitees.length} educators successfully.`,
     };
   },
 };
