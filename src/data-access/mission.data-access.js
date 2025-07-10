@@ -26,7 +26,7 @@ export const missionDataAccess = {
           { rejectedEducators: educatorId },
         ],
       })
-        .populate("educator")
+        .populate("organization")
         .select({
           invitedEducators: 0,
           hiredEducators: 0,
@@ -52,7 +52,7 @@ export const missionDataAccess = {
           { rejectedEducators: educatorId },
         ],
       })
-        .populate("educator")
+        .populate("organization")
         .select({
           invitedEducators: 0,
           hiredEducators: 0,
