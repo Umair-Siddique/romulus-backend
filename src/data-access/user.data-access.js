@@ -7,8 +7,8 @@ const { isValidObjectId } = mongoose;
 
 export const userDataAccess = {
   save: {
-    user: async (phone, email, password, role) => {
-      return await UserModel.create({
+    user: (phone, email, password, role) => {
+      return UserModel.create({
         phone,
         email,
         password,
@@ -19,59 +19,59 @@ export const userDataAccess = {
   },
 
   read: {
-    allUsers: async () => {
-      return await UserModel.find();
+    allUsers: () => {
+      return UserModel.find();
     },
 
-    userByEmail: async (email) => {
-      return await UserModel.findOne({
+    userByEmail: (email) => {
+      return UserModel.findOne({
         email,
       });
     },
 
-    userById: async (id) => {
+    userById: (id) => {
       if (!isValidObjectId(id)) {
         throw createError(400, "Invalid user ID format.");
       }
 
-      return await UserModel.findById(id);
+      return UserModel.findById(id);
     },
 
-    userByPhone: async (phone) => {
-      return await UserModel.findOne({
+    userByPhone: (phone) => {
+      return UserModel.findOne({
         phone,
       });
     },
   },
 
   update: {
-    userById: async (id, userData) => {
+    userById: (id, userData) => {
       if (!isValidObjectId(id)) {
         throw createError(400, "Invalid user ID format.");
       }
 
-      return await UserModel.findByIdAndUpdate(id, userData, {
+      return UserModel.findByIdAndUpdate(id, userData, {
         new: true,
         upsert: true,
       });
     },
 
-    userByEmail: async (email, userData) => {
-      return await UserModel.findOneAndUpdate({ email }, userData, {
+    userByEmail: (email, userData) => {
+      return UserModel.findOneAndUpdate({ email }, userData, {
         new: true,
         upsert: true,
       });
     },
 
-    userByPhone: async (phone, userData) => {
-      return await UserModel.findOneAndUpdate({ phone }, userData);
+    userByPhone: (phone, userData) => {
+      return UserModel.findOneAndUpdate({ phone }, userData);
     },
 
-    forgottenPassword: async (email, password) => {
-      return await UserModel.findOneAndUpdate(
+    forgottenPassword: (email, password) => {
+      return UserModel.findOneAndUpdate(
         { email },
         { password },
-        { new: true, upsert: true },
+        { new: true, upsert: true }
       );
     },
   },

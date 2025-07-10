@@ -10,6 +10,7 @@ const EducatorSchema = new Schema(
       ref: "User",
       index: true,
     },
+
     avatar: {
       type: String,
       trim: true,
@@ -21,6 +22,7 @@ const EducatorSchema = new Schema(
         message: "Avatar must be a valid image URL",
       },
     },
+
     firstName: {
       type: String,
       required: [true, "First name is required"],
@@ -28,6 +30,7 @@ const EducatorSchema = new Schema(
       minlength: [2, "First name must be at least 2 characters"],
       maxlength: [50, "First name cannot exceed 50 characters"],
     },
+
     lastName: {
       type: String,
       required: [true, "Last name is required"],
@@ -35,6 +38,7 @@ const EducatorSchema = new Schema(
       minlength: [2, "Last name must be at least 2 characters"],
       maxlength: [50, "Last name cannot exceed 50 characters"],
     },
+
     gender: {
       type: String,
       required: [true, "Gender is required"],
@@ -44,6 +48,7 @@ const EducatorSchema = new Schema(
       },
       lowercase: true,
     },
+
     dateOfBirth: {
       type: Date,
       required: [true, "Date of birth is required"],
@@ -55,6 +60,7 @@ const EducatorSchema = new Schema(
         message: "Age must be between 18 and 100 years",
       },
     },
+
     city: {
       type: String,
       required: [true, "City is required"],
@@ -62,6 +68,7 @@ const EducatorSchema = new Schema(
       minlength: [2, "City must be at least 2 characters"],
       maxlength: [100, "City cannot exceed 100 characters"],
     },
+
     country: {
       type: String,
       required: [true, "Country is required"],
@@ -69,6 +76,7 @@ const EducatorSchema = new Schema(
       minlength: [2, "Country must be at least 2 characters"],
       maxlength: [100, "Country cannot exceed 100 characters"],
     },
+
     fullAddress: {
       type: String,
       required: [true, "Full address is required"],
@@ -76,6 +84,7 @@ const EducatorSchema = new Schema(
       minlength: [10, "Full address must be at least 10 characters"],
       maxlength: [500, "Full address cannot exceed 500 characters"],
     },
+
     fullAddressCoordinates: {
       type: {
         type: String,
@@ -93,11 +102,13 @@ const EducatorSchema = new Schema(
         },
       },
     },
+
     bio: {
       type: String,
       trim: true,
       maxlength: [500, "Bio cannot exceed 500 characters"],
     },
+
     identityProof: {
       type: String,
       trim: true,
@@ -108,7 +119,9 @@ const EducatorSchema = new Schema(
         },
         message: "Identity proof must be a valid document URL",
       },
+      required: [true, "Identity proof is required"],
     },
+
     criminalRecord: {
       type: String,
       trim: true,
@@ -119,7 +132,9 @@ const EducatorSchema = new Schema(
         },
         message: "Criminal record must be a valid document URL",
       },
+      required: [true, "Criminal record is required"],
     },
+
     profession: {
       type: String,
       required: [true, "Profession is required"],
@@ -127,12 +142,14 @@ const EducatorSchema = new Schema(
       minlength: [2, "Profession must be at least 2 characters"],
       maxlength: [100, "Profession cannot exceed 100 characters"],
     },
+
     hourlyRate: {
       type: Number,
       required: [true, "Hourly rate is required"],
       min: [0, "Hourly rate must be a positive number"],
       max: [10000, "Hourly rate cannot exceed 10000"],
     },
+
     skills: {
       type: [String],
       required: [true, "At least one skill is required"],
@@ -141,6 +158,7 @@ const EducatorSchema = new Schema(
         message: "At least one skill is required",
       },
     },
+
     education: {
       type: String,
       required: [true, "Education is required"],
@@ -148,10 +166,10 @@ const EducatorSchema = new Schema(
       minlength: [2, "Education must be at least 2 characters"],
       maxlength: [200, "Education cannot exceed 200 characters"],
     },
+
     certificateOfHonor: {
       type: String,
       trim: true,
-      default: "https://example.com/default-certificate-of-honor.png",
       validate: {
         validator: (v) => {
           return /^https?:\/\/.+\.(jpg|jpeg|png|gif|pdf)$/i.test(v);
@@ -159,10 +177,10 @@ const EducatorSchema = new Schema(
         message: "Certificate of honor must be a valid document URL",
       },
     },
+
     diploma: {
       type: String,
       trim: true,
-      default: "https://example.com/default-diploma.png",
       validate: {
         validator: (v) => {
           return /^https?:\/\/.+\.(jpg|jpeg|png|gif|pdf)$/i.test(v);
@@ -170,10 +188,27 @@ const EducatorSchema = new Schema(
         message: "Diploma must be a valid document URL",
       },
     },
+
+    missionsInvitedFor: {
+      mission: {
+        type: [Schema.Types.ObjectId],
+        ref: "Mission",
+      },
+
+      status: {
+        type: String,
+        enum: ["pending", "accepted", "declined"],
+      },
+    },
+
+    missionsHiredFor: {
+      type: [Schema.Types.ObjectId],
+      ref: "Mission",
+    },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 EducatorSchema.index({ fullAddressCoordinates: "2dsphere" });

@@ -2,28 +2,28 @@ import { OrganizationModel } from "#models/index.js";
 
 export const organizationDataAccess = {
   save: {
-    organization: async (organizationData) => {
-      return await OrganizationModel.create(organizationData);
+    organization: (organizationData) => {
+      return OrganizationModel.create(organizationData);
     },
   },
 
   read: {
-    allOrganizations: async () => {
-      return await OrganizationModel.find().populate("user");
+    allOrganizations: () => {
+      return OrganizationModel.find().populate("user");
     },
 
-    organizationById: async (id) => {
-      return await OrganizationModel.findOne({ _id: id }).populate("user");
+    organizationById: (id) => {
+      return OrganizationModel.findOne({ _id: id }).populate("user");
     },
 
-    organizationByUserId: async (userId) => {
-      return await OrganizationModel.findOne({ user: userId }).populate("user");
+    organizationByUserId: (userId) => {
+      return OrganizationModel.findOne({ user: userId }).populate("user");
     },
   },
 
   update: {
-    organizationById: async (id, data) => {
-      return await OrganizationModel.findByIdAndUpdate(id, data, {
+    organizationById: (id, data) => {
+      return OrganizationModel.findByIdAndUpdate(id, data, {
         new: true,
         upsert: true,
       });

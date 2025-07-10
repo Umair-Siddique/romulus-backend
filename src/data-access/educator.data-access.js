@@ -2,26 +2,29 @@ import { EducatorModel } from "#models/index.js";
 
 export const educatorDataAccess = {
   save: {
-    educator: async (educatorData) => {
-      return await EducatorModel.create(educatorData);
+    educator: (educatorData) => {
+      return EducatorModel.create(educatorData);
     },
   },
 
   read: {
-    allEducators: async () => {
-      return await EducatorModel.find().populate("user");
+    allEducators: () => {
+      return EducatorModel.find().populate("user");
     },
 
-    educatorById: async (id) => {
-      return await EducatorModel.findOne({ _id: id }).populate("user");
+    educatorById: (id) => {
+      return EducatorModel.findOne({ _id: id }).populate([
+        { path: "user" },
+        { path: "missionsInvitedFor.mission" },
+      ]);
     },
 
-    educatorByUserId: async (userId) => {
-      return await EducatorModel.findOne({ user: userId }).populate("user");
+    educatorByUserId: (userId) => {
+      return EducatorModel.findOne({ user: userId }).populate("user");
     },
 
-    educatorsNearby: async (coordinates, distance) => {
-      return await EducatorModel.find({
+    educatorsNearby: (coordinates, distance) => {
+      return EducatorModel.find({
         fullAddressCoordinates: {
           $near: {
             $geometry: {
@@ -36,8 +39,8 @@ export const educatorDataAccess = {
   },
 
   update: {
-    educatorById: async (id, data) => {
-      return await EducatorModel.findByIdAndUpdate(id, data, {
+    educatorById: (id, data) => {
+      return EducatorModel.findByIdAndUpdate(id, data, {
         new: true,
         upsert: true,
       });

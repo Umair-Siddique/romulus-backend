@@ -2,24 +2,24 @@ import { MissionModel } from "#models/index.js";
 
 export const missionDataAccess = {
   save: {
-    mission: async (missionData) => {
-      return await MissionModel.create(missionData);
+    mission: (missionData) => {
+      return MissionModel.create(missionData);
     },
   },
 
   read: {
-    allMissions: async () => {
-      return await MissionModel.find().populate("organization");
+    allMissions: () => {
+      return MissionModel.find().populate("organization");
     },
 
-    missionsByOrganizationId: async (organizationId) => {
-      return await MissionModel.find({ organization: organizationId }).populate(
+    missionsByOrganizationId: (organizationId) => {
+      return MissionModel.find({ organization: organizationId }).populate(
         "organization"
       );
     },
 
-    missionsByEducatorId: async (educatorId) => {
-      return await MissionModel.find({
+    missionsByEducatorId: (educatorId) => {
+      return MissionModel.find({
         $or: [
           { invitedEducators: educatorId },
           { hiredEducators: educatorId },
@@ -34,18 +34,18 @@ export const missionDataAccess = {
         });
     },
 
-    missionById: async (missionId) => {
-      return await MissionModel.findById(missionId).populate("organization");
+    missionById: (missionId) => {
+      return MissionModel.findById(missionId).populate("organization");
     },
 
-    missionByOrganizationId: async (organizationId) => {
-      return await MissionModel.findOne({
+    missionByOrganizationId: (organizationId) => {
+      return MissionModel.findOne({
         organization: organizationId,
       }).populate("organization");
     },
 
-    missionByEducatorId: async (educatorId) => {
-      return await MissionModel.findOne({
+    missionByEducatorId: (educatorId) => {
+      return MissionModel.findOne({
         $or: [
           { invitedEducators: educatorId },
           { hiredEducators: educatorId },
@@ -62,8 +62,8 @@ export const missionDataAccess = {
   },
 
   update: {
-    missionById: async (missionId, missionData) => {
-      return await MissionModel.findByIdAndUpdate(missionId, missionData, {
+    missionById: (missionId, missionData) => {
+      return MissionModel.findByIdAndUpdate(missionId, missionData, {
         new: true,
         upsert: true,
       });
