@@ -22,6 +22,11 @@ missionRoutes
     validate.authRole("organization"),
     missionControllers.getByOrganizationId
   )
+  .get(
+    "/educator/:id",
+    validate.authRole("educator"),
+    missionControllers.getByEducatorId
+  )
   .patch(
     "/:id",
     upload,

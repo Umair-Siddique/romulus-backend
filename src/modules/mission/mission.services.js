@@ -106,6 +106,16 @@ export const missionServices = {
     };
   },
 
+  getByEducatorId: async (id) => {
+    const result = await read.missionsByEducatorId(id);
+
+    return {
+      success: true,
+      message: "Missions retrieved successfully",
+      data: result,
+    };
+  },
+
   updateById: async (id, data) => {
     const result = await update.missionById(id, data);
 

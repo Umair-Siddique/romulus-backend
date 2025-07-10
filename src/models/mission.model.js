@@ -81,6 +81,12 @@ const MissionSchema = new Schema(
         ref: "Educator",
       },
     ],
+    rejectedEducators: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Educator",
+      },
+    ],
   },
   {
     timestamps: true,

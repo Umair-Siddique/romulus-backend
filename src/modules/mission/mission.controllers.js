@@ -33,6 +33,13 @@ export const missionControllers = {
     res.status(200).json(result);
   }),
 
+  getByEducatorId: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await missionServices.getByEducatorId(id);
+
+    res.status(200).json(result);
+  }),
+
   updateById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const payload = req.body;
