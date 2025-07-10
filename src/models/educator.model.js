@@ -201,6 +201,7 @@ const EducatorSchema = new Schema(
           enum: ["pending", "accepted", "declined"],
           default: "pending",
         },
+        _id: false,
       },
     ],
 
