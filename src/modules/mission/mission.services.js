@@ -127,9 +127,9 @@ export const missionServices = {
   },
 
   sendInvitation: async (data) => {
-    const { missionId, invitedEducators } = data;
+    const { missionId, invitees } = data;
 
-    const response = await update.missionById(missionId, { invitedEducators });
+    const response = await update.missionById(missionId, { invitedEducators: invitees });
 
     return {
       success: true,
