@@ -196,7 +196,7 @@ const EducatorSchema = new Schema(
           ref: "Mission",
           required: true,
         },
-        status: {
+        invitationStatus: {
           type: String,
           enum: ["pending", "accepted", "declined"],
           default: "pending",
