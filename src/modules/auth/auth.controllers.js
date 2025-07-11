@@ -21,10 +21,6 @@ export const authControllers = {
     const authHeader = req.headers.authorization;
     const token = authHeader ? authHeader.replace("Bearer ", "") : null;
 
-    if (!token) {
-      return res.status(400).json({ message: "No token found" });
-    }
-
     const result = await authServices.signOut(token);
 
     res.status(200).json(result);
