@@ -15,7 +15,10 @@ export const educatorDataAccess = {
     educatorById: (id) => {
       return EducatorModel.findOne({ _id: id }).populate([
         { path: "user" },
-        { path: "missionsInvitedFor.mission", select: "-hiredEducators -invitedEducators -rejectedEducators" },
+        {
+          path: "missionsInvitedFor.mission",
+          select: "-hiredEducators -invitedEducators -rejectedEducators",
+        },
       ]);
     },
 
@@ -40,10 +43,7 @@ export const educatorDataAccess = {
 
   update: {
     educatorById: (id, data) => {
-      return EducatorModel.findByIdAndUpdate(id, data, {
-        new: true,
-        upsert: true,
-      });
+      return EducatorModel.findByIdAndUpdate(id, data);
     },
   },
 };

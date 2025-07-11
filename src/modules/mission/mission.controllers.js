@@ -26,13 +26,6 @@ export const missionControllers = {
     res.status(200).json(result);
   }),
 
-  getAllByEducatorId: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const result = await missionServices.getAllByEducatorId(id);
-
-    res.status(200).json(result);
-  }),
-
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const result = await missionServices.getById(id);

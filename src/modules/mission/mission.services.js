@@ -96,16 +96,6 @@ export const missionServices = {
     };
   },
 
-  getAllByEducatorId: async (id) => {
-    const result = await read.missionsByEducatorId(id);
-
-    return {
-      success: true,
-      message: "Missions retrieved successfully",
-      data: result,
-    };
-  },
-
   getById: async (id) => {
     const result = await read.missionById(id);
 
@@ -155,9 +145,11 @@ export const missionServices = {
 
     for (const invitee of invitees) {
       await update.educatorById(invitee, {
-        missionsInvitedFor: {
-          mission: missionId,
-          status: "pending",
+        $push: {
+          missionsInvitedFor: {
+            mission: missionId,
+            invitationStatus: "pending",
+          },
         },
       });
     }

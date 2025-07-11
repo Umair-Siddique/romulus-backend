@@ -21,11 +21,6 @@ missionRoutes
     validate.authRole("organization"),
     missionControllers.getAllByOrganizationId
   )
-  .get(
-    "/educator/:id/all",
-    validate.authRole("educator"),
-    missionControllers.getAllByEducatorId
-  )
   .get("/:id", missionControllers.getById)
   .get(
     "/organization/:id/one",

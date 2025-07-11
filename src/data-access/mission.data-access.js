@@ -18,22 +18,6 @@ export const missionDataAccess = {
       );
     },
 
-    missionsByEducatorId: (educatorId) => {
-      return MissionModel.find({
-        $or: [
-          { invitedEducators: educatorId },
-          { hiredEducators: educatorId },
-          { rejectedEducators: educatorId },
-        ],
-      })
-        .populate("organization")
-        .select({
-          invitedEducators: 0,
-          hiredEducators: 0,
-          rejectedEducators: 0,
-        });
-    },
-
     missionById: (missionId) => {
       return MissionModel.findById(missionId).populate("organization");
     },
