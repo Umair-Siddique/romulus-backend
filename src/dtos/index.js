@@ -3,7 +3,7 @@ import {
   educatorSchemas,
   missionSchemas,
   organizationSchemas,
-} from "./schemas.js";
+} from "./schemas/index.js";
 
 export const authDto = authSchemas;
 export const educatorDto = educatorSchemas;
