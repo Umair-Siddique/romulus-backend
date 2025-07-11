@@ -37,7 +37,6 @@ const UserSchema = new Schema(
         values: ["admin", "organization", "educator"],
         message: "Role must be admin, organization or educator",
       },
-      default: "educator",
     },
     isEmailVerified: {
       type: Boolean,

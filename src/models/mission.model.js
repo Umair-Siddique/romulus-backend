@@ -51,7 +51,6 @@ const MissionSchema = new Schema(
     technicalDocument: {
       type: String,
       trim: true,
-      default: "https://example.com/default-document.pdf",
       validate: {
         validator: (v) => {
           return /^https?:\/\/.+\.(jpg|jpeg|png|gif|pdf)$/i.test(v);

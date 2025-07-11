@@ -73,7 +73,6 @@ const BranchSchema = new Schema(
     },
     residenceGuidelines: {
       type: String, // Store file paths/URLs - Optional field
-      default: "", // Default to empty string
     },
   },
   {

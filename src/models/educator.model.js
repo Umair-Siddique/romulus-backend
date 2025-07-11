@@ -112,7 +112,6 @@ const EducatorSchema = new Schema(
     identityProof: {
       type: String,
       trim: true,
-      default: "https://example.com/default-identity-proof.png",
       validate: {
         validator: (v) => {
           return /^https?:\/\/.+\.(jpg|jpeg|png|gif|pdf)$/i.test(v);
@@ -125,7 +124,6 @@ const EducatorSchema = new Schema(
     criminalRecord: {
       type: String,
       trim: true,
-      default: "https://example.com/default-criminal-record.png",
       validate: {
         validator: (v) => {
           return /^https?:\/\/.+\.(jpg|jpeg|png|gif|pdf)$/i.test(v);
