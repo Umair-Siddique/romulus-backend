@@ -10,10 +10,11 @@ info:
     - Multi-branch management with individual file uploads
     - File upload support for documents and images
     - Profile retrieval by organization ID
-    - List all organizations
+    - List all organizations with populated user data
     - Profile updates with partial data support
     - Duplicate profile prevention (educator/organization conflict detection)
     - SIRET number validation for French business registration
+    - Dynamic file mapping for branch residence guidelines
 
     **Authentication & Authorization:**
     - All endpoints require valid JWT authentication token
@@ -24,7 +25,13 @@ info:
     **File Upload Support:**
     - Profile pictures (jpg, jpeg, png, gif, webp)
     - Branch residence guidelines (jpg, jpeg, png, gif, pdf)
-    - Dynamic file mapping for multiple branch documents
+    - Dynamic file mapping for multiple branch documents using pattern: `branches[index][residenceGuidelines]`
+
+    **Branch Management:**
+    - At least one branch required per organization
+    - Each branch supports individual contact information and guidelines
+    - Automatic coordinate generation for branch locations
+    - Residence guidelines are optional per branch
 
   contact:
     name: API Support
@@ -156,7 +163,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/PhoneNumber"
           nullable: true
-          description: Phone number (required for organizations)
+          description: Phone number (optional for organizations in user model)
         role:
           $ref: "#/components/schemas/Role"
         isEmailVerified:
@@ -165,7 +172,7 @@ components:
           example: true
         isPhoneVerified:
           type: boolean
-          description: Phone verification status (required for organizations)
+          description: Phone verification status
           example: false
         createdAt:
           $ref: "#/components/schemas/Timestamp"
@@ -185,6 +192,7 @@ components:
         - branchName
         - branchEmail
         - branchAddress
+        - branchAddressCoordinates
       properties:
         branchName:
           type: string
@@ -193,8 +201,10 @@ components:
           minLength: 2
           maxLength: 100
         branchEmail:
-          $ref: "#/components/schemas/Email"
-          description: Contact email for this branch
+          type: string
+          format: email
+          description: Contact email for this branch (lowercase, validated)
+          example: "downtown@example.com"
         branchPhone:
           $ref: "#/components/schemas/PhoneNumber"
           description: Contact phone for this branch (optional)
@@ -221,7 +231,7 @@ components:
           maxLength: 500
         branchAddressCoordinates:
           type: object
-          description: Geographic coordinates for the branch address
+          description: Geographic coordinates for the branch address (defaults to specific coordinates)
           required:
             - type
             - coordinates
@@ -238,12 +248,13 @@ components:
                 type: number
               minItems: 2
               maxItems: 2
-              example: [0, 0]
-              default: [0, 0]
+              example: [73.12305647540082, 33.60784209987379]
+              default: [73.12305647540082, 33.60784209987379]
         residenceGuidelines:
           type: string
-          description: Residence guidelines document for this branch (optional)
+          description: Residence guidelines document for this branch (optional, defaults to empty string)
           example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
+          default: ""
           nullable: true
 
     BranchCreateRequest:
@@ -259,7 +270,8 @@ components:
           minLength: 2
           maxLength: 100
         branchEmail:
-          $ref: "#/components/schemas/Email"
+          type: string
+          format: email
           description: Contact email for this branch
         branchPhone:
           $ref: "#/components/schemas/PhoneNumber"
@@ -295,6 +307,7 @@ components:
         - city
         - country
         - officeAddress
+        - officeAddressCoordinates
         - branches
         - createdAt
         - updatedAt
@@ -308,7 +321,7 @@ components:
           description: Associated user account (ObjectId in create response, populated object in get responses)
         avatar:
           $ref: "#/components/schemas/ImageUrl"
-          description: Organization avatar  URL
+          description: Organization avatar URL
           default: "https://example.com/default-profile-picture.png"
         organizationName:
           type: string
@@ -323,7 +336,7 @@ components:
           example: "1998-11-16T00:00:00.000Z"
         phone:
           $ref: "#/components/schemas/PhoneNumber"
-          description: Primary contact phone number
+          description: Primary contact phone number (required in organization model)
         siretNumber:
           $ref: "#/components/schemas/SiretNumber"
           description: French SIRET business registration number
@@ -347,7 +360,7 @@ components:
           maxLength: 500
         officeAddressCoordinates:
           type: object
-          description: Geographic coordinates for the office address
+          description: Geographic coordinates for the office address (defaults to specific coordinates)
           required:
             - type
             - coordinates
@@ -364,11 +377,11 @@ components:
                 type: number
               minItems: 2
               maxItems: 2
-              example: [0, 0]
-              default: [0, 0]
+              example: [73.13829207001977, 33.60948427871408]
+              default: [73.13829207001977, 33.60948427871408]
         branches:
           type: array
-          description: Array of branch locations
+          description: Array of branch locations (minimum 1 required)
           items:
             $ref: "#/components/schemas/Branch"
           minItems: 1
@@ -381,7 +394,7 @@ components:
               branchAddress: "123 Business St, Downtown District, Paris 75001"
               branchAddressCoordinates:
                 type: "Point"
-                coordinates: [0, 0]
+                coordinates: [73.12305647540082, 33.60784209987379]
               residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
         createdAt:
           $ref: "#/components/schemas/Timestamp"
@@ -414,7 +427,7 @@ components:
         avatar:
           type: string
           format: binary
-          description: Organization avatar  file (jpg, jpeg, png, gif, webp)
+          description: Organization avatar file (jpg, jpeg, png, gif, webp)
         organizationName:
           type: string
           description: Official name of the organization
@@ -464,6 +477,7 @@ components:
         - Each branch must have name, email, and address
         - Phone, city, country are optional for branches
         - Residence guidelines files are mapped dynamically to each branch
+        - Branch subdocuments do not have _id fields (disabled in schema)
 
     OrganizationUpdateRequest:
       type: object
@@ -543,7 +557,7 @@ components:
               officeAddress: "Islamabad, Pakistan"
               officeAddressCoordinates:
                 type: "Point"
-                coordinates: [0, 0]
+                coordinates: [73.13829207001977, 33.60948427871408]
               branches:
                 - branchName: "Downtown Branch"
                   branchEmail: "downtown@example.com"
@@ -553,7 +567,7 @@ components:
                   branchAddress: "Islamabad, Pakistan"
                   branchAddressCoordinates:
                     type: "Point"
-                    coordinates: [0, 0]
+                    coordinates: [73.12305647540082, 33.60784209987379]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
               createdAt: "2025-06-13T18:55:43.735Z"
               updatedAt: "2025-06-13T18:55:43.735Z"
@@ -660,7 +674,7 @@ components:
               officeAddress: "Islamabad, Pakistan"
               officeAddressCoordinates:
                 type: "Point"
-                coordinates: [0, 0]
+                coordinates: [73.13829207001977, 33.60948427871408]
               branches:
                 - branchName: "Downtown Branch"
                   branchEmail: "downtown@example.com"
@@ -670,7 +684,7 @@ components:
                   branchAddress: "Islamabad, Pakistan"
                   branchAddressCoordinates:
                     type: "Point"
-                    coordinates: [0, 0]
+                    coordinates: [73.12305647540082, 33.60784209987379]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
                 - branchName: "Suburb Branch"
                   branchEmail: "suburb@example.com"
@@ -680,7 +694,7 @@ components:
                   branchAddress: "789 Education Ave, Lyon 69001"
                   branchAddressCoordinates:
                     type: "Point"
-                    coordinates: [0, 0]
+                    coordinates: [73.12305647540082, 33.60784209987379]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B1%5D%5BresidenceGuidelines%5D.png"
               createdAt: "2025-06-13T18:55:43.735Z"
               updatedAt: "2025-06-13T18:55:43.735Z"
@@ -791,7 +805,7 @@ components:
               summary: No organizations exist in the system
               value:
                 success: false
-                message: "No organizations found."
+                message: "Organizations retrieved successfully."
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -831,22 +845,28 @@ paths:
         - Content-Type: multipart/form-data
         - Supported formats: jpg, jpeg, png, gif, webp (images), pdf (documents)
         - Files are processed and stored with generated paths
-        - Dynamic file mapping for branch residence guidelines
+        - Dynamic file mapping for branch residence guidelines using pattern: `branches[index][residenceGuidelines]`
 
         **Validation Rules:**
-        - Founded year must be between 1900 and current year
+        - Founded year must be between 1900 and current year (stored as Date object)
         - SIRET number must be exactly 14 digits
-        - At least one branch required
+        - At least one branch required with name, email, and address
         - All text fields are trimmed and validated for length
         - Phone numbers must be in international format
+        - Branch emails are converted to lowercase and validated
 
         **Business Logic:**
         - Prevents duplicate organization profiles per user
         - Prevents organization profile if user has educator profile
-        - Processes branch array with dynamic file mappings
-        - Handles both file uploads and uses defaults for optional files
-        - Maps residence guidelines files to branches using dynamic keys: `branches[index][residenceGuidelines]`
-        - Automatically creates coordinate fields with default [0, 0] for office and branches
+        - Processes branch array with dynamic file mappings using `rest` parameter spreading
+        - Maps residence guidelines files to branches using dynamic keys
+        - Automatically creates coordinate fields with specific default coordinates
+        - Branch subdocuments have _id generation disabled
+        - Residence guidelines default to empty string if no file provided
+
+        **Coordinate Defaults:**
+        - Office coordinates: [73.13829207001977, 33.60948427871408]
+        - Branch coordinates: [73.12305647540082, 33.60784209987379]
 
       operationId: create-organization-profile
       tags: [Organization Management]
@@ -919,12 +939,22 @@ paths:
         - Each profile includes populated user object with email, role, verification status
         - All branches with their respective details and file URLs
         - All document URLs and file paths are included in response
-        - Returns 404 if no organizations exist in the system
+        - Returns empty array with success message if no organizations exist
+
+        **Authentication:**
+        - Requires valid JWT authentication token
+        - No specific role requirements (any authenticated user can access)
 
         **Use Cases:**
         - List all available organizations
         - Admin dashboard for organization management
         - Browse organizations for partnerships or connections
+        - Public organization directory display
+
+        **Error Handling:**
+        - Returns empty array if no organizations exist (no 404 error)
+        - Returns 401 for authentication failures
+        - Returns 500 for unexpected server errors
 
       operationId: get-all-organizations
       tags: [Organization Management]
@@ -935,8 +965,6 @@ paths:
           $ref: "#/components/responses/OrganizationListSuccess"
         401:
           $ref: "#/components/responses/Unauthorized"
-        404:
-          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/InternalServerError"
 
@@ -951,6 +979,7 @@ paths:
         - User object includes email, role, verification status, and timestamps
         - All branches with their respective details and file URLs
         - All document URLs and file paths are included in response
+        - Branch subdocuments do not include _id fields
 
         **Use Cases:**
         - Display organization profile information
@@ -988,7 +1017,7 @@ paths:
         - At least one field must be provided for update
         - All validation rules apply to updated fields
         - File uploads supported for document updates
-        - Uses database upsert operations
+        - Uses findByIdAndUpdate with new: true and upsert: true
         - Branch array processing with dynamic file mappings
 
         **Validation:**
@@ -996,12 +1025,19 @@ paths:
         - SIRET number validation if siretNumber is updated
         - All text field length validations apply
         - Phone number format validation applies
+        - Branch email format and lowercase conversion
 
         **Business Logic:**
         - Profile must exist before update
         - File uploads replace existing document URLs
         - Branch updates replace entire branches array
         - Response includes updated profile data
+        - Same dynamic file mapping logic as creation
+
+        **Implementation Note:**
+        - Uses same file processing logic as creation
+        - Dynamic residence guidelines mapping per branch
+        - Coordinate defaults applied if not specified
 
       operationId: update-organization-profile
       tags: [Organization Management]
@@ -1029,6 +1065,24 @@ paths:
                     - branchName: "Updated Branch"
                       branchEmail: "updated@example.com"
                       branchAddress: "Updated Branch Address"
+              fullUpdate:
+                summary: Update multiple organization fields
+                value:
+                  organizationName: "Comprehensive Education Network"
+                  foundedYear: "2005-01-01"
+                  phone: "+33888777666"
+                  city: "Marseille"
+                  country: "France"
+                  branches:
+                    - branchName: "Central Branch"
+                      branchEmail: "central@example.com"
+                      branchPhone: "+33888777666"
+                      branchCity: "Marseille"
+                      branchCountry: "France"
+                      branchAddress: "456 Central Ave, Marseille 13001"
+                    - branchName: "Coastal Branch"
+                      branchEmail: "coastal@example.com"
+                      branchAddress: "789 Coastal Rd, Nice 06000"
       responses:
         200:
           $ref: "#/components/responses/OrganizationUpdateSuccess"

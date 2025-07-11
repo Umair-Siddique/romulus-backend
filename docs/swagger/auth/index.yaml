@@ -324,6 +324,11 @@ components:
               value:
                 success: false
                 message: "A user with this email already exists"
+            phoneExists:
+              summary: Phone number already registered
+              value:
+                success: false
+                message: "A user with this phone number already exists"
             phoneRequired:
               summary: Missing required phone for educator
               value:
@@ -401,6 +406,36 @@ components:
               value:
                 success: false
                 message: "Internal server error occurred"
+            userCreationFailed:
+              summary: User creation failed
+              value:
+                success: false
+                message: "Failed to create a new user"
+            twilioOtpFailed:
+              summary: OTP sending failed
+              value:
+                success: false
+                message: "Failed to send OTP"
+            tokenGenerationFailed:
+              summary: Token generation failed
+              value:
+                success: false
+                message: "An error occurred while generating the token"
+            emailSendFailed:
+              summary: Email sending failed
+              value:
+                success: false
+                message: "Failed to send the welcome email"
+            passwordUpdateFailed:
+              summary: Password update failed
+              value:
+                success: false
+                message: "Password update failed"
+            tokenBlacklistFailed:
+              summary: Token blacklist operation failed
+              value:
+                success: false
+                message: "An error occurred while blacklisting the accessToken"
 
   securitySchemes:
     BearerAuth:
@@ -430,6 +465,10 @@ paths:
 
         **Response:**
         Returns user ID and role for client-side handling. For educators, WhatsApp OTP is sent automatically after successful registration.
+
+        **Error Handling:**
+        - If user creation fails after sending OTP/email, the user record is automatically cleaned up
+        - Phone number uniqueness is enforced for educators
       operationId: sign-up
       tags: [Authentication]
       requestBody:
@@ -481,6 +520,11 @@ paths:
         - Token expires in 1 hour (as per token configuration)
         - User ID, role, and role-specific IDs (educatorId/organizationId) included for client-side routing
         - For unverified emails: automatically sends new verification email before returning error
+
+        **Role-Specific Data:**
+        - Educators: `educatorId` included in response data
+        - Organizations: `organizationId` included in response data
+        - Admins: Only `userId` and `role` provided
       operationId: sign-in
       tags: [Authentication]
       requestBody:
@@ -513,6 +557,10 @@ paths:
         - Token is added to blacklist to prevent reuse
         - Blacklisted tokens expire automatically after 1 hour
         - Returns error if token is already blacklisted
+
+        **Implementation Notes:**
+        - Token is extracted from Authorization header by removing "Bearer " prefix
+        - Blacklist check performed before adding to prevent duplicate entries
       operationId: sign-out
       tags: [Authentication]
       security:
@@ -544,7 +592,12 @@ paths:
         1. Validates email exists in system
         2. Generates secure reset token (expires in 15 minutes)
         3. Sends reset link via email
-        4. Returns success message regardless of email existence (security best practice)
+        4. Returns success message only if user exists (security best practice)
+
+        **Security:**
+        - Only existing users receive reset emails
+        - Returns 404 error if user email not found
+        - Reset tokens have short expiration time
       operationId: forgot-password
       tags: [Authentication]
       requestBody:
@@ -577,8 +630,13 @@ paths:
         **Security:**
         - Token validated for authenticity and expiration
         - New password must meet complexity requirements
-        - Password immediately hashed and stored securely
+        - Password immediately hashed and stored securely using bcrypt with salt
         - Reset token becomes invalid after use
+
+        **Implementation:**
+        - Uses bcrypt with salt rounds of 10 for password hashing
+        - Updates user record with new hashed password
+        - User ID extracted from decoded reset token
       operationId: update-password
       tags: [Authentication]
       requestBody:

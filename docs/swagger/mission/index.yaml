@@ -9,13 +9,17 @@ info:
     - Mission creation with comprehensive validation and file upload support
     - Organization-based mission management with role-based access control
     - Multi-skill mission support with flexible input formats
-    - Date and time scheduling with validation
+    - Date and time scheduling with validation and ISO 8601 conversion
     - Mission status tracking throughout lifecycle
     - Technical document upload and management
+    - Educator invitation system with tracking
+    - Organization-specific mission filtering and management
 
     **Authentication & Authorization:**
     - All endpoints require valid JWT authentication token
     - Mission creation and updates require organization role
+    - Organization-specific endpoints require organization role
+    - Educator-specific endpoints require educator role
     - Organization must exist before creating missions
     - Tokens obtained from Authentication API sign-in endpoint
 
@@ -23,12 +27,15 @@ info:
     - `pending`: Newly created missions awaiting approval (default)
     - `ongoing`: Active missions in progress
     - `completed`: Successfully finished missions
-    - `rejected`: Missions that were denied
-    - `cancelled`: Missions that were terminated
 
     **File Upload Support:**
     - Technical documents (jpg, jpeg, png, gif, pdf)
     - Automatic file processing and cloud storage
+
+    **Educator Management:**
+    - Track invited, hired, and rejected educators
+    - Send bulk invitations to multiple educators
+    - Cross-reference missions with educator profiles
 
   contact:
     name: API Support
@@ -76,14 +83,12 @@ components:
 
     MissionStatus:
       type: string
-      enum: [pending, ongoing, completed, rejected, cancelled]
+      enum: [pending, ongoing, completed]
       description: |
         Mission status throughout its lifecycle:
         - `pending`: Newly created mission awaiting approval (default)
         - `ongoing`: Active mission in progress
         - `completed`: Successfully finished mission
-        - `rejected`: Mission that was denied approval
-        - `cancelled`: Mission that was terminated before completion
       default: pending
       example: pending
 
@@ -175,12 +180,13 @@ components:
         - description
         - branch
         - skills
-        - startDate
-        - endDate
-        - startTime
-        - endTime
+        - start
+        - end
         - technicalDocument
         - status
+        - invitedEducators
+        - hiredEducators
+        - rejectedEducators
         - createdAt
         - updatedAt
       properties:
@@ -191,23 +197,24 @@ components:
             - $ref: "#/components/schemas/ID"
             - $ref: "#/components/schemas/OrganizationReference"
           description: Associated organization (ObjectId in create response, populated object in get responses)
+        educator:
+          $ref: "#/components/schemas/ID"
+          description: Primary assigned educator (optional)
+          nullable: true
         title:
           type: string
           description: Mission title or name
           example: "Advanced Mathematics Training Program"
-          minLength: 2
           maxLength: 200
         description:
           type: string
           description: Detailed mission description
           example: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
-          minLength: 10
           maxLength: 2000
         branch:
           type: string
           description: Specific branch location for the mission
           example: "Downtown Branch"
-          minLength: 2
           maxLength: 100
         skills:
           type: array
@@ -215,32 +222,43 @@ components:
           items:
             type: string
             minLength: 1
-            maxLength: 100
           example: ["mathematics", "algebra", "calculus", "statistics"]
           minItems: 1
           maxItems: 20
-        startDate:
+        start:
           type: string
           format: date-time
-          description: Mission start date (must be in the future for creation)
-          example: "2025-07-01T00:00:00.000Z"
-        endDate:
+          description: Mission start date and time in ISO 8601 format
+          example: "2025-07-01T09:00:00.000Z"
+        end:
           type: string
           format: date-time
-          description: Mission end date (must be after start date)
-          example: "2025-08-30T00:00:00.000Z"
-        startTime:
-          $ref: "#/components/schemas/TimeFormat"
-          description: Daily start time for the mission
-        endTime:
-          $ref: "#/components/schemas/TimeFormat"
-          description: Daily end time for the mission
+          description: Mission end date and time in ISO 8601 format
+          example: "2025-08-30T17:00:00.000Z"
         technicalDocument:
           $ref: "#/components/schemas/DocumentUrl"
           description: Technical documentation or requirements document
           default: "https://example.com/default-document.pdf"
         status:
           $ref: "#/components/schemas/MissionStatus"
+        invitedEducators:
+          type: array
+          description: Array of educator IDs invited to this mission
+          items:
+            $ref: "#/components/schemas/ID"
+          default: []
+        hiredEducators:
+          type: array
+          description: Array of educator IDs hired for this mission
+          items:
+            $ref: "#/components/schemas/ID"
+          default: []
+        rejectedEducators:
+          type: array
+          description: Array of educator IDs who rejected this mission
+          items:
+            $ref: "#/components/schemas/ID"
+          default: []
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
@@ -268,41 +286,35 @@ components:
         title:
           type: string
           description: Mission title or name
-          minLength: 2
           maxLength: 200
         description:
           type: string
           description: Detailed mission description
-          minLength: 10
           maxLength: 2000
         branch:
           type: string
           description: Specific branch location for the mission
-          minLength: 2
           maxLength: 100
         skills:
           type: string
           description: Required skills (comma-separated string)
           example: "mathematics,algebra,calculus,statistics"
-          minLength: 2
-          maxLength: 100
         startDate:
           type: string
           format: date
-          description: Mission start date (must be in the future)
+          description: Mission start date (YYYY-MM-DD format)
+          example: "2025-07-01"
         endDate:
           type: string
           format: date
-          description: Mission end date (must be after start date)
+          description: Mission end date (YYYY-MM-DD format)
+          example: "2025-08-30"
         startTime:
           $ref: "#/components/schemas/TimeFormat"
           description: Daily start time for the mission
         endTime:
           $ref: "#/components/schemas/TimeFormat"
           description: Daily end time for the mission
-        status:
-          $ref: "#/components/schemas/MissionStatus"
-          description: Initial mission status (optional, defaults to pending)
         technicalDocument:
           type: string
           format: binary
@@ -315,26 +327,23 @@ components:
         title:
           type: string
           description: Mission title or name
-          minLength: 2
           maxLength: 200
         description:
           type: string
           description: Detailed mission description
-          minLength: 10
           maxLength: 2000
         branch:
           type: string
           description: Specific branch location for the mission
-          minLength: 2
           maxLength: 100
         startDate:
           type: string
           format: date
-          description: Mission start date (must be in the future)
+          description: Mission start date (YYYY-MM-DD format)
         endDate:
           type: string
           format: date
-          description: Mission end date (must be after start date)
+          description: Mission end date (YYYY-MM-DD format)
         startTime:
           $ref: "#/components/schemas/TimeFormat"
           description: Daily start time for the mission
@@ -344,6 +353,23 @@ components:
         status:
           $ref: "#/components/schemas/MissionStatus"
           description: Updated mission status
+
+    InvitationRequest:
+      type: object
+      required:
+        - missionId
+        - invitees
+      properties:
+        missionId:
+          $ref: "#/components/schemas/ID"
+          description: ID of the mission to send invitations for
+        invitees:
+          type: array
+          description: Array of educator IDs to invite
+          items:
+            $ref: "#/components/schemas/ID"
+          minItems: 1
+          example: ["60d0fe4f5311236168a109ca", "60d0fe4f5311236168a109cb"]
 
     # ================================
     # RESPONSE SCHEMAS
@@ -376,12 +402,13 @@ components:
               description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
               branch: "Downtown Branch"
               skills: ["mathematics", "algebra", "calculus", "statistics"]
-              startDate: "2025-07-01T00:00:00.000Z"
-              endDate: "2025-08-30T00:00:00.000Z"
-              startTime: "09:00"
-              endTime: "17:00"
+              start: "2025-07-01T09:00:00.000Z"
+              end: "2025-08-30T17:00:00.000Z"
               technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/684a9654caa07bcde4138271/technicalDocument.pdf"
               status: "pending"
+              invitedEducators: []
+              hiredEducators: []
+              rejectedEducators: []
               createdAt: "2025-06-27T14:30:00.000Z"
               updatedAt: "2025-06-27T14:30:00.000Z"
 
@@ -420,12 +447,36 @@ components:
             success: true
             message: "Mission updated successfully"
 
+    InvitationResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          example:
+            success: true
+            message: "Invitations have been sent to 5 educators successfully."
+
   parameters:
     MissionIdPath:
       in: path
       name: id
       required: true
       description: MongoDB ObjectId of the mission
+      schema:
+        $ref: "#/components/schemas/ID"
+
+    OrganizationIdPath:
+      in: path
+      name: id
+      required: true
+      description: MongoDB ObjectId of the organization
+      schema:
+        $ref: "#/components/schemas/ID"
+
+    EducatorIdPath:
+      in: path
+      name: id
+      required: true
+      description: MongoDB ObjectId of the educator
       schema:
         $ref: "#/components/schemas/ID"
 
@@ -480,12 +531,13 @@ components:
               description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
               branch: "Downtown Branch"
               skills: ["mathematics", "algebra", "calculus", "statistics"]
-              startDate: "2025-07-01T00:00:00.000Z"
-              endDate: "2025-08-30T00:00:00.000Z"
-              startTime: "09:00"
-              endTime: "17:00"
+              start: "2025-07-01T09:00:00.000Z"
+              end: "2025-08-30T17:00:00.000Z"
               technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/684a9654caa07bcde4138271/technicalDocument.pdf"
               status: "ongoing"
+              invitedEducators: ["60d0fe4f5311236168a109ca"]
+              hiredEducators: []
+              rejectedEducators: []
               createdAt: "2025-06-27T14:30:00.000Z"
               updatedAt: "2025-06-28T10:15:00.000Z"
 
@@ -495,6 +547,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/MissionUpdateResponse"
+
+    InvitationSuccess:
+      description: Invitations sent successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/InvitationResponse"
 
     # ================================
     # ERROR RESPONSES
@@ -510,17 +569,12 @@ components:
               summary: Field validation failed
               value:
                 success: false
-                message: "Title must be at least 2 characters long"
+                message: "Title cannot exceed 200 characters"
             dateValidation:
-              summary: Date validation failed
+              summary: Date/time validation failed
               value:
                 success: false
-                message: "Start date cannot be in the past"
-            endDateValidation:
-              summary: End date validation failed
-              value:
-                success: false
-                message: "End date must be after start date"
+                message: "Invalid date or time input."
             timeFormatError:
               summary: Time format validation failed
               value:
@@ -562,16 +616,16 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            roleRequired:
+            organizationRoleRequired:
               summary: Organization role required
               value:
                 success: false
                 message: "Access denied: organization role required"
-            wrongRole:
-              summary: User does not have organization role
+            educatorRoleRequired:
+              summary: Educator role required
               value:
                 success: false
-                message: "Access denied: organization role required"
+                message: "Access denied: educator role required"
 
     NotFound:
       description: Resource not found
@@ -623,8 +677,6 @@ paths:
         - Valid JWT authentication token
         - User must have organization role
         - Organization must exist in the system
-        - Start date must be in the future
-        - End date must be after start date
 
         **File Upload Support:**
         - Content-Type: multipart/form-data
@@ -632,21 +684,25 @@ paths:
         - Files are processed and stored with generated paths
         - Default URL provided if no document uploaded
 
+        **Date/Time Processing:**
+        - Separate date and time inputs are combined into ISO 8601 format
+        - startDate + startTime = start (ISO 8601)
+        - endDate + endTime = end (ISO 8601)
+        - Invalid date/time combinations throw validation errors
+
         **Validation Rules:**
-        - Title: 2-200 characters
-        - Description: 10-2000 characters
-        - Branch: 2-100 characters
-        - Skills: Comma-separated string, processed into array
-        - Start date: Must be in future
-        - End date: Must be after start date
+        - Title: Max 200 characters
+        - Description: Max 2000 characters
+        - Branch: Max 100 characters
+        - Skills: Comma-separated string, processed into array (1-20 skills)
         - Time format: HH:MM (24-hour)
-        - Status: Optional, defaults to "pending"
+        - Status: Defaults to "pending"
 
         **Business Logic:**
         - Validates organization existence
         - Processes skills from comma-separated string to array
         - Handles file upload for technical documents
-        - Sets default status to "pending" if not provided
+        - Initializes educator arrays as empty
 
       operationId: create-mission
       tags: [Mission Management]
@@ -671,7 +727,6 @@ paths:
                   endDate: "2025-08-30"
                   startTime: "09:00"
                   endTime: "17:00"
-                  status: "pending"
               minimalMission:
                 summary: Minimal required fields
                 value:
@@ -708,6 +763,7 @@ paths:
         - Each mission includes populated organization object
         - Organization includes basic info and branch details
         - All document URLs and file paths are included
+        - Educator arrays (invited, hired, rejected) are included
         - No pagination applied - returns all missions
 
         **Use Cases:**
@@ -728,6 +784,127 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/missions/organization/{id}/all:
+    get:
+      summary: Get all missions for a specific organization
+      description: |
+        Retrieves all missions created by a specific organization.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+
+        **Response Details:**
+        - Returns array of missions for the specified organization
+        - Each mission includes populated organization object
+        - All educator tracking arrays are included
+        - Filtered by organization ID
+
+        **Use Cases:**
+        - Organization dashboard showing their missions
+        - Organization-specific mission management
+        - Track organization's mission history
+
+      operationId: get-all-missions-by-organization
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationIdPath"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionListSuccess"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/organization/{id}/one:
+    get:
+      summary: Get one mission for a specific organization
+      description: |
+        Retrieves the first mission found for a specific organization.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+
+        **Response Details:**
+        - Returns single mission object for the specified organization
+        - Includes populated organization object
+        - All educator tracking arrays are included
+        - Uses findOne query - returns first match
+
+        **Use Cases:**
+        - Quick access to organization's primary mission
+        - Sample mission data for organization
+        - Preview organization's mission template
+
+      operationId: get-mission-by-organization
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/OrganizationIdPath"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionProfileResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/educator/{id}/one:
+    get:
+      summary: Get mission associated with an educator
+      description: |
+        Retrieves a mission where the educator is involved (invited, hired, or rejected).
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have educator role
+
+        **Search Logic:**
+        - Uses $or query to find missions where educator ID appears in:
+          - invitedEducators array
+          - hiredEducators array  
+          - rejectedEducators array
+        - Returns first matching mission
+
+        **Response Details:**
+        - Returns single mission object with populated organization
+        - Excludes educator arrays from response for privacy (select projection)
+        - Shows mission details relevant to the educator
+
+        **Use Cases:**
+        - Educator viewing their assigned mission
+        - Check mission details for invited educator
+        - Mission dashboard for educators
+
+      operationId: get-mission-by-educator
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/EducatorIdPath"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionProfileResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/missions/{id}:
     get:
       summary: Get mission by ID
@@ -739,6 +916,7 @@ paths:
         - Organization object includes name, location, contact details, and branches
         - All technical documents and file paths are included
         - Shows current mission status and scheduling details
+        - Includes all educator tracking arrays
 
         **Use Cases:**
         - Display detailed mission information
@@ -776,13 +954,17 @@ paths:
         - At least one field must be provided for update
         - All validation rules apply to updated fields
         - File uploads supported for technical document updates
-        - Date validations apply if dates are updated
+        - Uses findByIdAndUpdate with new: true and upsert: true
+
+        **Date/Time Processing:**
+        - If date/time fields are updated, they follow same conversion logic as creation
+        - startDate + startTime combined into start field
+        - endDate + endTime combined into end field
 
         **Validation:**
         - Same validation rules as creation apply to updated fields
-        - Start date validation if startDate is updated
-        - End date must be after start date if either date is updated
-        - Time format validation if times are updated
+        - Date/time format validation if dates/times are updated
+        - Character limits apply to text fields
 
         **Business Logic:**
         - Mission must exist before update
@@ -823,6 +1005,76 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/MissionUpdateSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/send-invitations:
+    post:
+      summary: Send mission invitations to educators
+      description: |
+        Sends invitations for a specific mission to multiple educators.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+        - Mission and all educator IDs must be valid
+
+        **Business Logic:**
+        - Updates mission's invitedEducators array with provided educator IDs
+        - Updates each educator's missionsInvitedFor array with mission info
+        - Sets invitation status to "pending" for all invitations
+        - Uses $push operator to add mission invitation to educator profiles
+
+        **Bulk Operations:**
+        - Processes multiple educator invitations in a single request
+        - Updates both mission and educator records
+        - Returns count of successful invitations sent
+
+        **Use Cases:**
+        - Bulk invite educators to missions
+        - Organization recruiting process
+        - Mission staffing management
+        - Educator opportunity distribution
+
+      operationId: send-mission-invitations
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationRequest"
+            examples:
+              singleInvitation:
+                summary: Send invitation to one educator
+                value:
+                  missionId: "60d0fe4f5311236168a109ca"
+                  invitees: ["60d0fe4f5311236168a109cb"]
+              multipleInvitations:
+                summary: Send invitations to multiple educators
+                value:
+                  missionId: "60d0fe4f5311236168a109ca"
+                  invitees:
+                    [
+                      "60d0fe4f5311236168a109cb",
+                      "60d0fe4f5311236168a109cc",
+                      "60d0fe4f5311236168a109cd",
+                      "60d0fe4f5311236168a109ce",
+                      "60d0fe4f5311236168a109cf",
+                    ]
+      responses:
+        200:
+          $ref: "#/components/responses/InvitationSuccess"
         400:
           $ref: "#/components/responses/BadRequest"
         401:

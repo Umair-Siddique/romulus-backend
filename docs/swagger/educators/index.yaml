@@ -10,13 +10,15 @@ info:
     - File upload support for documents and images
     - Profile retrieval by ID or user ID
     - Profile updates with partial data support
-    - List all educators
+    - List all educators with populated user data
+    - Nearby educators search with geospatial queries
     - Duplicate profile prevention (educator/organization conflict detection)
     - Skill management with flexible input formats
 
     **Authentication & Authorization:**
     - All endpoints require valid JWT authentication token
     - Educator creation and updates require educator role
+    - Nearby search requires organization role
     - User must have an existing account before creating educator profile
     - Tokens obtained from Authentication API sign-in endpoint
 
@@ -84,7 +86,7 @@ components:
     Gender:
       type: string
       enum: [male, female, other]
-      description: Gender identification
+      description: Gender identification (lowercase in storage)
       example: female
 
     Timestamp:
@@ -175,6 +177,26 @@ components:
           example: 0
 
     # ================================
+    # MISSION RELATED SCHEMAS
+    # ================================
+    MissionInvitation:
+      type: object
+      required:
+        - mission
+        - invitationStatus
+      properties:
+        mission:
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - type: object
+              description: Populated mission object (excludes hiredEducators, invitedEducators, rejectedEducators)
+        invitationStatus:
+          type: string
+          enum: [pending, accepted, declined]
+          default: pending
+          description: Status of the mission invitation
+
+    # ================================
     # EDUCATOR SCHEMAS
     # ================================
     EducatorProfile:
@@ -194,6 +216,8 @@ components:
         - hourlyRate
         - skills
         - education
+        - identityProof
+        - criminalRecord
         - createdAt
         - updatedAt
       properties:
@@ -247,7 +271,7 @@ components:
           maxLength: 500
         fullAddressCoordinates:
           type: object
-          description: Geographic coordinates for the full address
+          description: Geographic coordinates for the full address (defaults to Islamabad coordinates)
           required:
             - type
             - coordinates
@@ -264,8 +288,8 @@ components:
                 type: number
               minItems: 2
               maxItems: 2
-              example: [0, 0]
-              default: [0, 0]
+              example: [73.14474441571859, 33.623802049520755]
+              default: [73.14474441571859, 33.623802049520755]
         bio:
           type: string
           description: Professional biography
@@ -274,11 +298,11 @@ components:
           nullable: true
         identityProof:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Identity verification document
+          description: Identity verification document (required)
           default: "https://example.com/default-identity-proof.png"
         criminalRecord:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Criminal background check document
+          description: Criminal background check document (required)
           default: "https://example.com/default-criminal-record.png"
         profession:
           type: string
@@ -310,12 +334,24 @@ components:
           maxLength: 200
         certificateOfHonor:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Certificate of honor or achievement
-          default: "https://example.com/default-certificate-of-honor.png"
+          description: Certificate of honor or achievement (optional)
+          nullable: true
         diploma:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Academic diploma or degree certificate
-          default: "https://example.com/default-diploma.png"
+          description: Academic diploma or degree certificate (optional)
+          nullable: true
+        missionsInvitedFor:
+          type: array
+          description: Array of mission invitations for this educator
+          items:
+            $ref: "#/components/schemas/MissionInvitation"
+          default: []
+        missionsHiredFor:
+          type: array
+          description: Array of mission IDs where educator was hired
+          items:
+            $ref: "#/components/schemas/ID"
+          default: []
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
@@ -502,6 +538,8 @@ components:
         - hourlyRate
         - skills
         - education
+        - identityProof
+        - criminalRecord
         - createdAt
         - updatedAt
       properties:
@@ -557,7 +595,7 @@ components:
               description: Array of [longitude, latitude] coordinates
               items:
                 type: number
-              example: [0, 0]
+              example: [73.14474441571859, 33.623802049520755]
         bio:
           type: string
           description: Professional biography
@@ -590,9 +628,23 @@ components:
         certificateOfHonor:
           $ref: "#/components/schemas/DocumentUrl"
           description: Certificate of honor or achievement
+          nullable: true
         diploma:
           $ref: "#/components/schemas/DocumentUrl"
           description: Academic diploma or degree certificate
+          nullable: true
+        missionsInvitedFor:
+          type: array
+          description: Array of mission invitations (empty for new profiles)
+          items:
+            $ref: "#/components/schemas/MissionInvitation"
+          default: []
+        missionsHiredFor:
+          type: array
+          description: Array of mission IDs (empty for new profiles)
+          items:
+            $ref: "#/components/schemas/ID"
+          default: []
         createdAt:
           $ref: "#/components/schemas/Timestamp"
           example: "2025-06-27T18:29:27.832Z"
@@ -626,7 +678,7 @@ components:
               fullAddress: "Islamabad, Pakistan"
               fullAddressCoordinates:
                 type: "Point"
-                coordinates: [0, 0]
+                coordinates: [73.14474441571859, 33.623802049520755]
               bio: "Software Engineer"
               identityProof: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/identityProof.jpg"
               criminalRecord: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/criminalRecord.jpg"
@@ -636,6 +688,8 @@ components:
               education: "ava"
               certificateOfHonor: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/certificateOfHonor.jpg"
               diploma: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/diploma.jpg"
+              missionsInvitedFor: []
+              missionsHiredFor: []
               _id: "685ee307dcf7fb2891637d3b"
               createdAt: "2025-06-27T18:29:27.832Z"
               updatedAt: "2025-06-27T18:29:27.832Z"
@@ -676,6 +730,19 @@ components:
             success: true
             message: "Educator Profile Updated Successfully"
 
+    NearbyEducatorsResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/EducatorProfile"
+          example:
+            success: true
+            message: "Nearby educators retrieved successfully."
+
   parameters:
     EducatorIdPath:
       in: path
@@ -684,6 +751,36 @@ components:
       description: MongoDB ObjectId of the educator profile
       schema:
         $ref: "#/components/schemas/ID"
+
+    CoordinatesQuery:
+      in: query
+      name: coordinates
+      required: true
+      description: Comma-separated coordinates (longitude,latitude) for center point
+      schema:
+        type: string
+        example: "73.1447,33.6238"
+        pattern: "^-?\\d+\\.\\d+,-?\\d+\\.\\d+$"
+
+    DistanceQuery:
+      in: query
+      name: distance
+      required: true
+      description: Search radius in kilometers
+      schema:
+        type: number
+        minimum: 0.1
+        maximum: 1000
+        example: 10
+
+    SkillsQuery:
+      in: query
+      name: skills
+      required: false
+      description: Comma-separated list of skills to filter by (optional)
+      schema:
+        type: string
+        example: "mathematics,physics,chemistry"
 
   securitySchemes:
     BearerAuth:
@@ -742,7 +839,7 @@ components:
               fullAddress: "Islamabad, Pakistan"
               fullAddressCoordinates:
                 type: "Point"
-                coordinates: [0, 0]
+                coordinates: [73.14474441571859, 33.623802049520755]
               bio: "Experienced mathematics teacher with 10+ years in secondary education"
               identityProof: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/identityProof.png"
               criminalRecord: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/criminalRecord.png"
@@ -752,6 +849,8 @@ components:
               education: "Master's in Mathematics Education"
               certificateOfHonor: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/certificateOfHonor.png"
               diploma: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/diploma.png"
+              missionsInvitedFor: []
+              missionsHiredFor: []
               createdAt: "2025-06-13T18:55:25.227Z"
               updatedAt: "2025-06-13T18:55:25.227Z"
               __v: 0
@@ -762,6 +861,13 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/EducatorUpdateResponse"
+
+    NearbyEducatorsSuccess:
+      description: Nearby educators retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NearbyEducatorsResponse"
 
     # ================================
     # ERROR RESPONSES
@@ -787,7 +893,7 @@ components:
               summary: Educator profile already exists
               value:
                 success: false
-                message: "User already has educator profile."
+                message: "User already has educator profile. Log in again."
             organizationConflict:
               summary: User has organization profile
               value:
@@ -829,11 +935,16 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
           examples:
-            roleRequired:
-              summary: Educator role required
+            educatorRoleRequired:
+              summary: Educator role required for profile operations
               value:
                 success: false
                 message: "Access denied: educator role required."
+            organizationRoleRequired:
+              summary: Organization role required for nearby search
+              value:
+                success: false
+                message: "Access denied: organization role required."
 
     NotFound:
       description: Resource not found
@@ -910,7 +1021,7 @@ paths:
         - Prevents educator profile if user has organization profile
         - Processes comma-separated strings into arrays for skills
         - Handles both file uploads and uses defaults for optional files
-        - Automatically creates fullAddressCoordinates with default [0, 0]
+        - Automatically creates fullAddressCoordinates with default Islamabad coordinates
 
       operationId: create-educator-profile
       tags: [Educator Management]
@@ -976,6 +1087,7 @@ paths:
         - Each educator object includes complete profile data
         - User objects include email, role, verification status, and timestamps
         - All document URLs and file paths are included in response
+        - Includes mission-related fields (missionsInvitedFor, missionsHiredFor)
 
         **Authentication:**
         - Requires valid JWT authentication token
@@ -988,7 +1100,7 @@ paths:
         - Public educator directory display
 
         **Error Handling:**
-        - Returns 404 if no educators exist in the system
+        - Returns empty array if no educators exist (no 404 error)
         - Returns 401 for authentication failures
         - Returns 500 for unexpected server errors
 
@@ -1001,8 +1113,52 @@ paths:
           $ref: "#/components/responses/EducatorListSuccess"
         401:
           $ref: "#/components/responses/Unauthorized"
-        404:
-          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/educators/nearby:
+    get:
+      summary: Find nearby educators with geospatial search
+      description: |
+        Retrieves educators within a specified distance from given coordinates using MongoDB's geospatial queries.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+        - Coordinates and distance parameters required
+
+        **Geospatial Search:**
+        - Uses MongoDB's $near operator with 2dsphere index
+        - Distance converted from kilometers to meters (multiply by 1000)
+        - Searches based on fullAddressCoordinates field
+        - Returns educators sorted by distance (nearest first)
+
+        **Skill Filtering:**
+        - Optional skills parameter for additional filtering
+        - Processes comma-separated skill strings
+        - Filters educators whose skills array includes any of the specified skills
+        - Case-insensitive matching (skills stored in lowercase)
+
+        **Response Details:**
+        - Returns populated user information for each educator
+        - Includes complete educator profile data
+        - Empty array returned if no educators found within criteria
+
+      operationId: get-nearby-educators
+      tags: [Educator Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CoordinatesQuery"
+        - $ref: "#/components/parameters/DistanceQuery"
+        - $ref: "#/components/parameters/SkillsQuery"
+      responses:
+        200:
+          $ref: "#/components/responses/NearbyEducatorsSuccess"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
         500:
           $ref: "#/components/responses/InternalServerError"
 
@@ -1016,6 +1172,8 @@ paths:
         - Returns complete educator profile with populated user information
         - User object includes email, role, verification status, and timestamps
         - All document URLs and file paths are included in response
+        - Includes mission-related data with populated mission objects
+        - Mission population excludes sensitive fields (hiredEducators, invitedEducators, rejectedEducators)
 
         **Use Cases:**
         - Display educator profile information
@@ -1052,7 +1210,7 @@ paths:
         - At least one field must be provided for update
         - All validation rules apply to updated fields
         - File uploads supported for document updates
-        - Uses upsert: true for database operations
+        - Uses findByIdAndUpdate without upsert for updates
         - Skills processing handles comma-separated strings
 
         **Validation:**
@@ -1060,12 +1218,17 @@ paths:
         - Skills array validation if skills are updated
         - All text field length validations apply
         - Hourly rate range validation applies
+        - Gender normalization to lowercase
 
         **Business Logic:**
         - Profile must exist before update
         - File uploads replace existing document URLs
-        - Skills are normalized to lowercase
+        - Skills are normalized to lowercase via pre-save middleware
         - Response includes updated profile data
+
+        **Implementation Note:**
+        - Update method doesn't return updated document by default
+        - Service handles this by returning the updated data
 
       operationId: update-educator-profile
       tags: [Educator Management]
