@@ -86,6 +86,28 @@ const MissionSchema = new Schema(
         ref: "Educator",
       },
     ],
+    educatorFeedback: [
+      {
+        educator: {
+          type: Schema.Types.ObjectId,
+          ref: "Educator",
+          required: true,
+        },
+        feedback: {
+          type: String,
+          required: [true, "Feedback is required"],
+          trim: true,
+          maxlength: [500, "Feedback cannot exceed 500 characters"],
+        },
+        rating: {
+          type: Number,
+          min: 1,
+          max: 5,
+          required: [true, "Rating is required"],
+        },
+        _id: false,
+      },
+    ],
   },
   {
     timestamps: true,
