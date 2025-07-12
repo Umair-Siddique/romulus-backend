@@ -47,12 +47,6 @@ const MissionSchema = new Schema(
     preferredEducator: {
       type: Schema.Types.ObjectId,
       ref: "Educator",
-      validate: {
-        validator: (v) => {
-          return mongoose.Types.ObjectId.isValid(v);
-        },
-        message: "Preferred educator must be a valid ObjectId",
-      },
       default: null,
     },
     technicalDocument: {
