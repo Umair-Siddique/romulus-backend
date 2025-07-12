@@ -25,15 +25,35 @@ cloudinary.api.ping((error) => {
 export const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: (req, file) => {
-    const userId = req.body.user || req.body.organization;
     const fileType = file.fieldname;
+    const userId = req.body.user || req.body.organization;
+    const isoTime = new Date().toISOString().replace(/[:.]/g, "-");
     const fileExtension = path.extname(file.originalname).substring(1);
 
-    let folderPath = `users/${userId}/${fileType}`;
+    const profileFields = [
+      "avatar",
+      "identityProof",
+      "criminalRecord",
+      "certificateOfHonor",
+      "diploma",
+    ];
+
+    const missionFields = ["technicalDocument"];
+
+    let folderPath;
+
+    if (profileFields.includes(fileType)) {
+      folderPath = `users/${userId}/${fileType}`;
+    } else if (missionFields.includes(fileType)) {
+      folderPath = `missions/${userId}/${fileType}`;
+    }
 
     return {
       folder: folderPath,
-      public_id: file.fieldname,
+      public_id:
+        fileType === "technicalDocument"
+          ? `${file.fieldname}-${isoTime}`
+          : file.fieldname,
       format: fileExtension,
     };
   },
