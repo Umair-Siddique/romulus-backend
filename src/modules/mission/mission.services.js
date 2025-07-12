@@ -106,8 +106,8 @@ export const missionServices = {
     };
   },
 
-  getByOrganizationId: async (id) => {
-    const result = await read.missionByOrganizationId(id);
+  getByOrganizationId: async (mId, oId) => {
+    const result = await read.missionByOrganizationId(mId, oId);
 
     return {
       success: true,
@@ -116,8 +116,8 @@ export const missionServices = {
     };
   },
 
-  getByEducatorId: async (id) => {
-    const result = await read.missionByEducatorId(id);
+  getByEducatorId: async (mId, eId) => {
+    const result = await read.missionByEducatorId(mId, eId);
 
     return {
       success: true,

@@ -34,15 +34,15 @@ export const missionControllers = {
   }),
 
   getByOrganizationId: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const result = await missionServices.getByOrganizationId(id);
+    const { mId, oId } = req.params;
+    const result = await missionServices.getByOrganizationId(mId, oId);
 
     res.status(200).json(result);
   }),
 
   getByEducatorId: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const result = await missionServices.getByEducatorId(id);
+    const { mId, eId } = req.params;
+    const result = await missionServices.getByEducatorId(mId, eId);
 
     res.status(200).json(result);
   }),

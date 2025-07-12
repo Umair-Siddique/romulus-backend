@@ -22,18 +22,20 @@ export const missionDataAccess = {
       return MissionModel.findById(missionId).populate("organization");
     },
 
-    missionByOrganizationId: (organizationId) => {
+    missionByOrganizationId: (mId, oId) => {
       return MissionModel.findOne({
-        organization: organizationId,
+        _id: mId,
+        organization: oId,
       }).populate("organization");
     },
 
-    missionByEducatorId: (educatorId) => {
+    missionByEducatorId: (mId, eId) => {
       return MissionModel.findOne({
+        _id: mId,
         $or: [
-          { invitedEducators: educatorId },
-          { hiredEducators: educatorId },
-          { rejectedEducators: educatorId },
+          { invitedEducators: eId },
+          { hiredEducators: eId },
+          { rejectedEducators: eId },
         ],
       })
         .populate("organization")
