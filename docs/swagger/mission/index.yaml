@@ -11,7 +11,7 @@ info:
     - Multi-skill mission support with flexible input formats
     - Date and time scheduling with validation and ISO 8601 conversion
     - Mission status tracking throughout lifecycle
-    - Technical document upload and management
+    - Technical document upload and management via Cloudinary
     - Educator invitation system with tracking
     - Organization-specific mission filtering and management
 
@@ -30,7 +30,9 @@ info:
 
     **File Upload Support:**
     - Technical documents (jpg, jpeg, png, gif, pdf)
-    - Automatic file processing and cloud storage
+    - Maximum file size: 5MB
+    - Automatic file processing and Cloudinary storage
+    - Files stored in missions/{organizationId}/technicalDocument folder
 
     **Educator Management:**
     - Track invited, hired, and rejected educators
@@ -77,8 +79,8 @@ components:
 
     DocumentUrl:
       type: string
-      description: URL or file path for uploaded technical documents
-      example: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/60d0fe4f5311236168a109ca/technicalDocument.pdf"
+      description: URL or file path for uploaded technical documents from Cloudinary
+      example: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/missions/60d0fe4f5311236168a109ca/technicalDocument.pdf"
       pattern: "^https?:\\/\\/.+\\.(jpg|jpeg|png|gif|pdf)$"
 
     MissionStatus:
@@ -182,7 +184,6 @@ components:
         - skills
         - start
         - end
-        - technicalDocument
         - status
         - invitedEducators
         - hiredEducators
@@ -237,8 +238,8 @@ components:
           example: "2025-08-30T17:00:00.000Z"
         technicalDocument:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Technical documentation or requirements document
-          default: "https://example.com/default-document.pdf"
+          description: Technical documentation or requirements document stored in Cloudinary
+          nullable: true
         status:
           $ref: "#/components/schemas/MissionStatus"
         invitedEducators:
@@ -283,6 +284,9 @@ components:
         organization:
           $ref: "#/components/schemas/ID"
           description: ID of the organization creating the mission
+        educator:
+          $ref: "#/components/schemas/ID"
+          description: Optional primary assigned educator
         title:
           type: string
           description: Mission title or name
@@ -315,10 +319,13 @@ components:
         endTime:
           $ref: "#/components/schemas/TimeFormat"
           description: Daily end time for the mission
+        status:
+          $ref: "#/components/schemas/MissionStatus"
+          description: Optional mission status (defaults to pending)
         technicalDocument:
           type: string
           format: binary
-          description: Technical documentation file (jpg, jpeg, png, gif, pdf)
+          description: Technical documentation file (jpg, jpeg, png, gif, pdf, max 5MB)
 
     MissionUpdateRequest:
       type: object
@@ -404,7 +411,7 @@ components:
               skills: ["mathematics", "algebra", "calculus", "statistics"]
               start: "2025-07-01T09:00:00.000Z"
               end: "2025-08-30T17:00:00.000Z"
-              technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/684a9654caa07bcde4138271/technicalDocument.pdf"
+              technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/missions/684a9654caa07bcde4138271/technicalDocument.pdf"
               status: "pending"
               invitedEducators: []
               hiredEducators: []
@@ -472,9 +479,25 @@ components:
       schema:
         $ref: "#/components/schemas/ID"
 
+    MissionIdPathParam:
+      in: path
+      name: mId
+      required: true
+      description: MongoDB ObjectId of the mission
+      schema:
+        $ref: "#/components/schemas/ID"
+
+    OrganizationIdPathParam:
+      in: path
+      name: oId
+      required: true
+      description: MongoDB ObjectId of the organization
+      schema:
+        $ref: "#/components/schemas/ID"
+
     EducatorIdPath:
       in: path
-      name: id
+      name: eId
       required: true
       description: MongoDB ObjectId of the educator
       schema:
@@ -533,7 +556,7 @@ components:
               skills: ["mathematics", "algebra", "calculus", "statistics"]
               start: "2025-07-01T09:00:00.000Z"
               end: "2025-08-30T17:00:00.000Z"
-              technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/organizations/684a9654caa07bcde4138271/technicalDocument.pdf"
+              technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/missions/684a9654caa07bcde4138271/technicalDocument.pdf"
               status: "ongoing"
               invitedEducators: ["60d0fe4f5311236168a109ca"]
               hiredEducators: []
@@ -681,8 +704,9 @@ paths:
         **File Upload Support:**
         - Content-Type: multipart/form-data
         - Technical document formats: jpg, jpeg, png, gif, pdf
-        - Files are processed and stored with generated paths
-        - Default URL provided if no document uploaded
+        - Maximum file size: 5MB
+        - Files are processed and stored with generated paths in Cloudinary
+        - Files stored in missions/{organizationId}/technicalDocument folder
 
         **Date/Time Processing:**
         - Separate date and time inputs are combined into ISO 8601 format
@@ -701,7 +725,7 @@ paths:
         **Business Logic:**
         - Validates organization existence
         - Processes skills from comma-separated string to array
-        - Handles file upload for technical documents
+        - Handles file upload for technical documents via Cloudinary
         - Initializes educator arrays as empty
 
       operationId: create-mission
@@ -758,6 +782,10 @@ paths:
       description: |
         Retrieves all missions in the system with populated organization information.
 
+        **Authentication:**
+        - Requires valid JWT authentication token
+        - No specific role requirement
+
         **Response Details:**
         - Returns array of all missions
         - Each mission includes populated organization object
@@ -784,7 +812,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/missions/organization/{id}/all:
+  /api/v1/missions/organization/{id}:
     get:
       summary: Get all missions for a specific organization
       description: |
@@ -821,95 +849,15 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-  /api/v1/missions/organization/{id}/one:
-    get:
-      summary: Get one mission for a specific organization
-      description: |
-        Retrieves the first mission found for a specific organization.
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have organization role
-
-        **Response Details:**
-        - Returns single mission object for the specified organization
-        - Includes populated organization object
-        - All educator tracking arrays are included
-        - Uses findOne query - returns first match
-
-        **Use Cases:**
-        - Quick access to organization's primary mission
-        - Sample mission data for organization
-        - Preview organization's mission template
-
-      operationId: get-mission-by-organization
-      tags: [Mission Management]
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/OrganizationIdPath"
-      responses:
-        200:
-          $ref: "#/components/responses/MissionProfileResponse"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/missions/educator/{id}/one:
-    get:
-      summary: Get mission associated with an educator
-      description: |
-        Retrieves a mission where the educator is involved (invited, hired, or rejected).
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
-
-        **Search Logic:**
-        - Uses $or query to find missions where educator ID appears in:
-          - invitedEducators array
-          - hiredEducators array  
-          - rejectedEducators array
-        - Returns first matching mission
-
-        **Response Details:**
-        - Returns single mission object with populated organization
-        - Excludes educator arrays from response for privacy (select projection)
-        - Shows mission details relevant to the educator
-
-        **Use Cases:**
-        - Educator viewing their assigned mission
-        - Check mission details for invited educator
-        - Mission dashboard for educators
-
-      operationId: get-mission-by-educator
-      tags: [Mission Management]
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/EducatorIdPath"
-      responses:
-        200:
-          $ref: "#/components/responses/MissionProfileResponse"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
   /api/v1/missions/{id}:
     get:
       summary: Get mission by ID
       description: |
         Retrieves a specific mission by its MongoDB ObjectId.
+
+        **Authentication:**
+        - Requires valid JWT authentication token
+        - No specific role requirement
 
         **Response Details:**
         - Returns complete mission with populated organization information
@@ -1016,6 +964,47 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
+  /api/v1/missions/{mId}/organization/{oId}:
+    get:
+      summary: Get specific mission by organization
+      description: |
+        Retrieves a specific mission for a specific organization by mission ID and organization ID.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+
+        **Response Details:**
+        - Returns single mission object with populated organization
+        - Excludes educator arrays from response for privacy (select projection)
+        - Shows mission details relevant to the educator
+
+        **Use Cases:**
+        - Educator viewing their assigned mission
+        - Check mission details for invited educator
+        - Mission dashboard for educators
+
+        - Also supports organization verification of mission ownership and secure access.
+
+      operationId: get-mission-by-organization-ids
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/MissionIdPathParam"
+        - $ref: "#/components/parameters/OrganizationIdPathParam"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionProfileResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
   /api/v1/missions/send-invitations:
     post:
       summary: Send mission invitations to educators
@@ -1083,5 +1072,25 @@ paths:
           $ref: "#/components/responses/Forbidden"
         404:
           $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
+      500:
+        $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/{mId}/educator/{eId}:
+    get:
+      summary: Get mission by educator association
+      description: |
+        Retrieves a specific mission where the educator is involved (invited, hired, or rejected).
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have educator role
+
+        **Search Logic:**
+        - Uses $or query to find missions where educator ID appears in:
+          - invitedEducators array
+          - hiredEducators array  
+          - rejectedEducators array
+        - Returns first matching mission with specified mission ID
+
+        **Response Details:**
+        - Returns single mission object
