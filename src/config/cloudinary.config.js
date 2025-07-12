@@ -29,15 +29,7 @@ export const storage = new CloudinaryStorage({
     const fileType = file.fieldname;
     const fileExtension = path.extname(file.originalname).substring(1);
 
-    // Default path for user-related uploads
     let folderPath = `users/${userId}/${fileType}`;
-
-    // If mission upload, add timestamp-based folder
-    if (fileType === "technicalDocument") {
-      const isoTime = new Date().toISOString().replace(/[:.]/g, "-");
-      const missionFolder = `mission-${isoTime}`;
-      folderPath = `missions/${userId}/${missionFolder}/${fileType}`;
-    }
 
     return {
       folder: folderPath,
