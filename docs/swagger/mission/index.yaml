@@ -266,6 +266,80 @@ components:
           $ref: "#/components/schemas/Timestamp"
 
     # ================================
+    # EDUCATOR-SPECIFIC SCHEMAS
+    # ================================
+    EducatorMissionView:
+      type: object
+      description: Mission data as seen by educators (excludes educator tracking arrays for privacy)
+      required:
+        - _id
+        - organization
+        - title
+        - description
+        - branch
+        - skills
+        - start
+        - end
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          $ref: "#/components/schemas/ID"
+        organization:
+          $ref: "#/components/schemas/OrganizationReference"
+          description: Populated organization object with full details
+        educator:
+          $ref: "#/components/schemas/ID"
+          description: Primary assigned educator (optional)
+          nullable: true
+        title:
+          type: string
+          description: Mission title or name
+          example: "Advanced Mathematics Training Program"
+          maxLength: 200
+        description:
+          type: string
+          description: Detailed mission description
+          example: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
+          maxLength: 2000
+        branch:
+          type: string
+          description: Specific branch location for the mission
+          example: "Downtown Branch"
+          maxLength: 100
+        skills:
+          type: array
+          description: Required skills for the mission
+          items:
+            type: string
+            minLength: 1
+          example: ["mathematics", "algebra", "calculus", "statistics"]
+          minItems: 1
+          maxItems: 20
+        start:
+          type: string
+          format: date-time
+          description: Mission start date and time in ISO 8601 format
+          example: "2025-07-01T09:00:00.000Z"
+        end:
+          type: string
+          format: date-time
+          description: Mission end date and time in ISO 8601 format
+          example: "2025-08-30T17:00:00.000Z"
+        technicalDocument:
+          $ref: "#/components/schemas/DocumentUrl"
+          description: Technical documentation or requirements document stored in Cloudinary
+          nullable: true
+        status:
+          $ref: "#/components/schemas/MissionStatus"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+      # Note: invitedEducators, hiredEducators, rejectedEducators are explicitly excluded
+
+    # ================================
     # REQUEST SCHEMAS
     # ================================
     MissionCreateRequest:
@@ -453,6 +527,14 @@ components:
           example:
             success: true
             message: "Mission updated successfully"
+
+    EducatorMissionResponse:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/EducatorMissionView"
 
     InvitationResponse:
       allOf:
@@ -976,17 +1058,15 @@ paths:
 
         **Response Details:**
         - Returns single mission object with populated organization
-        - Excludes educator arrays from response for privacy (select projection)
-        - Shows mission details relevant to the educator
+        - **INCLUDES all educator arrays (invited, hired, rejected) for organization management**
+        - Shows complete mission details for organization dashboard
 
         **Use Cases:**
-        - Educator viewing their assigned mission
-        - Check mission details for invited educator
-        - Mission dashboard for educators
+        - Organization viewing their mission details
+        - Organization managing educator assignments
+        - Track educator status for mission planning
 
-        - Also supports organization verification of mission ownership and secure access.
-
-      operationId: get-mission-by-organization-ids
+      operationId: get-mission-by-organization
       tags: [Mission Management]
       security:
         - BearerAuth: []
@@ -996,6 +1076,81 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/MissionProfileResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/{mId}/educator/{eId}:
+    get:
+      summary: Get mission by educator association
+      description: |
+        Retrieves a specific mission where the educator is involved (invited, hired, or rejected).
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have educator role
+
+        **Search Logic:**
+        - Uses $or query to find missions where educator ID appears in:
+          - invitedEducators array
+          - hiredEducators array  
+          - rejectedEducators array
+        - Returns first matching mission with specified mission ID
+
+        **Response Details:**
+        - Returns single mission object with populated organization
+        - **EXCLUDES educator tracking arrays (invitedEducators, hiredEducators, rejectedEducators) for privacy**
+        - Educator can see mission details but not other educators involved
+
+        **Use Cases:**
+        - Educator viewing their assigned/invited missions
+        - Check mission details for specific educator-mission relationship
+        - Mission status tracking for educators
+
+      operationId: get-mission-by-educator-association
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/MissionIdPathParam"
+        - $ref: "#/components/parameters/EducatorIdPath"
+      responses:
+        200:
+          description: Mission retrieved successfully (educator view - excludes educator arrays)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EducatorMissionResponse"
+              example:
+                success: true
+                message: "Mission retrieved successfully"
+                data:
+                  _id: "60d0fe4f5311236168a109ca"
+                  organization:
+                    _id: "684a9654caa07bcde4138271"
+                    organizationName: "Global Education Solutions"
+                    city: "Paris"
+                    country: "France"
+                    phone: "+33123456789"
+                    branches:
+                      - branchName: "Downtown Branch"
+                        branchEmail: "downtown@example.com"
+                  educator: "60d0fe4f5311236168a109ca"
+                  title: "Advanced Mathematics Training Program"
+                  description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
+                  branch: "Downtown Branch"
+                  skills: ["mathematics", "algebra", "calculus", "statistics"]
+                  start: "2025-07-01T09:00:00.000Z"
+                  end: "2025-08-30T17:00:00.000Z"
+                  technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/missions/684a9654caa07bcde4138271/technicalDocument.pdf"
+                  status: "ongoing"
+                  createdAt: "2025-06-27T14:30:00.000Z"
+                  updatedAt: "2025-06-28T10:15:00.000Z"
         401:
           $ref: "#/components/responses/Unauthorized"
         403:
@@ -1072,25 +1227,5 @@ paths:
           $ref: "#/components/responses/Forbidden"
         404:
           $ref: "#/components/responses/NotFound"
-      500:
-        $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/missions/{mId}/educator/{eId}:
-    get:
-      summary: Get mission by educator association
-      description: |
-        Retrieves a specific mission where the educator is involved (invited, hired, or rejected).
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
-
-        **Search Logic:**
-        - Uses $or query to find missions where educator ID appears in:
-          - invitedEducators array
-          - hiredEducators array  
-          - rejectedEducators array
-        - Returns first matching mission with specified mission ID
-
-        **Response Details:**
-        - Returns single mission object
+        500:
+          $ref: "#/components/responses/InternalServerError"
