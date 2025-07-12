@@ -232,6 +232,30 @@ components:
           description: Invitation status
           example: "pending"
 
+    EducatorFeedback:
+      type: object
+      required:
+        - educator
+        - feedback
+        - rating
+      properties:
+        educator:
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - $ref: "#/components/schemas/Educator"
+          description: Educator who provided the feedback (ObjectId or populated educator object)
+        feedback:
+          type: string
+          description: Educator's feedback text
+          example: "Great experience working on this mission. The organization was very supportive and the resources were excellent."
+          maxLength: 500
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          description: Rating from 1 to 5 stars
+          example: 4
+
     Mission:
       type: object
       required:
@@ -318,6 +342,12 @@ components:
           description: Array of educator IDs who rejected this mission
           items:
             $ref: "#/components/schemas/ID"
+          default: []
+        educatorFeedback:
+          type: array
+          description: Array of feedback provided by educators for this mission
+          items:
+            $ref: "#/components/schemas/EducatorFeedback"
           default: []
         createdAt:
           $ref: "#/components/schemas/Timestamp"
@@ -535,7 +565,7 @@ components:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
           $ref: "#/components/schemas/Timestamp"
-      # Note: invitedEducators, hiredEducators, rejectedEducators are explicitly excluded
+      # Note: invitedEducators, hiredEducators, rejectedEducators, educatorFeedback are explicitly excluded
 
     # ================================
     # REQUEST SCHEMAS
@@ -932,6 +962,7 @@ components:
               invitedEducators: []
               hiredEducators: []
               rejectedEducators: []
+              educatorFeedback: []
               createdAt: "2025-06-27T14:30:00.000Z"
               updatedAt: "2025-06-27T14:30:00.000Z"
 
@@ -1187,6 +1218,13 @@ components:
               invitedEducators: ["60d0fe4f5311236168a109ca"]
               hiredEducators: []
               rejectedEducators: []
+              educatorFeedback: [
+                {
+                  educator: "60d0fe4f5311236168a109ca",
+                  feedback: "Excellent mission with great learning opportunities. The organization provided all necessary resources.",
+                  rating: 5
+                }
+              ]
               createdAt: "2025-06-27T14:30:00.000Z"
               updatedAt: "2025-06-28T10:15:00.000Z"
 
@@ -1444,88 +1482,58 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-      get:
-        summary: Get all educators
-        description: |
-          Retrieves all educator profiles in the system with populated user information.
-  
-          **Authentication:**
-          - Requires valid JWT authentication token
-          - No specific role requirement
-  
-          **Response Details:**
-          - Returns array of all educator profiles
-          - Each educator includes populated user object with email and role
-          - All document URLs and file paths are included
-          - Mission invitations are included with populated mission data
-          - No pagination applied - returns all educators
-  
-          **Use Cases:**
-          - Browse available educators
-          - Admin dashboard for educator management
-          - Educator discovery for organizations
-          - Analytics and reporting
-  
-        operationId: get-all-educators
-        tags: [Educator Management]
-        security:
-          - BearerAuth: []
-        responses:
-          200:
-            $ref: "#/components/responses/EducatorListSuccess"
-          401:
-            $ref: "#/components/responses/Unauthorized"
-          500:
-            $ref: "#/components/responses/InternalServerError"
-  
-    /api/v1/educators/nearby:
-      get:
-        summary: Get nearby educators
-        description: |
-          Retrieves educators within a specified distance and optionally filters by skills.
-  
-          **Prerequisites:**
-          - Valid JWT authentication token
-          - User must have organization role
-  
-          **Query Parameters:**
-          - coordinates: Required - longitude,latitude as comma-separated string
-          - distance: Required - search radius in kilometers
-          - skills: Optional - comma-separated skills filter
-  
-          **Location Processing:**
-          - Uses MongoDB geospatial queries with $near operator
-          - Searches within fullAddressCoordinates field (GeoJSON Point)
-          - Distance converted from kilometers to meters for query
-          - Results naturally sorted by distance (nearest first)
-  
-          **Skills Filtering:**
-          - Applied after location filtering
-          - Uses intersection logic (educator must have at least one matching skill)
-          - If no skills specified, returns all educators within distance
-  
-          **Use Cases:**
-          - Find local educators for missions
-          - Location-based educator recruitment
-          - Skills-based matching within geographic area
-  
-        operationId: get-nearby-educators
-        tags: [Educator Management]
-        security:
-          - BearerAuth: []
-        parameters:
-          - $ref: "#/components/parameters/CoordinatesQuery"
-          - $ref: "#/components/parameters/DistanceQuery"
-          - $ref: "#/components/parameters/SkillsQuery"
-        responses:
-          200:
-            $ref: "#/components/responses/EducatorNearbySuccess"
-          401:
-            $ref: "#/components/responses/Unauthorized"
-          403:
-            $ref: "#/components/responses/Forbidden"
-          500:
-            $ref: "#/components/responses/InternalServerError"
+    get:
+      summary: Get all educators or search nearby educators
+      description: |
+        Retrieves all educator profiles in the system, or filters by location and skills if query parameters are provided.
+
+        **Authentication:**
+        - Requires valid JWT authentication token
+        - No specific role requirement for all educators
+        - Organization role required for location-based search
+
+        **Query Parameters:**
+        - coordinates: Optional - longitude,latitude as comma-separated string (requires organization role)
+        - distance: Optional - search radius in kilometers (requires organization role)
+        - skills: Optional - comma-separated skills filter
+
+        **Behavior:**
+        - If `coordinates` and `distance` are provided, returns educators within the specified distance, optionally filtered by skills.
+        - If no query parameters are provided, returns all educators.
+
+        **Response Details:**
+        - Returns array of educator profiles
+        - Each educator includes populated user object with email and role
+        - All document URLs and file paths are included
+        - Mission invitations are included with populated mission data
+        - No pagination applied - returns all educators
+
+        **Use Cases:**
+        - Browse available educators
+        - Admin dashboard for educator management
+        - Educator discovery for organizations
+        - Analytics and reporting
+        - Find local educators for missions
+        - Location-based educator recruitment
+        - Skills-based matching within geographic area
+
+      operationId: get-educators
+      tags: [Educator Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/CoordinatesQuery"
+        - $ref: "#/components/parameters/DistanceQuery"
+        - $ref: "#/components/parameters/SkillsQuery"
+      responses:
+        200:
+          $ref: "#/components/responses/EducatorListSuccess"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/InternalServerError"
 
   /api/v1/educators/{id}:
     get:
@@ -1750,7 +1758,7 @@ paths:
         - Each mission includes populated organization object
         - Organization includes basic info and branch details
         - All document URLs and file paths are included
-        - Educator arrays (invited, hired, rejected) are included
+        - Educator arrays (invited, hired, rejected) and feedback are included
         - No pagination applied - returns all missions
 
         **Use Cases:**
@@ -1784,7 +1792,7 @@ paths:
         **Response Details:**
         - Returns array of missions for the specified organization
         - Each mission includes populated organization object
-        - All educator tracking arrays are included
+        - All educator tracking arrays and feedback are included
         - Filtered by organization ID
 
         **Use Cases:**
@@ -1823,7 +1831,7 @@ paths:
         - Organization object includes name, location, contact details, and branches
         - All technical documents and file paths are included
         - Shows current mission status and scheduling details
-        - Includes all educator tracking arrays
+        - Includes all educator tracking arrays and educator feedback
 
         **Use Cases:**
         - Display detailed mission information
@@ -1935,8 +1943,9 @@ paths:
 
         **Response Details:**
         - Returns single mission object with populated organization
-        - **INCLUDES all educator arrays (invited, hired, rejected) for organization management**
+        - **INCLUDES all educator arrays (invited, hired, rejected) and educator feedback for organization management**
         - Shows complete mission details for organization dashboard
+        - Educator feedback includes populated educator information for comprehensive review
 
         **Use Cases:**
         - Organization viewing their mission details
@@ -1981,8 +1990,8 @@ paths:
 
         **Response Details:**
         - Returns single mission object with populated organization
-        - **EXCLUDES educator tracking arrays (invitedEducators, hiredEducators, rejectedEducators) for privacy**
-        - Educator can see mission details but not other educators involved
+        - **EXCLUDES educator tracking arrays (invitedEducators, hiredEducators, rejectedEducators, educatorFeedback) for privacy**
+        - Educator can see mission details but not other educators involved or their feedback
 
         **Use Cases:**
         - Educator viewing their assigned/invited missions
