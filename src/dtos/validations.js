@@ -84,8 +84,6 @@ export const role = Joi.string()
   });
 
 export const resetToken = Joi.string()
-  .min(32)
-  .max(128)
   .required()
   .messages({
     "string.base": "Reset token should be a type of text.",
