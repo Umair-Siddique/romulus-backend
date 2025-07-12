@@ -18,6 +18,7 @@ export const missionServices = {
       endDate,
       startTime,
       endTime,
+      preferredEducator,
       technicalDocument,
     } = data;
 
@@ -64,6 +65,7 @@ export const missionServices = {
       skills: parseDelimitedString(skills),
       start: toISO8601(startDate, startTime),
       end: toISO8601(endDate, endTime),
+      preferredEducator,
       technicalDocument: getFilePath(technicalDocument),
     };
 

@@ -9,10 +9,6 @@ const MissionSchema = new Schema(
       required: [true, "Organization ID is required"],
       ref: "Organization",
     },
-    educator: {
-      type: Schema.Types.ObjectId,
-      ref: "Educator",
-    },
     title: {
       type: String,
       required: [true, "Title is required"],
@@ -48,6 +44,17 @@ const MissionSchema = new Schema(
       type: Date,
       required: [true, "End date and time are required"],
     },
+    preferredEducator: {
+      type: Schema.Types.ObjectId,
+      ref: "Educator",
+      validate: {
+        validator: (v) => {
+          return mongoose.Types.ObjectId.isValid(v);
+        },
+        message: "Preferred educator must be a valid ObjectId",
+      },
+      default: null,
+    },
     technicalDocument: {
       type: String,
       trim: true,
@@ -62,8 +69,7 @@ const MissionSchema = new Schema(
       type: String,
       enum: {
         values: ["pending", "ongoing", "completed"],
-        message:
-          "Status must be pending, ongoing, or completed",
+        message: "Status must be pending, ongoing, or completed",
       },
       default: "pending",
       index: true, // Index for status-based queries
