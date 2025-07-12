@@ -84,7 +84,6 @@ export const role = Joi.string()
   });
 
 export const resetToken = Joi.string()
-  .alphanum()
   .min(32)
   .max(128)
   .required()
