@@ -94,11 +94,10 @@ const EducatorSchema = new Schema(
       coordinates: {
         type: [Number],
         required: true,
-        default: [73.14474441571859, 33.623802049520755],
         validate: {
           validator: (v) => v.length === 2,
           message:
-            "Coordinates must be an array of two numbers [longitude, latitude]",
+            "Coordinates must be an array of two numbers [latitude, longitude]",
         },
       },
     },
@@ -200,6 +199,9 @@ const EducatorSchema = new Schema(
           default: "pending",
         },
         _id: false,
+      },
+      {
+        timestamps: true,
       },
     ],
 

@@ -1,7 +1,7 @@
 import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
-import { globalUtils } from "#utils/index.js";
+import { globalUtils, getCoordinates } from "#utils/index.js";
 
 const { save, read, update } = dataAccess;
 const { parseDelimitedString } = globalUtils;
@@ -73,6 +73,8 @@ export const educatorServices = {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
     };
 
+    const fullAddressCoordinates = await getCoordinates(fullAddress);
+
     const educatorData = {
       user: userId,
       avatar: getFilePath(avatar),
@@ -83,6 +85,7 @@ export const educatorServices = {
       city,
       country,
       fullAddress,
+      fullAddressCoordinates,
       bio,
       identityProof: getFilePath(identityProof),
       criminalRecord: getFilePath(criminalRecord),
