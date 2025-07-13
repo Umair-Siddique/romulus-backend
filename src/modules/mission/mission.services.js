@@ -162,6 +162,29 @@ export const missionServices = {
     };
   },
 
+  respondInvitation: async (data) => {
+    const { educatorId, missionId, response } = data;
+
+    const result = await update.educatorById(
+      educatorId,
+      {
+        $set: {
+          "missionsInvitedFor.$[elem].invitationStatus": response,
+        },
+      },
+      {
+        arrayFilters: [{ "elem.mission": missionId }],
+        new: true, // returns the updated document
+      }
+    );
+
+    return {
+      success: true,
+      message: "Invitation response recorded successfully",
+      data: result,
+    };
+  },
+
   deleteById: async (id) => {
     const existingMission = await read.missionById(id);
     const { invitedEducators } = existingMission;

@@ -42,8 +42,8 @@ export const educatorDataAccess = {
   },
 
   update: {
-    educatorById: (id, data) => {
-      return EducatorModel.findByIdAndUpdate(id, data);
+    educatorById: (id, data, options = {}) => {
+      return EducatorModel.findByIdAndUpdate(id, data, options);
     },
   },
 };

@@ -62,6 +62,13 @@ export const missionControllers = {
     res.status(200).json(result);
   }),
 
+  respondInvitation: asyncHandler(async (req, res) => {
+    const payload = req.body;
+    const result = await missionServices.respondInvitation(payload);
+
+    res.status(200).json(result);
+  }),
+
   deleteById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     await missionServices.deleteById(id);

@@ -16,12 +16,12 @@ missionRoutes
     missionControllers.create
   )
   .get("/", missionControllers.getAll)
+  .get("/:id", missionControllers.getById)
   .get(
     "/organization/:id",
     validate.authRole("organization"),
     missionControllers.getAllByOrganizationId
   )
-  .get("/:id", missionControllers.getById)
   .get(
     "/:mId/organization/:oId",
     validate.authRole("organization"),
@@ -43,5 +43,10 @@ missionRoutes
     "/send-invitations",
     validate.authRole("organization"),
     missionControllers.sendInvitation
+  )
+  .post(
+    "/respond-invitation",
+    validate.authRole("educator"),
+    missionControllers.respondInvitation
   )
   .delete("/:id", missionControllers.deleteById);
