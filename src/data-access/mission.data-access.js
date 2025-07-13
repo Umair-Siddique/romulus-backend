@@ -55,4 +55,10 @@ export const missionDataAccess = {
       });
     },
   },
+
+  remove: {
+    missionById: (missionId) => {
+      return MissionModel.findByIdAndDelete(missionId);
+    },
+  },
 };

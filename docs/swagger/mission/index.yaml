@@ -343,7 +343,7 @@ components:
           items:
             $ref: "#/components/schemas/ID"
           default: []
-        educatorFeedback:
+        educatorsFeedbacks:
           type: array
           description: Array of feedback provided by educators for this mission
           items:
@@ -565,7 +565,7 @@ components:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
           $ref: "#/components/schemas/Timestamp"
-      # Note: invitedEducators, hiredEducators, rejectedEducators, educatorFeedback are explicitly excluded
+      # Note: invitedEducators, hiredEducators, rejectedEducators, educatorsFeedbacks are explicitly excluded
 
     # ================================
     # REQUEST SCHEMAS
@@ -962,7 +962,7 @@ components:
               invitedEducators: []
               hiredEducators: []
               rejectedEducators: []
-              educatorFeedback: []
+              educatorsFeedbacks: []
               createdAt: "2025-06-27T14:30:00.000Z"
               updatedAt: "2025-06-27T14:30:00.000Z"
 
@@ -1218,7 +1218,7 @@ components:
               invitedEducators: ["60d0fe4f5311236168a109ca"]
               hiredEducators: []
               rejectedEducators: []
-              educatorFeedback: [
+              educatorsFeedbacks: [
                 {
                   educator: "60d0fe4f5311236168a109ca",
                   feedback: "Excellent mission with great learning opportunities. The organization provided all necessary resources.",
@@ -1990,7 +1990,7 @@ paths:
 
         **Response Details:**
         - Returns single mission object with populated organization
-        - **EXCLUDES educator tracking arrays (invitedEducators, hiredEducators, rejectedEducators, educatorFeedback) for privacy**
+        - **EXCLUDES educator tracking arrays (invitedEducators, hiredEducators, rejectedEducators, educatorsFeedbacks) for privacy**
         - Educator can see mission details but not other educators involved or their feedback
 
         **Use Cases:**

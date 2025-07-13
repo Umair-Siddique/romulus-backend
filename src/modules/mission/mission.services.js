@@ -3,7 +3,7 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { globalUtils } from "#utils/global.utils.js";
 
-const { save, read, update } = dataAccess;
+const { save, read, update, remove } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const missionServices = {
@@ -159,6 +159,31 @@ export const missionServices = {
     return {
       success: true,
       message: `Invitations have been sent to ${invitees.length} educators successfully.`,
+    };
+  },
+
+  deleteById: async (id) => {
+    const existingMission = await read.missionById(id);
+    const { invitedEducators } = existingMission;
+
+    if (invitedEducators.length > 0) {
+      await Promise.all(
+        invitedEducators.map((educatorId) =>
+          update.educatorById(educatorId, {
+            $pull: {
+              missionsInvitedFor: { mission: id },
+            },
+          })
+        )
+      );
+    }
+
+    const result = await remove.missionById(id);
+
+    return {
+      success: true,
+      message: "Mission deleted successfully",
+      data: result,
     };
   },
 };

@@ -43,4 +43,5 @@ missionRoutes
     "/send-invitations",
     validate.authRole("organization"),
     missionControllers.sendInvitation
-  );
+  )
+  .delete("/:id", missionControllers.deleteById);

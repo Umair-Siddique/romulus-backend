@@ -86,7 +86,7 @@ const MissionSchema = new Schema(
         ref: "Educator",
       },
     ],
-    educatorFeedback: [
+    educatorsFeedbacks: [
       {
         educator: {
           type: Schema.Types.ObjectId,

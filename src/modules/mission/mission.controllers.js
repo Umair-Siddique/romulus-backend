@@ -61,4 +61,11 @@ export const missionControllers = {
 
     res.status(200).json(result);
   }),
+
+  deleteById: asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await missionServices.deleteById(id);
+
+    res.status(204).send();
+  }),
 };
