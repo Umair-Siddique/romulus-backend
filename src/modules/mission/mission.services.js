@@ -129,7 +129,41 @@ export const missionServices = {
   },
 
   updateById: async (id, data) => {
-    const result = await update.missionById(id, data);
+    const { hireStatus, educatorId, ...rest } = data;
+
+    // Handle hired or rejected status
+    if (hireStatus && educatorId) {
+      // Fetch the mission to inspect current state
+      const mission = await read.missionById(id);
+
+      const isAlreadyHired = mission.hiredEducators.includes(educatorId);
+      const isAlreadyRejected = mission.rejectedEducators.includes(educatorId);
+
+      let updateOps = {};
+
+      if (hireStatus === "hired" && !isAlreadyHired) {
+        const isFirstHire = mission.hiredEducators.length === 0;
+
+        updateOps = {
+          $push: { hiredEducators: educatorId },
+          ...(isFirstHire && { $set: { status: "ongoing" } }),
+        };
+      }
+
+      if (hireStatus === "rejected" && !isAlreadyRejected) {
+        updateOps = {
+          $push: { rejectedEducators: educatorId },
+        };
+      }
+
+      // Only update if push is valid (not duplicate)
+      if (Object.keys(updateOps).length > 0) {
+        await update.missionById(id, updateOps);
+      }
+    }
+
+    // Update remaining fields
+    const result = await update.missionById(id, { $set: rest });
 
     return {
       success: true,
