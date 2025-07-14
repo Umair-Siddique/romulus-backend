@@ -25,8 +25,8 @@ export const organizationDataAccess = {
     organizationById: (id, data) => {
       return OrganizationModel.findByIdAndUpdate(id, data, {
         new: true,
-        upsert: true,
-      });
+        runValidators: true, // Ensure validations run on update
+      }).populate("user");
     },
   },
 };

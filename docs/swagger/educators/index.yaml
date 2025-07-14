@@ -195,6 +195,12 @@ components:
           enum: [pending, accepted, declined]
           default: pending
           description: Status of the mission invitation
+        responseTime:
+          type: string
+          format: date-time
+          description: Timestamp when educator responded to invitation
+          nullable: true
+          default: null
 
     # ================================
     # EDUCATOR SCHEMAS
@@ -271,7 +277,7 @@ components:
           maxLength: 500
         fullAddressCoordinates:
           type: object
-          description: Geographic coordinates for the full address (defaults to Islamabad coordinates)
+          description: Geographic coordinates for the full address (retrieved from Google Maps API)
           required:
             - type
             - coordinates
@@ -283,13 +289,12 @@ components:
               description: GeoJSON type for point location
             coordinates:
               type: array
-              description: Array of [longitude, latitude] coordinates
+              description: Array of [longitude, latitude] coordinates from Google Maps Geocoding API
               items:
                 type: number
               minItems: 2
               maxItems: 2
               example: [73.14474441571859, 33.623802049520755]
-              default: [73.14474441571859, 33.623802049520755]
         bio:
           type: string
           description: Professional biography
@@ -299,11 +304,9 @@ components:
         identityProof:
           $ref: "#/components/schemas/DocumentUrl"
           description: Identity verification document (required)
-          default: "https://example.com/default-identity-proof.png"
         criminalRecord:
           $ref: "#/components/schemas/DocumentUrl"
           description: Criminal background check document (required)
-          default: "https://example.com/default-criminal-record.png"
         profession:
           type: string
           description: Professional title or occupation
@@ -318,7 +321,7 @@ components:
           maximum: 10000
         skills:
           type: array
-          description: Teaching skills and specializations (normalized to lowercase)
+          description: Teaching skills and specializations (normalized to lowercase via pre-save middleware)
           items:
             type: string
             minLength: 1
@@ -415,7 +418,7 @@ components:
           maxLength: 100
         fullAddress:
           type: string
-          description: Complete residential address
+          description: Complete residential address (coordinates auto-generated via Google Maps API)
           minLength: 10
           maxLength: 500
         bio:
@@ -425,11 +428,11 @@ components:
         identityProof:
           type: string
           format: binary
-          description: Identity verification document (jpg, jpeg, png, gif, pdf)
+          description: Identity verification document (jpg, jpeg, png, gif, pdf) - required
         criminalRecord:
           type: string
           format: binary
-          description: Criminal background check document (jpg, jpeg, png, gif, pdf)
+          description: Criminal background check document (jpg, jpeg, png, gif, pdf) - required
         profession:
           type: string
           description: Professional title or occupation
@@ -442,7 +445,7 @@ components:
           maximum: 10000
         skills:
           type: string
-          description: Teaching skills (comma-separated string or array)
+          description: Teaching skills (comma-separated string) - parsed via parseDelimitedString utility
           example: "mathematics,algebra,calculus,statistics"
         education:
           type: string
@@ -452,15 +455,15 @@ components:
         certificateOfHonor:
           type: string
           format: binary
-          description: Certificate of honor document (jpg, jpeg, png, gif, pdf)
+          description: Certificate of honor document (jpg, jpeg, png, gif, pdf) - optional
         diploma:
           type: string
           format: binary
-          description: Academic diploma file (jpg, jpeg, png, gif, pdf)
+          description: Academic diploma file (jpg, jpeg, png, gif, pdf) - optional
 
     EducatorUpdateRequest:
       type: object
-      description: Partial update request - at least one field required
+      description: Partial update request - only provided fields will be updated
       properties:
         firstName:
           type: string
@@ -509,13 +512,33 @@ components:
           maximum: 10000
         skills:
           type: string
-          description: Teaching skills (comma-separated string or array)
+          description: Teaching skills (comma-separated string)
           example: "mathematics,algebra,calculus,statistics"
         education:
           type: string
           description: Educational background
           minLength: 2
           maxLength: 200
+        avatar:
+          type: string
+          format: binary
+          description: New avatar file (jpg, jpeg, png, gif, webp)
+        identityProof:
+          type: string
+          format: binary
+          description: Updated identity verification document
+        criminalRecord:
+          type: string
+          format: binary
+          description: Updated criminal background check document
+        certificateOfHonor:
+          type: string
+          format: binary
+          description: Updated certificate of honor document
+        diploma:
+          type: string
+          format: binary
+          description: Updated academic diploma file
 
     # ================================
     # RESPONSE SCHEMAS
@@ -550,7 +573,8 @@ components:
           description: Associated user account ObjectId
         avatar:
           $ref: "#/components/schemas/ImageUrl"
-          description: Avatar URL
+          description: Avatar URL (file path from upload middleware)
+          nullable: true
         firstName:
           type: string
           description: Educator's first name
@@ -581,7 +605,7 @@ components:
           example: "Islamabad, Pakistan"
         fullAddressCoordinates:
           type: object
-          description: Geographic coordinates for the full address
+          description: Geographic coordinates from Google Maps API
           required:
             - type
             - coordinates
@@ -603,10 +627,10 @@ components:
           nullable: true
         identityProof:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Identity verification document
+          description: Identity verification document (file path from upload)
         criminalRecord:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Criminal background check document
+          description: Criminal background check document (file path from upload)
         profession:
           type: string
           description: Professional title or occupation
@@ -617,21 +641,21 @@ components:
           example: 20
         skills:
           type: array
-          description: Teaching skills and specializations
+          description: Teaching skills (normalized to lowercase)
           items:
             type: string
-          example: ["engineer", "engineer", "engineer"]
+          example: ["engineer", "programming", "software development"]
         education:
           type: string
           description: Educational background
-          example: "ava"
+          example: "Bachelor of Computer Science"
         certificateOfHonor:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Certificate of honor or achievement
+          description: Certificate of honor or achievement (file path from upload)
           nullable: true
         diploma:
           $ref: "#/components/schemas/DocumentUrl"
-          description: Academic diploma or degree certificate
+          description: Academic diploma or degree certificate (file path from upload)
           nullable: true
         missionsInvitedFor:
           type: array
@@ -668,7 +692,7 @@ components:
             message: "Educator Profile Created Successfully"
             data:
               user: "685ec9b47d7c68774fab517c"
-              avatar: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048824/users/685ec9b47d7c68774fab517c/avatar.jpg"
+              avatar: "uploads/avatars/685ec9b47d7c68774fab517c/avatar.jpg"
               firstName: "Sharjeel"
               lastName: "Faiq"
               gender: "male"
@@ -680,14 +704,14 @@ components:
                 type: "Point"
                 coordinates: [73.14474441571859, 33.623802049520755]
               bio: "Software Engineer"
-              identityProof: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/identityProof.jpg"
-              criminalRecord: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/criminalRecord.jpg"
+              identityProof: "uploads/documents/685ec9b47d7c68774fab517c/identityProof.pdf"
+              criminalRecord: "uploads/documents/685ec9b47d7c68774fab517c/criminalRecord.pdf"
               profession: "Software Engineer"
               hourlyRate: 20
-              skills: ["engineer", "engineer", "engineer"]
-              education: "ava"
-              certificateOfHonor: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/certificateOfHonor.jpg"
-              diploma: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/users/685ec9b47d7c68774fab517c/diploma.jpg"
+              skills: ["engineer", "programming", "software development"]
+              education: "Bachelor of Computer Science"
+              certificateOfHonor: "uploads/documents/685ec9b47d7c68774fab517c/certificateOfHonor.pdf"
+              diploma: "uploads/documents/685ec9b47d7c68774fab517c/diploma.pdf"
               missionsInvitedFor: []
               missionsHiredFor: []
               _id: "685ee307dcf7fb2891637d3b"
@@ -756,7 +780,7 @@ components:
       in: query
       name: coordinates
       required: true
-      description: Comma-separated coordinates (longitude,latitude) for center point
+      description: Comma-separated coordinates (longitude,latitude) for center point - parsed via parseDelimitedString utility
       schema:
         type: string
         example: "73.1447,33.6238"
@@ -766,7 +790,7 @@ components:
       in: query
       name: distance
       required: true
-      description: Search radius in kilometers
+      description: Search radius in kilometers (converted to meters internally by multiplying by 1000)
       schema:
         type: number
         minimum: 0.1
@@ -777,7 +801,7 @@ components:
       in: query
       name: skills
       required: false
-      description: Comma-separated list of skills to filter by (optional)
+      description: Comma-separated list of skills to filter by (parsed via parseDelimitedString utility, case-insensitive matching)
       schema:
         type: string
         example: "mathematics,physics,chemistry"
@@ -829,7 +853,7 @@ components:
                 createdAt: "2025-06-12T03:14:19.534Z"
                 updatedAt: "2025-06-12T03:15:47.735Z"
                 __v: 0
-              avatar: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835851/users/684a460b15669c37873dfb06/avatar.png"
+              avatar: "uploads/avatars/684a460b15669c37873dfb06/avatar.png"
               firstName: "Sarah"
               lastName: "Johnson"
               gender: "female"
@@ -841,14 +865,14 @@ components:
                 type: "Point"
                 coordinates: [73.14474441571859, 33.623802049520755]
               bio: "Experienced mathematics teacher with 10+ years in secondary education"
-              identityProof: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/identityProof.png"
-              criminalRecord: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835852/users/684a460b15669c37873dfb06/criminalRecord.png"
+              identityProof: "uploads/documents/684a460b15669c37873dfb06/identityProof.pdf"
+              criminalRecord: "uploads/documents/684a460b15669c37873dfb06/criminalRecord.pdf"
               profession: "Mathematics Teacher"
               hourlyRate: 35
               skills: ["mathematics", "algebra", "calculus", "statistics"]
               education: "Master's in Mathematics Education"
-              certificateOfHonor: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/certificateOfHonor.png"
-              diploma: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835853/users/684a460b15669c37873dfb06/diploma.png"
+              certificateOfHonor: "uploads/documents/684a460b15669c37873dfb06/certificateOfHonor.pdf"
+              diploma: "uploads/documents/684a460b15669c37873dfb06/diploma.pdf"
               missionsInvitedFor: []
               missionsHiredFor: []
               createdAt: "2025-06-13T18:55:25.227Z"
@@ -904,11 +928,11 @@ components:
               value:
                 success: false
                 message: "At least one skill is required"
-            updateMinFields:
-              summary: Update requires at least one field
+            coordinatesError:
+              summary: Unable to fetch coordinates from Google Maps API
               value:
                 success: false
-                message: "At least one field must be provided for update."
+                message: "Unable to fetch coordinates"
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -963,11 +987,6 @@ components:
               value:
                 success: false
                 message: "Educator profile not found."
-            noEducatorsFound:
-              summary: No educators exist in the system
-              value:
-                success: false
-                message: "No educators found."
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -998,30 +1017,33 @@ paths:
         Creates a comprehensive educator profile for an existing user account.
 
         **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
+        - Valid JWT authentication token with educator role
         - Existing user account (referenced by user ID)
         - User must not have existing educator or organization profile
 
-        **File Upload Support:**
+        **File Upload Processing:**
         - Content-Type: multipart/form-data
-        - Supported formats: jpg, jpeg, png, gif, webp (images), pdf (documents)
-        - Files are processed and stored with generated paths
-        - Default URLs provided for optional document fields
+        - Files processed through upload middleware
+        - File paths extracted using getFilePath() utility
+        - Supports array format for file uploads
+
+        **Address Geocoding:**
+        - fullAddress automatically geocoded using Google Maps API
+        - Coordinates stored in fullAddressCoordinates field as GeoJSON Point
+        - Uses getCoordinates() utility function for API integration
 
         **Validation Rules:**
         - Age must be between 18-100 years (calculated from dateOfBirth)
-        - At least one skill required
-        - All text fields are trimmed and validated for length
-        - Skills normalized to lowercase during processing
+        - At least one skill required (validated in model)
+        - Skills normalized to lowercase via pre-save middleware
         - Hourly rate must be between 0-10000
+        - Required files: identityProof, criminalRecord
 
         **Business Logic:**
         - Prevents duplicate educator profiles per user
         - Prevents educator profile if user has organization profile
-        - Processes comma-separated strings into arrays for skills
-        - Handles both file uploads and uses defaults for optional files
-        - Automatically creates fullAddressCoordinates with default Islamabad coordinates
+        - Skills processed via parseDelimitedString utility
+        - File uploads handled through getFilePath extraction
 
       operationId: create-educator-profile
       tags: [Educator Management]
@@ -1072,6 +1094,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
         404:
           $ref: "#/components/responses/NotFound"
         500:
@@ -1084,6 +1108,7 @@ paths:
 
         **Response Details:**
         - Returns array of educator profiles with populated user information
+        - Uses EducatorModel.find().populate("user") query
         - Each educator object includes complete profile data
         - User objects include email, role, verification status, and timestamps
         - All document URLs and file paths are included in response
@@ -1100,7 +1125,7 @@ paths:
         - Public educator directory display
 
         **Error Handling:**
-        - Returns empty array if no educators exist (no 404 error)
+        - Returns empty array if no educators exist
         - Returns 401 for authentication failures
         - Returns 500 for unexpected server errors
 
@@ -1123,21 +1148,22 @@ paths:
         Retrieves educators within a specified distance from given coordinates using MongoDB's geospatial queries.
 
         **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have organization role
+        - Valid JWT authentication token with organization role
         - Coordinates and distance parameters required
 
-        **Geospatial Search:**
+        **Geospatial Search Implementation:**
         - Uses MongoDB's $near operator with 2dsphere index
         - Distance converted from kilometers to meters (multiply by 1000)
         - Searches based on fullAddressCoordinates field
         - Returns educators sorted by distance (nearest first)
+        - Coordinates parsed via parseDelimitedString utility
 
         **Skill Filtering:**
         - Optional skills parameter for additional filtering
-        - Processes comma-separated skill strings
+        - Processes comma-separated skill strings via parseDelimitedString
         - Filters educators whose skills array includes any of the specified skills
         - Case-insensitive matching (skills stored in lowercase)
+        - Applied after geospatial query via filterEducatorsBySkills function
 
         **Response Details:**
         - Returns populated user information for each educator
@@ -1155,6 +1181,8 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/NearbyEducatorsSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
         401:
           $ref: "#/components/responses/Unauthorized"
         403:
@@ -1168,12 +1196,17 @@ paths:
       description: |
         Retrieves an educator profile by its MongoDB ObjectId.
 
+        **Query Implementation:**
+        - Uses EducatorModel.findOne({ _id: id }) with population
+        - Populates user field with complete user object
+        - Populates missionsInvitedFor.mission field excluding sensitive data
+        - Excludes: hiredEducators, invitedEducators, rejectedEducators from missions
+
         **Response Details:**
         - Returns complete educator profile with populated user information
         - User object includes email, role, verification status, and timestamps
         - All document URLs and file paths are included in response
         - Includes mission-related data with populated mission objects
-        - Mission population excludes sensitive fields (hiredEducators, invitedEducators, rejectedEducators)
 
         **Use Cases:**
         - Display educator profile information
@@ -1202,33 +1235,31 @@ paths:
         Updates an existing educator profile with partial data.
 
         **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
+        - Valid JWT authentication token with educator role
         - Educator profile must exist in the system
 
-        **Update Rules:**
-        - At least one field must be provided for update
-        - All validation rules apply to updated fields
-        - File uploads supported for document updates
-        - Uses findByIdAndUpdate without upsert for updates
-        - Skills processing handles comma-separated strings
+        **Update Implementation:**
+        - Uses EducatorModel.findByIdAndUpdate() for updates
+        - Only provided fields are updated (partial update support)
+        - File uploads processed through upload middleware
+        - Skills processed via parseDelimitedString if provided
 
         **Validation:**
+        - All model validation rules apply to updated fields
         - Age validation applies if dateOfBirth is updated
         - Skills array validation if skills are updated
-        - All text field length validations apply
         - Hourly rate range validation applies
-        - Gender normalization to lowercase
+        - Pre-save middleware normalizes skills to lowercase
+
+        **File Handling:**
+        - File uploads replace existing document URLs
+        - Uses getFilePath() utility for file path extraction
+        - Supports all document types: avatar, identityProof, criminalRecord, certificateOfHonor, diploma
 
         **Business Logic:**
-        - Profile must exist before update
-        - File uploads replace existing document URLs
-        - Skills are normalized to lowercase via pre-save middleware
+        - Profile must exist before update (404 if not found)
         - Response includes updated profile data
-
-        **Implementation Note:**
-        - Update method doesn't return updated document by default
-        - Service handles this by returning the updated data
+        - Maintains all existing data for non-updated fields
 
       operationId: update-educator-profile
       tags: [Educator Management]
@@ -1253,6 +1284,11 @@ paths:
                 summary: Update bio only
                 value:
                   bio: "Updated professional biography with new achievements"
+              fileUpdate:
+                summary: Update files only
+                value:
+                  avatar: "(binary file data)"
+                  certificateOfHonor: "(binary file data)"
       responses:
         200:
           $ref: "#/components/responses/EducatorUpdateSuccess"

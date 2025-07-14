@@ -11,10 +11,11 @@ info:
     - File upload support for documents and images
     - Profile retrieval by organization ID
     - List all organizations with populated user data
-    - Profile updates with partial data support
+    - Profile updates with partial data support and file handling
     - Duplicate profile prevention (educator/organization conflict detection)
     - SIRET number validation for French business registration
     - Dynamic file mapping for branch residence guidelines
+    - Automatic coordinate generation with fallback to defaults
 
     **Authentication & Authorization:**
     - All endpoints require valid JWT authentication token
@@ -30,8 +31,14 @@ info:
     **Branch Management:**
     - At least one branch required per organization
     - Each branch supports individual contact information and guidelines
-    - Automatic coordinate generation for branch locations
-    - Residence guidelines are optional per branch
+    - Automatic coordinate generation with fallback defaults
+    - Residence guidelines are optional per branch and default to empty string
+
+    **Coordinate Handling:**
+    - Attempts to fetch real coordinates using Google Maps Geocoding API
+    - Falls back to default coordinates if geocoding fails
+    - Default office coordinates: [73.13829207001977, 33.60948427871408]
+    - Default branch coordinates: [73.12305647540082, 33.60784209987379]
 
   contact:
     name: API Support
@@ -231,7 +238,7 @@ components:
           maxLength: 500
         branchAddressCoordinates:
           type: object
-          description: Geographic coordinates for the branch address (defaults to specific coordinates)
+          description: Geographic coordinates for the branch address (attempts real geocoding, falls back to defaults)
           required:
             - type
             - coordinates
@@ -255,7 +262,6 @@ components:
           description: Residence guidelines document for this branch (optional, defaults to empty string)
           example: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
           default: ""
-          nullable: true
 
     BranchCreateRequest:
       type: object
@@ -360,7 +366,7 @@ components:
           maxLength: 500
         officeAddressCoordinates:
           type: object
-          description: Geographic coordinates for the office address (defaults to specific coordinates)
+          description: Geographic coordinates for the office address (attempts real geocoding, falls back to defaults)
           required:
             - type
             - coordinates
@@ -479,10 +485,20 @@ components:
         - Residence guidelines files are mapped dynamically to each branch
         - Branch subdocuments do not have _id fields (disabled in schema)
 
+        **Coordinate Generation:**
+        - Attempts to fetch real coordinates using Google Maps Geocoding API
+        - Falls back to default coordinates if geocoding fails
+        - Office default: [73.13829207001977, 33.60948427871408]
+        - Branch default: [73.12305647540082, 33.60784209987379]
+
     OrganizationUpdateRequest:
       type: object
-      description: Partial update request - at least one field required
+      description: Partial update request - at least one field required. Supports file uploads for avatar and branch residence guidelines.
       properties:
+        avatar:
+          type: string
+          format: binary
+          description: Updated organization avatar file (jpg, jpeg, png, gif, webp)
         organizationName:
           type: string
           description: Official name of the organization
@@ -510,12 +526,12 @@ components:
           maxLength: 100
         officeAddress:
           type: string
-          description: Complete address of main office
+          description: Complete address of main office (triggers coordinate regeneration)
           minLength: 10
           maxLength: 500
         branches:
           type: array
-          description: Array of branch locations
+          description: Array of branch locations (replaces entire branches array)
           items:
             $ref: "#/components/schemas/BranchCreateRequest"
           minItems: 1
@@ -752,6 +768,11 @@ components:
               value:
                 success: false
                 message: "At least one field must be provided for update."
+            coordinatesFailed:
+              summary: Coordinate generation failed but handled gracefully
+              value:
+                success: false
+                message: "Unable to fetch coordinates, using defaults"
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -860,13 +881,15 @@ paths:
         - Prevents organization profile if user has educator profile
         - Processes branch array with dynamic file mappings using `rest` parameter spreading
         - Maps residence guidelines files to branches using dynamic keys
-        - Automatically creates coordinate fields with specific default coordinates
+        - Automatically generates coordinates using Google Maps API with fallback to defaults
         - Branch subdocuments have _id generation disabled
         - Residence guidelines default to empty string if no file provided
 
-        **Coordinate Defaults:**
-        - Office coordinates: [73.13829207001977, 33.60948427871408]
-        - Branch coordinates: [73.12305647540082, 33.60784209987379]
+        **Coordinate Generation:**
+        - Attempts real geocoding using Google Maps Geocoding API
+        - Falls back to defaults if geocoding fails
+        - Office default coordinates: [73.13829207001977, 33.60948427871408]
+        - Branch default coordinates: [73.12305647540082, 33.60784209987379]
 
       operationId: create-organization-profile
       tags: [Organization Management]
@@ -1006,7 +1029,7 @@ paths:
     patch:
       summary: Update organization profile
       description: |
-        Updates an existing organization profile with partial data.
+        Updates an existing organization profile with partial data and file uploads.
 
         **Prerequisites:**
         - Valid JWT authentication token
@@ -1016,9 +1039,16 @@ paths:
         **Update Rules:**
         - At least one field must be provided for update
         - All validation rules apply to updated fields
-        - File uploads supported for document updates
-        - Uses findByIdAndUpdate with new: true and upsert: true
+        - File uploads supported for avatar and document updates
+        - Uses findByIdAndUpdate with new: true and runValidators: true
         - Branch array processing with dynamic file mappings
+        - Coordinate regeneration for address updates
+
+        **File Upload Support:**
+        - Content-Type: multipart/form-data
+        - Supports avatar updates and branch residence guidelines
+        - Dynamic file mapping for branch documents using pattern: `branches[index][residenceGuidelines]`
+        - Files replace existing document URLs when provided
 
         **Validation:**
         - Founded year validation applies if foundedYear is updated
@@ -1031,13 +1061,16 @@ paths:
         - Profile must exist before update
         - File uploads replace existing document URLs
         - Branch updates replace entire branches array
-        - Response includes updated profile data
+        - Address updates trigger coordinate regeneration with fallback
+        - Response includes updated profile data with populated user
         - Same dynamic file mapping logic as creation
 
-        **Implementation Note:**
-        - Uses same file processing logic as creation
-        - Dynamic residence guidelines mapping per branch
-        - Coordinate defaults applied if not specified
+        **Coordinate Handling:**
+        - Office address updates trigger coordinate regeneration
+        - Branch address updates trigger coordinate regeneration
+        - Falls back to defaults if geocoding fails
+        - Office default: [73.13829207001977, 33.60948427871408]
+        - Branch default: [73.12305647540082, 33.60784209987379]
 
       operationId: update-organization-profile
       tags: [Organization Management]
@@ -1059,12 +1092,12 @@ paths:
                   phone: "+33999888777"
                   city: "Updated City"
               branchUpdate:
-                summary: Update branches
+                summary: Update branches with address change
                 value:
                   branches:
                     - branchName: "Updated Branch"
                       branchEmail: "updated@example.com"
-                      branchAddress: "Updated Branch Address"
+                      branchAddress: "Updated Branch Address, New City 12345"
               fullUpdate:
                 summary: Update multiple organization fields
                 value:
@@ -1073,6 +1106,7 @@ paths:
                   phone: "+33888777666"
                   city: "Marseille"
                   country: "France"
+                  officeAddress: "789 New Corporate Ave, Marseille 13001"
                   branches:
                     - branchName: "Central Branch"
                       branchEmail: "central@example.com"

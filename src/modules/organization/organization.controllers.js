@@ -30,8 +30,13 @@ export const organizationControllers = {
   updateById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const payload = req.body;
+    const files = req.files || {};
 
-    const result = await organizationServices.updateById(id, payload);
+    // Merge payload and files for update processing
+    const result = await organizationServices.updateById(id, {
+      ...payload,
+      ...files,
+    });
 
     res.status(200).json(result);
   }),
