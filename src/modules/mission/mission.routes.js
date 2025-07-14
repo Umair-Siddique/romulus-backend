@@ -35,7 +35,6 @@ missionRoutes
   .patch(
     "/:id",
     upload,
-    validate.dto(missionDto.update),
     validate.authRole("organization"),
     missionControllers.updateById
   )
