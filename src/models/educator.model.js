@@ -210,6 +210,12 @@ const EducatorSchema = new Schema(
       type: [Schema.Types.ObjectId],
       ref: "Mission",
     },
+
+    status: {
+      type: String,
+      enum: ["active", "inactive", "pending"],
+      default: "pending",
+    },
   },
   {
     timestamps: true,
