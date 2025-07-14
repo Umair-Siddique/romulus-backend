@@ -66,7 +66,7 @@ const BranchSchema = new Schema(
         validate: {
           validator: (v) => v.length === 2,
           message:
-            "Coordinates must be an array of two numbers [latitude, longitude]",
+            "Coordinates must be an array of two numbers [longitude, latitude]",
         },
       },
     },
@@ -173,7 +173,7 @@ const OrganizationSchema = new Schema(
         validate: {
           validator: (v) => v.length === 2,
           message:
-            "Coordinates must be an array of two numbers [latitude, longitude]",
+            "Coordinates must be an array of two numbers [longitude, latitude]",
         },
       },
     },

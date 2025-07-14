@@ -1,6 +1,7 @@
 import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
+import { getCoordinates } from "#utils/index.js";
 
 const { save, read, update } = dataAccess;
 
@@ -55,6 +56,15 @@ export const organizationServices = {
       });
     }
 
+    const organizationBranches = await Promise.all(
+      branches.map(async (branch) => {
+        const branchAddress = branch.branchAddress;
+        const branchAddressCoordinates = await getCoordinates(branchAddress);
+        branch.branchAddressCoordinates = branchAddressCoordinates;
+        return branch;
+      })
+    );
+
     const getFilePath = (file) => {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
       if (file?.path) return file.path;
@@ -62,13 +72,15 @@ export const organizationServices = {
     };
 
     // ✅ Map residenceGuidelines files into corresponding branch objects
-    const processedBranches = branches.map((branch, index) => {
+    const processedBranches = organizationBranches.map((branch, index) => {
       const dynamicKey = `branches[${index}][residenceGuidelines]`;
       return {
         ...branch,
         residenceGuidelines: getFilePath(rest[dynamicKey]) || null,
       };
     });
+
+    const officeAddressCoordinates = await getCoordinates(officeAddress);
 
     const organizationData = {
       user: userId,
@@ -80,6 +92,7 @@ export const organizationServices = {
       city,
       country,
       officeAddress,
+      officeAddressCoordinates,
       branches: processedBranches,
     };
 

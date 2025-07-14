@@ -15,7 +15,7 @@ export const getCoordinates = async (address) => {
   if (response.data.status === "OK") {
     const location = response.data.results[0].geometry.location;
 
-    return { type: "Point", coordinates: [location.lat, location.lng] };
+    return { type: "Point", coordinates: [location.lng, location.lat] };
   } else {
     throw createError(400, "Unable to fetch coordinates");
   }
