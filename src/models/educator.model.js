@@ -206,10 +206,38 @@ const EducatorSchema = new Schema(
       },
     ],
 
-    missionsHiredFor: {
-      type: [Schema.Types.ObjectId],
-      ref: "Mission",
-    },
+    missionsHiredFor: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Mission",
+      },
+    ],
+
+    organizationsFeedbacks: [
+      {
+        organization: {
+          type: Schema.Types.ObjectId,
+          ref: "Organization",
+          required: [true, "Organization ID is required"],
+        },
+
+        feedback: {
+          type: String,
+          required: [true, "Feedback is required"],
+          trim: true,
+          maxlength: [500, "Feedback cannot exceed 500 characters"],
+        },
+
+        rating: {
+          type: Number,
+          min: 1,
+          max: 5,
+          required: [true, "Rating is required"],
+        },
+
+        _id: false,
+      },
+    ],
 
     status: {
       type: String,

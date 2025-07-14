@@ -9,18 +9,21 @@ const MissionSchema = new Schema(
       required: [true, "Organization ID is required"],
       ref: "Organization",
     },
+
     title: {
       type: String,
       required: [true, "Title is required"],
       trim: true,
       maxlength: [200, "Title cannot exceed 200 characters"],
     },
+
     description: {
       type: String,
       required: [true, "Description is required"],
       trim: true,
       maxlength: [2000, "Description cannot exceed 2000 characters"],
     },
+
     branch: {
       type: String,
       required: [true, "Branch is required"],
@@ -28,6 +31,7 @@ const MissionSchema = new Schema(
       maxlength: [100, "Branch cannot exceed 100 characters"],
       index: true, // Index for filtering by branch
     },
+
     skills: {
       type: [String],
       required: [true, "At least one skill is required"],
@@ -36,19 +40,23 @@ const MissionSchema = new Schema(
         message: "At least one skill is required",
       },
     },
+
     start: {
       type: Date,
       required: [true, "Start date and time are required"],
     },
+
     end: {
       type: Date,
       required: [true, "End date and time are required"],
     },
+
     preferredEducator: {
       type: Schema.Types.ObjectId,
       ref: "Educator",
       default: null,
     },
+
     technicalDocument: {
       type: String,
       trim: true,
@@ -59,6 +67,7 @@ const MissionSchema = new Schema(
         message: "Technical document must be a valid document URL",
       },
     },
+
     status: {
       type: String,
       enum: {
@@ -68,43 +77,50 @@ const MissionSchema = new Schema(
       default: "pending",
       index: true, // Index for status-based queries
     },
+
     invitedEducators: [
       {
         type: Schema.Types.ObjectId,
         ref: "Educator",
       },
     ],
+
     hiredEducators: [
       {
         type: Schema.Types.ObjectId,
         ref: "Educator",
       },
     ],
+
     rejectedEducators: [
       {
         type: Schema.Types.ObjectId,
         ref: "Educator",
       },
     ],
+
     educatorsFeedbacks: [
       {
         educator: {
           type: Schema.Types.ObjectId,
           ref: "Educator",
-          required: true,
+          required: [true, "Educator ID is required"],
         },
+
         feedback: {
           type: String,
           required: [true, "Feedback is required"],
           trim: true,
           maxlength: [500, "Feedback cannot exceed 500 characters"],
         },
+
         rating: {
           type: Number,
           min: 1,
           max: 5,
           required: [true, "Rating is required"],
         },
+
         _id: false,
       },
     ],

@@ -11,6 +11,7 @@ const BranchSchema = new Schema(
       minlength: [2, "Branch name must be at least 2 characters"],
       maxlength: [100, "Branch name cannot exceed 100 characters"],
     },
+
     branchEmail: {
       type: String,
       required: [true, "Branch email is required"],
@@ -23,6 +24,7 @@ const BranchSchema = new Schema(
         message: "Branch email must be a valid email address",
       },
     },
+
     branchPhone: {
       type: String,
       trim: true,
@@ -35,18 +37,21 @@ const BranchSchema = new Schema(
       minlength: [10, "Branch phone number must be at least 10 characters"],
       maxlength: [15, "Branch phone number cannot exceed 15 characters"],
     },
+
     branchCity: {
       type: String,
       trim: true,
       minlength: [2, "Branch city must be at least 2 characters"],
       maxlength: [100, "Branch city cannot exceed 100 characters"],
     },
+
     branchCountry: {
       type: String,
       trim: true,
       minlength: [2, "Branch country must be at least 2 characters"],
       maxlength: [100, "Branch country cannot exceed 100 characters"],
     },
+
     branchAddress: {
       type: String,
       required: [true, "Branch full address is required"],
@@ -54,6 +59,7 @@ const BranchSchema = new Schema(
       minlength: [10, "Branch full address must be at least 10 characters"],
       maxlength: [500, "Branch full address cannot exceed 500 characters"],
     },
+
     branchAddressCoordinates: {
       type: {
         type: String,
@@ -70,12 +76,13 @@ const BranchSchema = new Schema(
         },
       },
     },
+
     residenceGuidelines: {
       type: String, // Store file paths/URLs - Optional field
     },
   },
   {
-    _id: false, // Disable automatic _id generation for subdocuments
+    _id: false, // Disable automatic _id generation for sub-documents
   }
 );
 
@@ -87,6 +94,7 @@ const OrganizationSchema = new Schema(
       ref: "User",
       index: true,
     },
+
     avatar: {
       type: String,
       trim: true,
@@ -98,6 +106,7 @@ const OrganizationSchema = new Schema(
         message: "Avatar must be a valid image URL",
       },
     },
+
     organizationName: {
       type: String,
       required: [true, "Organization name is required"],
@@ -105,6 +114,7 @@ const OrganizationSchema = new Schema(
       minlength: [2, "Organization name must be at least 2 characters"],
       maxlength: [100, "Organization name cannot exceed 100 characters"],
     },
+
     foundedYear: {
       type: Date,
       required: [true, "Founded year is required"],
@@ -116,6 +126,7 @@ const OrganizationSchema = new Schema(
         message: "Founded year must be between 1900 and the current year",
       },
     },
+
     phone: {
       type: String,
       required: [true, "Phone number is required"],
@@ -129,6 +140,7 @@ const OrganizationSchema = new Schema(
       minlength: [10, "Phone number must be at least 10 characters"],
       maxlength: [15, "Phone number cannot exceed 15 characters"],
     },
+
     siretNumber: {
       type: String,
       required: [true, "SIRET number is required"],
@@ -140,6 +152,7 @@ const OrganizationSchema = new Schema(
         message: "SIRET number must be exactly 14 digits",
       },
     },
+
     city: {
       type: String,
       required: [true, "City is required"],
@@ -147,6 +160,7 @@ const OrganizationSchema = new Schema(
       minlength: [2, "City must be at least 2 characters"],
       maxlength: [100, "City cannot exceed 100 characters"],
     },
+
     country: {
       type: String,
       required: [true, "Country is required"],
@@ -154,6 +168,7 @@ const OrganizationSchema = new Schema(
       minlength: [2, "Country must be at least 2 characters"],
       maxlength: [100, "Country cannot exceed 100 characters"],
     },
+
     officeAddress: {
       type: String,
       required: [true, "Office address is required"],
@@ -161,6 +176,7 @@ const OrganizationSchema = new Schema(
       minlength: [10, "Office address must be at least 10 characters"],
       maxlength: [500, "Office address cannot exceed 500 characters"],
     },
+
     officeAddressCoordinates: {
       type: {
         type: String,
@@ -177,6 +193,7 @@ const OrganizationSchema = new Schema(
         },
       },
     },
+
     branches: {
       type: [BranchSchema],
       required: [true, "At least one branch is required"],
@@ -185,11 +202,12 @@ const OrganizationSchema = new Schema(
         message: "At least one branch is required",
       },
     },
+
     status: {
       type: String,
       enum: ["active", "inactive", "pending"],
       default: "pending",
-    }
+    },
   },
   {
     timestamps: true,
