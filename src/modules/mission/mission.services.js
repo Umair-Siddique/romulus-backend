@@ -163,13 +163,14 @@ export const missionServices = {
   },
 
   respondInvitation: async (data) => {
-    const { educatorId, missionId, response } = data;
+    const { educatorId, missionId, response, responseTime } = data;
 
     const result = await update.educatorById(
       educatorId,
       {
         $set: {
           "missionsInvitedFor.$[elem].invitationStatus": response,
+          "missionsInvitedFor.$[elem].responseTime": responseTime,
         },
       },
       {

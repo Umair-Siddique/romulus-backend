@@ -198,6 +198,10 @@ const EducatorSchema = new Schema(
           enum: ["pending", "accepted", "declined"],
           default: "pending",
         },
+        responseTime: {
+          type: Date,
+          default: null,
+        },
         _id: false,
       },
     ],
