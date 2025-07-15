@@ -1,6 +1,6 @@
 import { twilioClient, env } from "#config/index.js";
 
-const { TWILIO_VERIFY_SERVICE_SID } = env;
+const { TWILIO_VERIFY_SERVICE_SID, TWILIO_WHATSAPP_NUMBER } = env;
 
 export const twilioUtils = {
   sendWhatsAppMessage: async (phone, message) => {

@@ -189,7 +189,7 @@ export const missionServices = {
 
       const phone = educator?.user?.phone;
 
-      await twilioUtils.sendWhatsAppMessage()(
+      await twilioUtils.sendWhatsAppMessage(
         phone,
         `You have been invited to a new mission: ${missionId}.\n\nPlease check your dashboard for details.`
       );
