@@ -143,6 +143,11 @@ export const missionServices = {
 
       if (hireStatus === "hired" && !isAlreadyHired) {
         const isFirstHire = mission.hiredEducators.length === 0;
+        await update.educatorById(educatorId, {
+          $push: {
+            missionsHiredFor: id, // NOT { id }
+          },
+        });
 
         updateOps = {
           $push: { hiredEducators: educatorId },

@@ -19,6 +19,10 @@ export const educatorDataAccess = {
           path: "missionsInvitedFor.mission",
           select: "-hiredEducators -invitedEducators -rejectedEducators",
         },
+        {
+          path: "missionsHiredFor",
+          select: "-hiredEducators -invitedEducators -rejectedEducators",
+        }
       ]);
     },
 
