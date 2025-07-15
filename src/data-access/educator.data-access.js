@@ -22,7 +22,10 @@ export const educatorDataAccess = {
         {
           path: "missionsHiredFor",
           select: "-hiredEducators -invitedEducators -rejectedEducators",
-        }
+          populate: {
+            path: "organization",
+          },
+        },
       ]);
     },
 
