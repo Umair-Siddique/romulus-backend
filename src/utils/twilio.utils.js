@@ -3,6 +3,26 @@ import { twilioClient, env } from "#config/index.js";
 const { TWILIO_VERIFY_SERVICE_SID } = env;
 
 export const twilioUtils = {
+  sendWhatsAppMessage: async (phone, message) => {
+    return await twilioClient.messages.create({
+      from: TWILIO_WHATSAPP_NUMBER,
+      to: `whatsapp:${phone}`,
+      body: message,
+    });
+  },
+
+  sendWhatsAppMessageToMany: async (phones, message) => {
+    return await Promise.all(
+      phones.map((phone) =>
+        twilioClient.messages.create({
+          from: TWILIO_WHATSAPP_NUMBER,
+          to: `whatsapp:${phone}`,
+          body: message,
+        })
+      )
+    );
+  },
+
   sendWhatsAppOTP: async (phone) => {
     return await twilioClient.verify.v2
       .services(TWILIO_VERIFY_SERVICE_SID)

@@ -1,7 +1,7 @@
 import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
-import { globalUtils } from "#utils/global.utils.js";
+import { globalUtils, twilioUtils } from "#utils/index.js";
 
 const { save, read, update, remove } = dataAccess;
 const { parseDelimitedString } = globalUtils;
@@ -185,6 +185,15 @@ export const missionServices = {
     });
 
     for (const invitee of invitees) {
+      const educator = await read.educatorById(invitee);
+
+      const phone = educator?.user?.phone;
+
+      await twilioUtils.sendWhatsAppMessage()(
+        phone,
+        `You have been invited to a new mission: ${missionId}.\n\nPlease check your dashboard for details.`
+      );
+
       await update.educatorById(invitee, {
         $push: {
           missionsInvitedFor: {
