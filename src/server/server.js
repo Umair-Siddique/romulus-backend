@@ -30,7 +30,7 @@ const startServer = asyncHandler(async () => {
   // You can now use `io.on("connection", ...)` here if needed
 
   server.listen(PORT || 5000, () => {
-    logger.info(`Server running on http://localhost:${PORT}`);
+    logger.info(`Connection Established: http://localhost:${PORT}`);
   });
 });
 

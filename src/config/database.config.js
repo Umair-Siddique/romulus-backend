@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import { logger } from "./logger.config.js";
 import { env } from "./env.config.js";
+import { EducatorModel, OrganizationModel } from "#models/index.js";
 
 let isConnected = false;
 
@@ -18,13 +19,16 @@ export const connectDatabase = async () => {
       serverSelectionTimeoutMS: 5000,
     });
 
+    await EducatorModel.syncIndexes();
+    await OrganizationModel.syncIndexes();
+
     isConnected = !!connection.connections[0].readyState;
-    logger.info("Connected to MongoDB Database".database);
+    logger.info("Connection Established: MongoDB Database".database);
 
     const db = mongoose.connection;
 
     db.on("error", (err) => {
-      logger.error(`MongoDB connection error: ${err.message}`.error);
+      logger.error(`Connection Failed: MongoDB\nerror: ${err.message}`.error);
     });
 
     db.on("disconnected", () => {

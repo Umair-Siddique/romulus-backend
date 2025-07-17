@@ -214,4 +214,14 @@ const OrganizationSchema = new Schema(
   }
 );
 
+OrganizationSchema.index(
+  { officeAddressCoordinates: "2dsphere" },
+  { name: "OfficeAddressCoordinatesIndex" }
+);
+
+OrganizationSchema.index(
+  { "branches.branchAddressCoordinates": "2dsphere" },
+  { name: "BranchAddressCoordinatesIndex" }
+);
+
 export const OrganizationModel = model("Organization", OrganizationSchema);

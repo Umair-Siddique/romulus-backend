@@ -109,9 +109,7 @@ const MissionSchema = new Schema(
 
         feedback: {
           type: String,
-          required: [true, "Feedback is required"],
           trim: true,
-          maxlength: [500, "Feedback cannot exceed 500 characters"],
         },
 
         rating: {
@@ -119,6 +117,11 @@ const MissionSchema = new Schema(
           min: 1,
           max: 5,
           required: [true, "Rating is required"],
+        },
+
+        createdAt: {
+          type: Date,
+          default: Date.now,
         },
 
         _id: false,
