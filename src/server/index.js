@@ -1,3 +1,4 @@
+import express from "express";
 import { createServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
 
@@ -6,14 +7,14 @@ import { applyGlobalMiddleware } from "#middleware/index.js";
 import { logger, env } from "#config/index.js";
 import { globalUtils } from "#utils/index.js";
 import appRouter from "#routes/index.js";
-import { app } from "./app.js";
 
 const { PORT } = env;
 const { asyncHandler } = globalUtils;
 
+const app = express();
 const server = createServer(app);
 
-const startServer = asyncHandler(async () => {
+export const startServer = asyncHandler(async () => {
   await connectDatabase();
 
   applyGlobalMiddleware(app, appRouter);
@@ -37,5 +38,3 @@ const startServer = asyncHandler(async () => {
     logger.info(`Connection Established: http://localhost:${PORT}`);
   });
 });
-
-export { startServer };
