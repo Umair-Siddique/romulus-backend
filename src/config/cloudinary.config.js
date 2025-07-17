@@ -18,7 +18,7 @@ cloudinary.api.ping((error) => {
   if (error) {
     logger.error(`Connection Failed: Cloudinary\nerror: ${error.message}`.error);
   } else {
-    logger.info("Connection Established: Cloudinary".service);
+    logger.info("connected: Cloudinary".service);
   }
 });
 

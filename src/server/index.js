@@ -26,7 +26,8 @@ export const startServer = asyncHandler(async () => {
   });
 
   io.on("connection", (socket) => {
-    logger.info(`Client connected: ${socket.id}`);
+    logger.info(`Client connected ${socket.id}`);
+
     socket.on("disconnect", () => {
       logger.info(`Client disconnected: ${socket.id}`);
     });
@@ -35,6 +36,6 @@ export const startServer = asyncHandler(async () => {
   // You can now use `io.on("connection", ...)` here if needed
 
   server.listen(PORT || 5000, () => {
-    logger.info(`Connection Established: http://localhost:${PORT}`);
+    logger.info(`connected: http://localhost:${PORT}`);
   });
 });
