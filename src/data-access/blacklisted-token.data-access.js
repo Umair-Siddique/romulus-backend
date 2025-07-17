@@ -13,7 +13,7 @@ export const blacklistedTokenDataAccess = {
 
   read: {
     blacklistedToken: (token) => {
-      return BlacklistedTokenModel.findOne({ token });
+      return BlacklistedTokenModel.findOne({ token }).exec(); // ✅ Now returns a real Promise
     },
   },
 };

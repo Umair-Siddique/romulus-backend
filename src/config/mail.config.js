@@ -18,9 +18,9 @@ const createTransporter = () => {
 
   transporter.verify((error) => {
     if (error) {
-      logger.error(`Email server connection error: ${error.message}`.error);
+      logger.error(`Nodemailer connection error: ${error.message}`.error);
     } else {
-      logger.info("Email server connected successfully.".service);
+      logger.info("Nodemailer connected successfully.".service);
     }
   });
 

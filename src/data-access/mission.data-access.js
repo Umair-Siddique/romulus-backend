@@ -3,30 +3,35 @@ import { MissionModel } from "#models/index.js";
 export const missionDataAccess = {
   save: {
     mission: (missionData) => {
-      return MissionModel.create(missionData);
+      return MissionModel.create(missionData); // ✅ Already executes, returns native Promise
     },
   },
 
   read: {
     allMissions: () => {
-      return MissionModel.find().populate("organization");
+      return MissionModel.find().populate("organization").exec(); // ✅ Query + populate → needs exec
     },
 
     missionsByOrganizationId: (organizationId) => {
-      return MissionModel.find({ organization: organizationId }).populate(
-        "organization"
-      );
+      return MissionModel.find({ organization: organizationId })
+        .populate("organization")
+        .exec(); // ✅ Query + populate → needs exec
     },
 
     missionById: (missionId) => {
-      return MissionModel.findById(missionId).populate("organization");
+      return MissionModel.findById(missionId).populate("organization").exec(); // ✅ Query + populate → needs exec
     },
 
     missionByOrganizationId: (mId, oId) => {
       return MissionModel.findOne({
         _id: mId,
         organization: oId,
-      }).populate("organization");
+      })
+        .populate({
+          path: "organization",
+          populate: { path: "user" },
+        })
+        .exec(); // ✅ Already correct
     },
 
     missionByEducatorId: (mId, eId) => {
@@ -38,12 +43,16 @@ export const missionDataAccess = {
           { rejectedEducators: eId },
         ],
       })
-        .populate("organization")
+        .populate({
+          path: "organization",
+          populate: { path: "user" },
+        })
         .select({
           invitedEducators: 0,
           hiredEducators: 0,
           rejectedEducators: 0,
-        });
+        })
+        .exec(); // ✅ Already correct
     },
   },
 
@@ -52,13 +61,13 @@ export const missionDataAccess = {
       return MissionModel.findByIdAndUpdate(missionId, missionData, {
         new: true,
         upsert: true,
-      });
+      }); // ✅ Already returns native Promise
     },
   },
 
   remove: {
     missionById: (missionId) => {
-      return MissionModel.findByIdAndDelete(missionId);
+      return MissionModel.findByIdAndDelete(missionId); // ✅ Already returns native Promise
     },
   },
 };

@@ -1,6 +1,5 @@
 import createError from "http-errors";
 import mongoose from "mongoose";
-
 import { UserModel } from "#models/index.js";
 
 const { isValidObjectId } = mongoose;
@@ -14,19 +13,17 @@ export const userDataAccess = {
         password,
         role,
         isPhoneVerified: role === "educator" ? false : undefined,
-      });
+      }); // ✅ native Promise
     },
   },
 
   read: {
     allUsers: () => {
-      return UserModel.find();
+      return UserModel.find().exec(); // ✅ ensure native Promise
     },
 
     userByEmail: (email) => {
-      return UserModel.findOne({
-        email,
-      });
+      return UserModel.findOne({ email }).exec(); // ✅ safer
     },
 
     userById: (id) => {
@@ -34,13 +31,11 @@ export const userDataAccess = {
         throw createError(400, "Invalid user ID format.");
       }
 
-      return UserModel.findById(id);
+      return UserModel.findById(id).exec(); // ✅ native Promise
     },
 
     userByPhone: (phone) => {
-      return UserModel.findOne({
-        phone,
-      });
+      return UserModel.findOne({ phone }).exec(); // ✅ consistency
     },
   },
 
@@ -53,18 +48,18 @@ export const userDataAccess = {
       return UserModel.findByIdAndUpdate(id, userData, {
         new: true,
         upsert: true,
-      });
+      }); // ✅ native Promise already
     },
 
     userByEmail: (email, userData) => {
       return UserModel.findOneAndUpdate({ email }, userData, {
         new: true,
         upsert: true,
-      });
+      }); // ✅ native
     },
 
     userByPhone: (phone, userData) => {
-      return UserModel.findOneAndUpdate({ phone }, userData);
+      return UserModel.findOneAndUpdate({ phone }, userData); // ✅ native
     },
 
     forgottenPassword: (email, password) => {
@@ -72,7 +67,7 @@ export const userDataAccess = {
         { email },
         { password },
         { new: true, upsert: true }
-      );
+      ); // ✅ native
     },
   },
 };
