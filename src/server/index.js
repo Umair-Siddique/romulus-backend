@@ -1,6 +1,6 @@
 import express from "express";
-import { createServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
+import { createServer } from "http";
 
 import { connectDatabase } from "#config/index.js";
 import { applyGlobalMiddleware } from "#middleware/index.js";
@@ -12,30 +12,34 @@ const { PORT } = env;
 const { asyncHandler } = globalUtils;
 
 const app = express();
-const server = createServer(app);
+const httpServer = createServer(app);
+
+let io;
+
+export const getIO = () => {
+  if (!io) throw new Error("Socket.io not initialized");
+  return io;
+};
 
 export const startServer = asyncHandler(async () => {
   await connectDatabase();
-
   applyGlobalMiddleware(app, appRouter);
 
-  const io = new SocketIOServer(server, {
+  io = new SocketIOServer(httpServer, {
     cors: {
       origin: "*",
     },
   });
 
   io.on("connection", (socket) => {
-    logger.info(`Client connected ${socket.id}`);
+    logger.info(`✅ Socket connected: ${socket.id}`);
 
     socket.on("disconnect", () => {
-      logger.info(`Client disconnected: ${socket.id}`);
+      logger.info(`❌ Socket disconnected: ${socket.id}`);
     });
   });
 
-  // You can now use `io.on("connection", ...)` here if needed
-
-  server.listen(PORT || 5000, () => {
-    logger.info(`connected: http://localhost:${PORT}`);
+  httpServer.listen(PORT || 5000, () => {
+    logger.info(`connected: server at http://localhost:${PORT}`);
   });
 });
