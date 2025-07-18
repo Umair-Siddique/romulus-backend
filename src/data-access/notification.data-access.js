@@ -17,7 +17,7 @@ export const notificationDataAccess = {
   },
 
   update: {
-    notificationByUserId: (notiId) => {
+    notificationById: (notiId) => {
       return NotificationModel.findByIdAndUpdate(
         notiId,
         { $set: { read: true } },

@@ -13,8 +13,8 @@ export const notificationServices = {
     };
   },
 
-  update: async (notiId) => {
-    const result = await update.notificationByUserId(notiId);
+  updateById: async (notiId) => {
+    const result = await update.notificationById(notiId);
 
     return {
       success: true,

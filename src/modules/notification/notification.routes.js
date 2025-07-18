@@ -6,4 +6,4 @@ export const notificationRoutes = express.Router();
 
 notificationRoutes
   .get("/:userId", notificationControllers.read)
-  .patch("/:notiId", notificationControllers.update);
+  .patch("/:notiId", notificationControllers.updateById);

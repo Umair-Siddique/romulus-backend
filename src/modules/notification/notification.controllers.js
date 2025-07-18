@@ -11,9 +11,9 @@ export const notificationControllers = {
     res.status(200).json(result);
   }),
 
-  update: asyncHandler(async (req, res) => {
+  updateById: asyncHandler(async (req, res) => {
     const { notiId } = req.params;
-    const result = await notificationServices.update(notiId);
+    const result = await notificationServices.updateById(notiId);
 
     res.status(200).json(result);
   }),
