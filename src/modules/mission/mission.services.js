@@ -233,6 +233,16 @@ export const missionServices = {
       }
     );
 
+    const mission = await read.missionById(missionId);
+
+    const organization = mission?.organization;
+    const userId = organization?.user?._id;
+
+    await save.notification(
+      userId,
+      "A response to your mission invitation has been recorded."
+    );
+
     return {
       success: true,
       message: "Invitation response recorded successfully",
