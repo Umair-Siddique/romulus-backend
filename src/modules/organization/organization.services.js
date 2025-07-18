@@ -102,7 +102,8 @@ export const organizationServices = {
     let officeAddressCoordinates;
     try {
       officeAddressCoordinates = await getCoordinates(officeAddress);
-    } catch (error) {
+    // eslint-disable-next-line no-unused-vars
+    } catch (_) {
       // Fallback to default coordinates if geocoding fails
       officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
     }

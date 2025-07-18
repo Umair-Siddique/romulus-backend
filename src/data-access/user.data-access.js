@@ -8,7 +8,7 @@ export const userDataAccess = {
   save: {
     user: (phone, email, password, role) => {
       return UserModel.create({
-        phone,
+        phone: role === "educator" ? phone : undefined,
         email,
         password,
         role,

@@ -18,10 +18,9 @@ export const notificationDataAccess = {
 
   update: {
     notificationByUserId: (userId) => {
-      return NotificationModel.findOneAndUpdate(
+      return NotificationModel.updateMany(
         { user: userId },
-        { $set: { read: true } }, // Assuming you want to mark the notification as read
-        { new: true } // Return the updated document
+        { read: true }, // Assuming you want to mark the notification as read
       ).exec(); // ✅ Now returns a real Promise
     },
   },

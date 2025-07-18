@@ -206,7 +206,7 @@ export const missionServices = {
 
       await save.notification(
         userId,
-        `You have been invited to mission ${missionId}. Please check your dashboard for details.`
+        "You have been invited to a mission."
       );
     }
 
