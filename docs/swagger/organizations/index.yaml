@@ -121,6 +121,13 @@ components:
       minLength: 14
       maxLength: 14
 
+    OrganizationStatus:
+      type: string
+      enum: [active, inactive, pending]
+      description: Organization status
+      default: pending
+      example: pending
+
     # ================================
     # RESPONSE STRUCTURES
     # ================================
@@ -315,6 +322,7 @@ components:
         - officeAddress
         - officeAddressCoordinates
         - branches
+        - status
         - createdAt
         - updatedAt
       properties:
@@ -402,6 +410,8 @@ components:
                 type: "Point"
                 coordinates: [73.12305647540082, 33.60784209987379]
               residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
+        status:
+          $ref: "#/components/schemas/OrganizationStatus"
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
@@ -585,6 +595,7 @@ components:
                     type: "Point"
                     coordinates: [73.12305647540082, 33.60784209987379]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B0%5D%5BresidenceGuidelines%5D.png"
+              status: "pending"
               createdAt: "2025-06-13T18:55:43.735Z"
               updatedAt: "2025-06-13T18:55:43.735Z"
               __v: 0
@@ -712,6 +723,7 @@ components:
                     type: "Point"
                     coordinates: [73.12305647540082, 33.60784209987379]
                   residenceGuidelines: "https://res.cloudinary.com/deqmyyywf/image/upload/v1749835697/users/684a9654caa07bcde4138271/branches%5B1%5D%5BresidenceGuidelines%5D.png"
+              status: "pending"
               createdAt: "2025-06-13T18:55:43.735Z"
               updatedAt: "2025-06-13T18:55:43.735Z"
               __v: 0
@@ -768,11 +780,6 @@ components:
               value:
                 success: false
                 message: "At least one field must be provided for update."
-            coordinatesFailed:
-              summary: Coordinate generation failed but handled gracefully
-              value:
-                success: false
-                message: "Unable to fetch coordinates, using defaults"
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -822,11 +829,6 @@ components:
               value:
                 success: false
                 message: "Organization not found."
-            noOrganizationsFound:
-              summary: No organizations exist in the system
-              value:
-                success: false
-                message: "Organizations retrieved successfully."
 
     InternalServerError:
       description: Unexpected server error occurred

@@ -203,6 +203,31 @@ components:
           default: null
 
     # ================================
+    # ORGANIZATION FEEDBACK SCHEMAS
+    # ================================
+    OrganizationFeedback:
+      type: object
+      required:
+        - organization
+        - feedback
+        - rating
+      properties:
+        organization:
+          $ref: "#/components/schemas/ID"
+          description: Organization ID providing the feedback
+        feedback:
+          type: string
+          description: Feedback text from organization
+          maxLength: 500
+          example: "Excellent teaching skills and great communication with students"
+        rating:
+          type: number
+          description: Rating from organization (1-5)
+          minimum: 1
+          maximum: 5
+          example: 5
+
+    # ================================
     # EDUCATOR SCHEMAS
     # ================================
     EducatorProfile:
@@ -224,6 +249,7 @@ components:
         - education
         - identityProof
         - criminalRecord
+        - status
         - createdAt
         - updatedAt
       properties:
@@ -355,6 +381,17 @@ components:
           items:
             $ref: "#/components/schemas/ID"
           default: []
+        organizationsFeedbacks:
+          type: array
+          description: Array of feedback from organizations
+          items:
+            $ref: "#/components/schemas/OrganizationFeedback"
+          default: []
+        status:
+          type: string
+          enum: [active, inactive, pending]
+          default: pending
+          description: Current status of the educator profile
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
@@ -563,6 +600,7 @@ components:
         - education
         - identityProof
         - criminalRecord
+        - status
         - createdAt
         - updatedAt
       properties:
@@ -669,6 +707,17 @@ components:
           items:
             $ref: "#/components/schemas/ID"
           default: []
+        organizationsFeedbacks:
+          type: array
+          description: Array of feedback from organizations (empty for new profiles)
+          items:
+            $ref: "#/components/schemas/OrganizationFeedback"
+          default: []
+        status:
+          type: string
+          enum: [active, inactive, pending]
+          default: pending
+          description: Current status of the educator profile
         createdAt:
           $ref: "#/components/schemas/Timestamp"
           example: "2025-06-27T18:29:27.832Z"
@@ -714,6 +763,8 @@ components:
               diploma: "uploads/documents/685ec9b47d7c68774fab517c/diploma.pdf"
               missionsInvitedFor: []
               missionsHiredFor: []
+              organizationsFeedbacks: []
+              status: "pending"
               _id: "685ee307dcf7fb2891637d3b"
               createdAt: "2025-06-27T18:29:27.832Z"
               updatedAt: "2025-06-27T18:29:27.832Z"
@@ -875,6 +926,8 @@ components:
               diploma: "uploads/documents/684a460b15669c37873dfb06/diploma.pdf"
               missionsInvitedFor: []
               missionsHiredFor: []
+              organizationsFeedbacks: []
+              status: "pending"
               createdAt: "2025-06-13T18:55:25.227Z"
               updatedAt: "2025-06-13T18:55:25.227Z"
               __v: 0

@@ -14,9 +14,9 @@ info:
     - Technical document upload and management via Cloudinary
     - Educator invitation system with tracking and response management
     - Organization-specific mission filtering and management
-    - Educator profile management with location-based services
-    - Skills-based educator filtering
-    - File upload support for educator documents
+    - Educator hiring and rejection workflow
+    - Notification system for mission updates
+    - WhatsApp integration for mission invitations
 
     **Authentication & Authorization:**
     - All endpoints require valid JWT authentication token (except health checks)
@@ -28,12 +28,11 @@ info:
 
     **Mission Lifecycle:**
     - `pending`: Newly created missions awaiting approval (default)
-    - `ongoing`: Active missions in progress
+    - `ongoing`: Active missions in progress (automatically set when first educator hired)
     - `completed`: Successfully finished missions
 
     **File Upload Support:**
     - Technical documents for missions (jpg, jpeg, png, gif, pdf)
-    - Educator documents (avatar, identity proof, criminal record, certificate of honor, diploma)
     - Maximum file size: 5MB
     - Automatic file processing and Cloudinary storage
     - Files stored in missions/{organizationId}/technicalDocument folder
@@ -41,9 +40,8 @@ info:
     **Educator Management:**
     - Track invited, hired, and rejected educators
     - Send bulk invitations to multiple educators with response tracking
-    - Cross-reference missions with educator profiles
-    - Location-based educator search
-    - Skills-based filtering
+    - Automatic hiring and rejection workflow with notifications
+    - WhatsApp notifications for mission invitations
 
   contact:
     name: API Support
@@ -63,8 +61,6 @@ servers:
 tags:
   - name: Mission Management
     description: Educational mission creation and management operations
-  - name: Educator Management
-    description: Educator profile creation, management, and search operations
 
 components:
   schemas:
@@ -97,7 +93,7 @@ components:
       description: |
         Mission status throughout its lifecycle:
         - `pending`: Newly created mission awaiting approval (default)
-        - `ongoing`: Active mission in progress
+        - `ongoing`: Active mission in progress (automatically set when first educator hired)
         - `completed`: Successfully finished mission
       default: pending
       example: pending
@@ -108,26 +104,17 @@ components:
       description: Status of mission invitation
       example: pending
 
+    HireStatus:
+      type: string
+      enum: [hired, rejected]
+      description: Hiring decision for an educator
+      example: hired
+
     TimeFormat:
       type: string
       description: Time in 24-hour HH:MM format
       example: "14:30"
       pattern: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
-
-    Gender:
-      type: string
-      enum: [male, female, other]
-      description: Gender of the educator
-      example: female
-
-    Coordinates:
-      type: array
-      description: GeoJSON coordinates [longitude, latitude]
-      items:
-        type: number
-      minItems: 2
-      maxItems: 2
-      example: [2.3522, 48.8566]
 
     # ================================
     # RESPONSE STRUCTURES
@@ -163,19 +150,14 @@ components:
       type: object
       required:
         - _id
-        - email
+        - phone
       properties:
         _id:
           $ref: "#/components/schemas/ID"
-        email:
+        phone:
           type: string
-          format: email
-          description: User's email address
-          example: "educator@example.com"
-        role:
-          type: string
-          description: User's role in the system
-          example: "educator"
+          description: User's phone number
+          example: "+33123456789"
 
     # ================================
     # ORGANIZATION REFERENCE SCHEMA
@@ -184,84 +166,42 @@ components:
       type: object
       required:
         - _id
-        - organizationName
-        - city
-        - country
+        - user
       properties:
         _id:
           $ref: "#/components/schemas/ID"
-        organizationName:
-          type: string
-          description: Name of the organization
-          example: "Global Education Solutions"
-        city:
-          type: string
-          description: Organization's city
-          example: "Paris"
-        country:
-          type: string
-          description: Organization's country
-          example: "France"
-        phone:
-          type: string
-          description: Organization's contact phone
-          example: "+33123456789"
-        branches:
-          type: array
-          description: Organization's branch locations
-          items:
-            type: object
-            properties:
-              branchName:
-                type: string
-                example: "Downtown Branch"
-              branchEmail:
-                type: string
-                format: email
-                example: "downtown@example.com"
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/ID"
+            - $ref: "#/components/schemas/UserReference"
+          description: Associated user account
 
     # ================================
     # MISSION SCHEMAS
     # ================================
-    MissionInvitation:
-      type: object
-      required:
-        - mission
-        - invitationStatus
-      properties:
-        mission:
-          $ref: "#/components/schemas/ID"
-          description: Reference to the mission
-        invitationStatus:
-          $ref: "#/components/schemas/InvitationStatus"
-        responseTime:
-          $ref: "#/components/schemas/Timestamp"
-          description: Timestamp when educator responded to invitation
-          nullable: true
-
     EducatorFeedback:
       type: object
       required:
         - educator
         - feedback
         - rating
+        - createdAt
       properties:
         educator:
-          oneOf:
-            - $ref: "#/components/schemas/ID"
-            - $ref: "#/components/schemas/Educator"
-          description: Educator who provided the feedback (ObjectId or populated educator object)
+          $ref: "#/components/schemas/ID"
+          description: Educator who provided the feedback
         feedback:
           type: string
           description: Educator's feedback text
           example: "Great experience working on this mission. The organization was very supportive and the resources were excellent."
-          maxLength: 500
         rating:
           type: number
           minimum: 1
           maximum: 5
           description: Rating from 1 to 5 stars
           example: 4
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
 
     Mission:
       type: object
@@ -278,6 +218,7 @@ components:
         - invitedEducators
         - hiredEducators
         - rejectedEducators
+        - educatorsFeedbacks
         - createdAt
         - updatedAt
       properties:
@@ -355,136 +296,6 @@ components:
           description: Array of feedback provided by educators for this mission
           items:
             $ref: "#/components/schemas/EducatorFeedback"
-          default: []
-        createdAt:
-          $ref: "#/components/schemas/Timestamp"
-        updatedAt:
-          $ref: "#/components/schemas/Timestamp"
-
-    # ================================
-    # EDUCATOR SCHEMAS
-    # ================================
-    Educator:
-      type: object
-      required:
-        - _id
-        - user
-        - firstName
-        - lastName
-        - gender
-        - dateOfBirth
-        - city
-        - country
-        - fullAddress
-        - profession
-        - hourlyRate
-        - skills
-        - education
-        - createdAt
-        - updatedAt
-      properties:
-        _id:
-          $ref: "#/components/schemas/ID"
-        user:
-          oneOf:
-            - $ref: "#/components/schemas/ID"
-            - $ref: "#/components/schemas/UserReference"
-          description: Associated user account (ObjectId in create response, populated object in get responses)
-        avatar:
-          $ref: "#/components/schemas/DocumentUrl"
-          description: Profile picture URL
-          nullable: true
-        firstName:
-          type: string
-          description: Educator's first name
-          example: "John"
-          maxLength: 50
-        lastName:
-          type: string
-          description: Educator's last name
-          example: "Doe"
-          maxLength: 50
-        gender:
-          $ref: "#/components/schemas/Gender"
-        dateOfBirth:
-          type: string
-          format: date
-          description: Date of birth in YYYY-MM-DD format
-          example: "1985-03-15"
-        city:
-          type: string
-          description: Educator's city
-          example: "Paris"
-          maxLength: 100
-        country:
-          type: string
-          description: Educator's country
-          example: "France"
-          maxLength: 100
-        fullAddress:
-          type: string
-          description: Complete address
-          example: "123 Main St, Paris, France"
-          maxLength: 500
-        fullAddressCoordinates:
-          type: object
-          description: GeoJSON Point for location-based queries
-          properties:
-            type:
-              type: string
-              enum: [Point]
-              example: "Point"
-            coordinates:
-              $ref: "#/components/schemas/Coordinates"
-        bio:
-          type: string
-          description: Educator's biography
-          example: "Experienced mathematics educator with 10+ years of teaching experience"
-          maxLength: 1000
-        identityProof:
-          $ref: "#/components/schemas/DocumentUrl"
-          description: Identity verification document URL
-          nullable: true
-        criminalRecord:
-          $ref: "#/components/schemas/DocumentUrl"
-          description: Criminal background check document URL
-          nullable: true
-        profession:
-          type: string
-          description: Educator's profession
-          example: "Mathematics Teacher"
-          maxLength: 100
-        hourlyRate:
-          type: number
-          minimum: 0
-          description: Hourly rate in local currency
-          example: 45.50
-        skills:
-          type: array
-          description: Educator's skills and competencies
-          items:
-            type: string
-            minLength: 1
-          example: ["mathematics", "algebra", "calculus", "statistics"]
-          minItems: 1
-        education:
-          type: string
-          description: Educational background
-          example: "MSc Mathematics, University of Paris"
-          maxLength: 500
-        certificateOfHonor:
-          $ref: "#/components/schemas/DocumentUrl"
-          description: Certificate of honor document URL
-          nullable: true
-        diploma:
-          $ref: "#/components/schemas/DocumentUrl"
-          description: Diploma document URL
-          nullable: true
-        missionsInvitedFor:
-          type: array
-          description: Array of mission invitations
-          items:
-            $ref: "#/components/schemas/MissionInvitation"
           default: []
         createdAt:
           $ref: "#/components/schemas/Timestamp"
@@ -570,168 +381,10 @@ components:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
           $ref: "#/components/schemas/Timestamp"
-      # Note: invitedEducators, hiredEducators, rejectedEducators are explicitly excluded
 
     # ================================
     # REQUEST SCHEMAS
     # ================================
-    EducatorCreateRequest:
-      type: object
-      required:
-        - user
-        - firstName
-        - lastName
-        - gender
-        - dateOfBirth
-        - city
-        - country
-        - fullAddress
-        - profession
-        - hourlyRate
-        - skills
-        - education
-      properties:
-        user:
-          $ref: "#/components/schemas/ID"
-          description: ID of the user account to associate with this educator profile
-        firstName:
-          type: string
-          description: Educator's first name
-          maxLength: 50
-        lastName:
-          type: string
-          description: Educator's last name
-          maxLength: 50
-        gender:
-          $ref: "#/components/schemas/Gender"
-        dateOfBirth:
-          type: string
-          format: date
-          description: Date of birth in YYYY-MM-DD format
-        city:
-          type: string
-          description: Educator's city
-          maxLength: 100
-        country:
-          type: string
-          description: Educator's country
-          maxLength: 100
-        fullAddress:
-          type: string
-          description: Complete address
-          maxLength: 500
-        bio:
-          type: string
-          description: Educator's biography
-          maxLength: 1000
-        profession:
-          type: string
-          description: Educator's profession
-          maxLength: 100
-        hourlyRate:
-          type: number
-          minimum: 0
-          description: Hourly rate in local currency
-        skills:
-          type: string
-          description: Skills (comma-separated string)
-          example: "mathematics,algebra,calculus,statistics"
-        education:
-          type: string
-          description: Educational background
-          maxLength: 500
-        avatar:
-          type: string
-          format: binary
-          description: Profile picture file (jpg, jpeg, png, gif, max 5MB)
-        identityProof:
-          type: string
-          format: binary
-          description: Identity verification document (jpg, jpeg, png, gif, pdf, max 5MB)
-        criminalRecord:
-          type: string
-          format: binary
-          description: Criminal background check document (jpg, jpeg, png, gif, pdf, max 5MB)
-        certificateOfHonor:
-          type: string
-          format: binary
-          description: Certificate of honor document (jpg, jpeg, png, gif, pdf, max 5MB)
-        diploma:
-          type: string
-          format: binary
-          description: Diploma document (jpg, jpeg, png, gif, pdf, max 5MB)
-
-    EducatorUpdateRequest:
-      type: object
-      description: Partial update request for educator profile
-      properties:
-        firstName:
-          type: string
-          description: Educator's first name
-          maxLength: 50
-        lastName:
-          type: string
-          description: Educator's last name
-          maxLength: 50
-        gender:
-          $ref: "#/components/schemas/Gender"
-        dateOfBirth:
-          type: string
-          format: date
-          description: Date of birth in YYYY-MM-DD format
-        city:
-          type: string
-          description: Educator's city
-          maxLength: 100
-        country:
-          type: string
-          description: Educator's country
-          maxLength: 100
-        fullAddress:
-          type: string
-          description: Complete address
-          maxLength: 500
-        bio:
-          type: string
-          description: Educator's biography
-          maxLength: 1000
-        profession:
-          type: string
-          description: Educator's profession
-          maxLength: 100
-        hourlyRate:
-          type: number
-          minimum: 0
-          description: Hourly rate in local currency
-        skills:
-          type: string
-          description: Skills (comma-separated string)
-          example: "mathematics,algebra,calculus,statistics"
-        education:
-          type: string
-          description: Educational background
-          maxLength: 500
-        avatar:
-          type: string
-          format: binary
-          description: Profile picture file (jpg, jpeg, png, gif, max 5MB)
-        identityProof:
-          type: string
-          format: binary
-          description: Identity verification document (jpg, jpeg, png, gif, pdf, max 5MB)
-        criminalRecord:
-          type: string
-          format: binary
-          description: Criminal background check document (jpg, jpeg, png, gif, pdf, max 5MB)
-        certificateOfHonor:
-          type: string
-          format: binary
-          description: Certificate of honor document (jpg, jpeg, png, gif, pdf, max 5MB)
-        diploma:
-          type: string
-          format: binary
-          description: Diploma document (jpg, jpeg, png, gif, pdf, max 5MB)
-
     MissionCreateRequest:
       type: object
       required:
@@ -783,9 +436,6 @@ components:
         endTime:
           $ref: "#/components/schemas/TimeFormat"
           description: Daily end time for the mission
-        status:
-          $ref: "#/components/schemas/MissionStatus"
-          description: Optional mission status (defaults to pending)
         technicalDocument:
           type: string
           format: binary
@@ -793,7 +443,7 @@ components:
 
     MissionUpdateRequest:
       type: object
-      description: Partial update request - at least one field required
+      description: Partial update request - can include hire status, educator management, and mission completion
       properties:
         title:
           type: string
@@ -824,6 +474,17 @@ components:
         status:
           $ref: "#/components/schemas/MissionStatus"
           description: Updated mission status
+        hireStatus:
+          $ref: "#/components/schemas/HireStatus"
+          description: Hiring decision for an educator (requires educatorId)
+        educatorId:
+          $ref: "#/components/schemas/ID"
+          description: ID of educator to hire/reject (required with hireStatus)
+        hires:
+          type: array
+          description: Array of hired educator IDs (required when status is completed)
+          items:
+            $ref: "#/components/schemas/ID"
 
     InvitationRequest:
       type: object
@@ -865,93 +526,6 @@ components:
     # ================================
     # RESPONSE SCHEMAS
     # ================================
-    EducatorCreateData:
-      type: object
-      description: Educator data in create response (user field as ObjectId)
-      allOf:
-        - $ref: "#/components/schemas/Educator"
-        - type: object
-          properties:
-            user:
-              $ref: "#/components/schemas/ID"
-              description: Associated user ObjectId
-
-    EducatorCreateResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/EducatorCreateData"
-          example:
-            success: true
-            message: "Educator Profile Created Successfully"
-            data:
-              _id: "60d0fe4f5311236168a109ca"
-              user: "684a9654caa07bcde4138271"
-              firstName: "John"
-              lastName: "Doe"
-              gender: "male"
-              dateOfBirth: "1985-03-15"
-              city: "Paris"
-              country: "France"
-              fullAddress: "123 Main St, Paris, France"
-              profession: "Mathematics Teacher"
-              hourlyRate: 45.50
-              skills: ["mathematics", "algebra", "calculus", "statistics"]
-              education: "MSc Mathematics, University of Paris"
-              avatar: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/educators/avatar.jpg"
-              createdAt: "2025-06-27T14:30:00.000Z"
-              updatedAt: "2025-06-27T14:30:00.000Z"
-
-    EducatorListResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          properties:
-            data:
-              type: array
-              items:
-                $ref: "#/components/schemas/Educator"
-          example:
-            success: true
-            message: "Educators retrieved successfully."
-
-    EducatorSingleResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/Educator"
-          example:
-            success: true
-            message: "Educator profile retrieved successfully."
-
-    EducatorUpdateResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          properties:
-            data:
-              $ref: "#/components/schemas/Educator"
-          example:
-            success: true
-            message: "Educator Profile Updated Successfully"
-
-    EducatorNearbyResponse:
-      allOf:
-        - $ref: "#/components/schemas/BaseResponse"
-        - type: object
-          properties:
-            data:
-              type: array
-              items:
-                $ref: "#/components/schemas/Educator"
-          example:
-            success: true
-            message: "Nearby educators retrieved successfully."
-
     MissionCreateData:
       type: object
       description: Mission data in create response (organization field as ObjectId)
@@ -1048,7 +622,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/Educator"
+              type: object
+              description: Updated educator profile data
           example:
             success: true
             message: "Invitation response recorded successfully"
@@ -1078,14 +653,6 @@ components:
       schema:
         $ref: "#/components/schemas/ID"
 
-    EducatorIdPath:
-      in: path
-      name: id
-      required: true
-      description: MongoDB ObjectId of the educator
-      schema:
-        $ref: "#/components/schemas/ID"
-
     MissionIdPathParam:
       in: path
       name: mId
@@ -1110,34 +677,6 @@ components:
       schema:
         $ref: "#/components/schemas/ID"
 
-    CoordinatesQuery:
-      in: query
-      name: coordinates
-      required: true
-      description: Coordinates as comma-separated string "longitude,latitude"
-      schema:
-        type: string
-        example: "2.3522,48.8566"
-
-    DistanceQuery:
-      in: query
-      name: distance
-      required: true
-      description: Search radius distance in kilometers
-      schema:
-        type: number
-        minimum: 0
-        example: 10
-
-    SkillsQuery:
-      in: query
-      name: skills
-      required: false
-      description: Skills filter as comma-separated string
-      schema:
-        type: string
-        example: "mathematics,algebra,physics"
-
   securitySchemes:
     BearerAuth:
       type: http
@@ -1151,73 +690,6 @@ components:
     # ================================
     # SUCCESS RESPONSES
     # ================================
-    EducatorCreateSuccess:
-      description: Educator profile created successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/EducatorCreateResponse"
-
-    EducatorListSuccess:
-      description: Educators list retrieved successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/EducatorListResponse"
-
-    EducatorProfileResponse:
-      description: Educator profile retrieved successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/EducatorSingleResponse"
-          example:
-            success: true
-            message: "Educator profile retrieved successfully."
-            data:
-              _id: "60d0fe4f5311236168a109ca"
-              user:
-                _id: "684a9654caa07bcde4138271"
-                email: "educator@example.com"
-                role: "educator"
-              firstName: "John"
-              lastName: "Doe"
-              gender: "male"
-              dateOfBirth: "1985-03-15"
-              city: "Paris"
-              country: "France"
-              fullAddress: "123 Main St, Paris, France"
-              bio: "Experienced mathematics educator with 10+ years of teaching experience"
-              profession: "Mathematics Teacher"
-              hourlyRate: 45.50
-              skills: ["mathematics", "algebra", "calculus", "statistics"]
-              education: "MSc Mathematics, University of Paris"
-              avatar: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/educators/avatar.jpg"
-              identityProof: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/educators/identity.pdf"
-              missionsInvitedFor:
-                [
-                  {
-                    mission: "60d0fe4f5311236168a109ca",
-                    invitationStatus: "pending",
-                  },
-                ]
-              createdAt: "2025-06-27T14:30:00.000Z"
-              updatedAt: "2025-06-28T10:15:00.000Z"
-
-    EducatorUpdateSuccess:
-      description: Educator profile updated successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/EducatorUpdateResponse"
-
-    EducatorNearbySuccess:
-      description: Nearby educators retrieved successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/EducatorNearbyResponse"
-
     MissionCreateSuccess:
       description: Mission created successfully
       content:
@@ -1238,41 +710,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/MissionSingleResponse"
-          example:
-            success: true
-            message: "Mission retrieved successfully"
-            data:
-              _id: "60d0fe4f5311236168a109ca"
-              organization:
-                _id: "684a9654caa07bcde4138271"
-                organizationName: "Global Education Solutions"
-                city: "Paris"
-                country: "France"
-                phone: "+33123456789"
-                branches:
-                  - branchName: "Downtown Branch"
-                    branchEmail: "downtown@example.com"
-              title: "Advanced Mathematics Training Program"
-              description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
-              branch: "Downtown Branch"
-              skills: ["mathematics", "algebra", "calculus", "statistics"]
-              start: "2025-07-01T09:00:00.000Z"
-              end: "2025-08-30T17:00:00.000Z"
-              technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/missions/684a9654caa07bcde4138271/technicalDocument.pdf"
-              status: "ongoing"
-              invitedEducators: ["60d0fe4f5311236168a109ca"]
-              hiredEducators: []
-              rejectedEducators: []
-              educatorsFeedbacks:
-                [
-                  {
-                    educator: "60d0fe4f5311236168a109ca",
-                    feedback: "Excellent mission with great learning opportunities. The organization provided all necessary resources.",
-                    rating: 5,
-                  },
-                ]
-              createdAt: "2025-06-27T14:30:00.000Z"
-              updatedAt: "2025-06-28T10:15:00.000Z"
 
     MissionUpdateSuccess:
       description: Mission updated successfully
@@ -1322,31 +759,6 @@ components:
               value:
                 success: false
                 message: "Invalid date or time input."
-            timeFormatError:
-              summary: Time format validation failed
-              value:
-                success: false
-                message: "Time must be in HH:MM format (24-hour)"
-            skillsRequired:
-              summary: Skills validation failed
-              value:
-                success: false
-                message: "At least one skill is required"
-            updateMinFields:
-              summary: Update requires at least one field
-              value:
-                success: false
-                message: "At least one field must be provided for update"
-            profileExists:
-              summary: Profile already exists
-              value:
-                success: false
-                message: "User already has educator profile. Log in again."
-            conflictingProfile:
-              summary: Conflicting profile type
-              value:
-                success: false
-                message: "User already has organization profile."
 
     Unauthorized:
       description: Authentication failed or invalid credentials
@@ -1360,11 +772,6 @@ components:
               value:
                 success: false
                 message: "Authorization token missing or malformed"
-            invalidToken:
-              summary: Token expired or malformed
-              value:
-                success: false
-                message: "Invalid or expired token"
 
     Forbidden:
       description: Insufficient permissions for the operation
@@ -1378,11 +785,6 @@ components:
               value:
                 success: false
                 message: "Access denied: organization role required"
-            educatorRoleRequired:
-              summary: Educator role required
-              value:
-                success: false
-                message: "Access denied: educator role required"
 
     NotFound:
       description: Resource not found
@@ -1401,16 +803,6 @@ components:
               value:
                 success: false
                 message: "Mission not found"
-            educatorNotFound:
-              summary: Educator not found
-              value:
-                success: false
-                message: "Educator profile not found."
-            userNotFound:
-              summary: User not found
-              value:
-                success: false
-                message: "User does not exist."
 
     InternalServerError:
       description: Unexpected server error occurred
@@ -1424,557 +816,11 @@ components:
               value:
                 success: false
                 message: "Failed to create mission"
-            missionUpdateFailed:
-              summary: Database update operation failed
-              value:
-                success: false
-                message: "Failed to update mission"
-            educatorCreationFailed:
-              summary: Educator creation failed
-              value:
-                success: false
-                message: "An error occurred while creating the profile."
-            educatorUpdateFailed:
-              summary: Educator update failed
-              value:
-                success: false
-                message: "An error occurred while updating the profile."
 
 security:
   - BearerAuth: []
 
 paths:
-  # ================================
-  # EDUCATOR ENDPOINTS
-  # ================================
-  /api/v1/educators:
-    post:
-      summary: Create educator profile
-      description: |
-        Creates a new educator profile for an authenticated user.
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
-        - User must not already have an educator or organization profile
-        - Associated user must exist in the system
-
-        **File Upload Support:**
-        - Content-Type: multipart/form-data
-        - Supported formats: jpg, jpeg, png, gif, pdf
-        - Maximum file size: 5MB per file
-        - Files are processed and stored with generated paths in Cloudinary
-        - Supported documents: avatar, identityProof, criminalRecord, certificateOfHonor, diploma
-
-        **Skills Processing:**
-        - Skills provided as comma-separated string
-        - Processed into array format for storage
-        - At least one skill required
-
-        **Validation Rules:**
-        - firstName, lastName: Max 50 characters
-        - city, country: Max 100 characters
-        - fullAddress: Max 500 characters
-        - bio: Max 1000 characters
-        - profession: Max 100 characters
-        - education: Max 500 characters
-        - hourlyRate: Must be non-negative number
-
-        **Business Logic:**
-        - Validates user existence and uniqueness
-        - Prevents duplicate profiles (educator or organization)
-        - Handles file uploads and path extraction
-        - Initializes missionsInvitedFor as empty array
-
-      operationId: create-educator-profile
-      tags: [Educator Management]
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/EducatorCreateRequest"
-            examples:
-              completeProfile:
-                summary: Complete educator profile with all fields
-                value:
-                  user: "684a9654caa07bcde4138271"
-                  firstName: "John"
-                  lastName: "Doe"
-                  gender: "male"
-                  dateOfBirth: "1985-03-15"
-                  city: "Paris"
-                  country: "France"
-                  fullAddress: "123 Main St, Paris, France"
-                  bio: "Experienced mathematics educator with 10+ years of teaching experience"
-                  profession: "Mathematics Teacher"
-                  hourlyRate: 45.50
-                  skills: "mathematics,algebra,calculus,statistics"
-                  education: "MSc Mathematics, University of Paris"
-              minimalProfile:
-                summary: Minimal required fields
-                value:
-                  user: "684a9654caa07bcde4138271"
-                  firstName: "Jane"
-                  lastName: "Smith"
-                  gender: "female"
-                  dateOfBirth: "1990-08-20"
-                  city: "Lyon"
-                  country: "France"
-                  fullAddress: "456 Oak Ave, Lyon, France"
-                  profession: "Science Teacher"
-                  hourlyRate: 40.00
-                  skills: "science,biology,chemistry"
-                  education: "BSc Biology, University of Lyon"
-      responses:
-        201:
-          $ref: "#/components/responses/EducatorCreateSuccess"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/missions/{mId}/organization/{oId}:
-    get:
-      summary: Get specific mission by organization
-      description: |
-        Retrieves a specific mission for a specific organization by mission ID and organization ID.
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have organization role
-
-        **Response Details:**
-        - Returns single mission object with populated organization
-        - **INCLUDES all educator arrays (invited, hired, rejected) and educator feedback for organization management**
-        - Shows complete mission details for organization dashboard
-        - Educator feedback includes populated educator information for comprehensive review
-
-        **Use Cases:**
-        - Organization viewing their mission details
-        - Organization managing educator assignments
-        - Track educator status for mission planning
-
-      operationId: get-mission-by-organization
-      tags: [Mission Management]
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/MissionIdPathParam"
-        - $ref: "#/components/parameters/OrganizationIdPathParam"
-      responses:
-        200:
-          $ref: "#/components/responses/MissionProfileResponse"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/missions/{mId}/educator/{eId}:
-    get:
-      summary: Get mission by educator association
-      description: |
-        Retrieves a specific mission where the educator is involved (invited, hired, or rejected).
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
-
-        **Search Logic:**
-        - Uses $or query to find missions where educator ID appears in:
-          - invitedEducators array
-          - hiredEducators array  
-          - rejectedEducators array
-        - Returns first matching mission with specified mission ID
-
-        **Response Details:**
-        - Returns single mission object with populated organization
-        - **EXCLUDES educator tracking arrays (invitedEducators, hiredEducators, rejectedEducators) for privacy**
-        - **INCLUDES educatorsFeedbacks so educators can see all feedback for the mission**
-        - Educator can see mission details and feedback but not other educators involved
-
-        **Use Cases:**
-        - Educator viewing their assigned/invited missions
-        - Check mission details for specific educator-mission relationship
-        - Mission status tracking for educators
-
-      operationId: get-mission-by-educator-association
-      tags: [Mission Management]
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/MissionIdPathParam"
-        - $ref: "#/components/parameters/EducatorIdPathParam"
-      responses:
-        200:
-          description: Mission retrieved successfully (educator view - excludes educator arrays)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EducatorMissionResponse"
-              example:
-                success: true
-                message: "Mission retrieved successfully"
-                data:
-                  _id: "60d0fe4f5311236168a109ca"
-                  organization:
-                    _id: "684a9654caa07bcde4138271"
-                    organizationName: "Global Education Solutions"
-                    city: "Paris"
-                    country: "France"
-                    phone: "+33123456789"
-                    branches:
-                      - branchName: "Downtown Branch"
-                        branchEmail: "downtown@example.com"
-                  preferredEducator: "60d0fe4f5311236168a109ca"
-                  title: "Advanced Mathematics Training Program"
-                  description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
-                  branch: "Downtown Branch"
-                  skills: ["mathematics", "algebra", "calculus", "statistics"]
-                  start: "2025-07-01T09:00:00.000Z"
-                  end: "2025-08-30T17:00:00.000Z"
-                  technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/missions/684a9654caa07bcde4138271/technicalDocument.pdf"
-                  status: "ongoing"
-                  educatorsFeedbacks:
-                    [
-                      {
-                        educator: "60d0fe4f5311236168a109ca",
-                        feedback: "Excellent mission with great learning opportunities. The organization provided all necessary resources.",
-                        rating: 5,
-                      },
-                    ]
-                  createdAt: "2025-06-27T14:30:00.000Z"
-                  updatedAt: "2025-06-28T10:15:00.000Z"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/missions/send-invitations:
-    post:
-      summary: Send mission invitations to educators
-      description: |
-        Sends invitations for a specific mission to multiple educators.
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have organization role
-        - Mission and all educator IDs must be valid
-
-        **Business Logic:**
-        - Updates mission's invitedEducators array with provided educator IDs
-        - Updates each educator's missionsInvitedFor array with mission info
-        - Sets invitation status to "pending" for all invitations
-        - Uses $push operator to add mission invitation to educator profiles
-
-        **Bulk Operations:**
-        - Processes multiple educator invitations in a single request
-        - Updates both mission and educator records
-        - Returns count of successful invitations sent
-
-        **Use Cases:**
-        - Bulk invite educators to missions
-        - Organization recruiting process
-        - Mission staffing management
-        - Educator opportunity distribution
-
-      operationId: send-mission-invitations
-      tags: [Mission Management]
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InvitationRequest"
-            examples:
-              singleInvitation:
-                summary: Send invitation to one educator
-                value:
-                  missionId: "60d0fe4f5311236168a109ca"
-                  invitees: ["60d0fe4f5311236168a109cb"]
-              multipleInvitations:
-                summary: Send invitations to multiple educators
-                value:
-                  missionId: "60d0fe4f5311236168a109ca"
-                  invitees:
-                    [
-                      "60d0fe4f5311236168a109cb",
-                      "60d0fe4f5311236168a109cc",
-                      "60d0fe4f5311236168a109cd",
-                      "60d0fe4f5311236168a109ce",
-                      "60d0fe4f5311236168a109cf",
-                    ]
-      responses:
-        200:
-          $ref: "#/components/responses/InvitationSuccess"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/missions/respond-invitation:
-    post:
-      summary: Respond to mission invitation
-      description: |
-        Allows an educator to respond to a mission invitation with acceptance or rejection.
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
-        - Educator must have received invitation for the specified mission
-
-        **Business Logic:**
-        - Updates the specific mission invitation in educator's missionsInvitedFor array
-        - Uses arrayFilters to target the exact mission invitation
-        - Records invitation status (accepted/rejected) and response timestamp
-        - Returns updated educator profile with new invitation status
-
-        **Response Tracking:**
-        - Records exact timestamp when educator responds
-        - Updates invitation status from "pending" to "accepted" or "rejected"
-        - Maintains invitation history for tracking and analytics
-
-        **Use Cases:**
-        - Educator accepting mission opportunities
-        - Educator declining mission invitations
-        - Tracking educator response patterns
-        - Mission staffing confirmation
-
-      operationId: respond-to-mission-invitation
-      tags: [Mission Management]
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/InvitationResponseRequest"
-            examples:
-              acceptInvitation:
-                summary: Accept mission invitation
-                value:
-                  educatorId: "60d0fe4f5311236168a109cb"
-                  missionId: "60d0fe4f5311236168a109ca"
-                  response: "accepted"
-                  responseTime: "2025-07-15T14:30:00.000Z"
-              rejectInvitation:
-                summary: Reject mission invitation
-                value:
-                  educatorId: "60d0fe4f5311236168a109cb"
-                  missionId: "60d0fe4f5311236168a109ca"
-                  response: "rejected"
-                  responseTime: "2025-07-15T16:45:00.000Z"
-      responses:
-        200:
-          $ref: "#/components/responses/InvitationResponseSuccess"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-    get:
-      summary: Get all educators or search nearby educators
-      description: |
-        Retrieves all educator profiles in the system, or filters by location and skills if query parameters are provided.
-
-        **Authentication:**
-        - Requires valid JWT authentication token
-        - No specific role requirement for all educators
-        - Organization role required for location-based search
-
-        **Query Parameters:**
-        - coordinates: Optional - longitude,latitude as comma-separated string (requires organization role)
-        - distance: Optional - search radius in kilometers (requires organization role)
-        - skills: Optional - comma-separated skills filter
-
-        **Behavior:**
-        - If `coordinates` and `distance` are provided, returns educators within the specified distance, optionally filtered by skills.
-        - If no query parameters are provided, returns all educators.
-
-        **Response Details:**
-        - Returns array of educator profiles
-        - Each educator includes populated user object with email and role
-        - All document URLs and file paths are included
-        - Mission invitations are included with populated mission data
-        - No pagination applied - returns all educators
-
-        **Use Cases:**
-        - Browse available educators
-        - Admin dashboard for educator management
-        - Educator discovery for organizations
-        - Analytics and reporting
-        - Find local educators for missions
-        - Location-based educator recruitment
-        - Skills-based matching within geographic area
-
-      operationId: get-educators
-      tags: [Educator Management]
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/CoordinatesQuery"
-        - $ref: "#/components/parameters/DistanceQuery"
-        - $ref: "#/components/parameters/SkillsQuery"
-      responses:
-        200:
-          $ref: "#/components/responses/EducatorListSuccess"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/v1/educators/{id}:
-    get:
-      summary: Get educator by ID
-      description: |
-        Retrieves a specific educator profile by its MongoDB ObjectId.
-
-        **Authentication:**
-        - Requires valid JWT authentication token
-        - No specific role requirement
-
-        **Response Details:**
-        - Returns complete educator profile with populated user information
-        - User object includes email and role details
-        - All uploaded documents and file paths are included
-        - Mission invitations included with populated mission data (excluding educator arrays for privacy)
-        - Shows current profile status and all personal information
-
-        **Use Cases:**
-        - Display detailed educator information
-        - Educator profile viewing
-        - Mission assignment evaluation
-        - Profile management and verification
-
-      operationId: get-educator-by-id
-      tags: [Educator Management]
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/EducatorIdPath"
-      responses:
-        200:
-          $ref: "#/components/responses/EducatorProfileResponse"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
-    patch:
-      summary: Update educator profile by ID
-      description: |
-        Updates an existing educator profile with partial data.
-
-        **Prerequisites:**
-        - Valid JWT authentication token
-        - User must have educator role
-        - Educator profile must exist in the system
-
-        **Update Rules:**
-        - Partial updates supported - provide only fields to update
-        - All validation rules apply to updated fields
-        - File uploads supported for document updates
-        - Skills processing maintains comma-separated string format
-
-        **File Upload Support:**
-        - Content-Type: multipart/form-data
-        - Supported formats: jpg, jpeg, png, gif, pdf
-        - Maximum file size: 5MB per file
-        - File uploads replace existing documents
-        - Supported documents: avatar, identityProof, criminalRecord, certificateOfHonor, diploma
-
-        **Validation:**
-        - Same validation rules as creation apply to updated fields
-        - Character limits apply to text fields
-        - Skills must be comma-separated string if provided
-
-        **Business Logic:**
-        - Educator profile must exist before update
-        - File uploads replace existing documents
-        - Response includes updated educator data
-        - Skills processing converts string to array format
-
-      operationId: update-educator-by-id
-      tags: [Educator Management]
-      security:
-        - BearerAuth: []
-      parameters:
-        - $ref: "#/components/parameters/EducatorIdPath"
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              $ref: "#/components/schemas/EducatorUpdateRequest"
-            examples:
-              profileUpdate:
-                summary: Update basic profile information
-                value:
-                  firstName: "John"
-                  lastName: "Smith"
-                  bio: "Updated biography with new experience"
-                  hourlyRate: 50.00
-              skillsUpdate:
-                summary: Update skills and profession
-                value:
-                  skills: "mathematics,physics,programming"
-                  profession: "STEM Educator"
-                  education: "PhD Physics, University of Oxford"
-              contactUpdate:
-                summary: Update contact and location
-                value:
-                  city: "London"
-                  country: "United Kingdom"
-                  fullAddress: "789 New St, London, UK"
-      responses:
-        200:
-          $ref: "#/components/responses/EducatorUpdateSuccess"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/InternalServerError"
-
   # ================================
   # MISSION ENDPOINTS
   # ================================
@@ -2179,36 +1025,38 @@ paths:
     patch:
       summary: Update mission by ID
       description: |
-        Updates an existing mission with partial data.
+        Updates an existing mission with partial data, including hiring/rejection workflow and mission completion.
 
         **Prerequisites:**
         - Valid JWT authentication token
-        - User must have organization role
+        - User must have organization role (enforced by route)
         - Mission must exist in the system
 
         **Update Rules:**
-        - At least one field must be provided for update
+        - Partial updates supported - provide only fields to update
         - All validation rules apply to updated fields
         - File uploads supported for technical document updates
-        - Uses findByIdAndUpdate with new: true and upsert: true
+
+        **Hiring/Rejection Workflow:**
+        - hireStatus + educatorId: Hire or reject an educator
+        - Hiring first educator automatically sets status to "ongoing"
+        - Sends notifications to educators for hire/rejection decisions
+        - Updates educator's missionsHiredFor array
+
+        **Mission Completion:**
+        - status: "completed" + hires: array of hired educator IDs
+        - Sends completion notifications to all hired educators
 
         **Date/Time Processing:**
         - If date/time fields are updated, they follow same conversion logic as creation
         - startDate + startTime combined into start field
         - endDate + endTime combined into end field
 
-        **Validation:**
-        - Same validation rules as creation apply to updated fields
-        - Date/time format validation if dates/times are updated
-        - Character limits apply to text fields
-
         **Business Logic:**
         - Mission must exist before update
         - File uploads replace existing technical documents
-        - Status transitions are allowed based on mission lifecycle
-        - Response includes updated mission data
-
-      operationId: update-mission-by-id
+        - Prevents duplicate hire/rejection operations
+        operationId: update-mission-by-id
       tags: [Mission Management]
       security:
         - BearerAuth: []
@@ -2225,6 +1073,22 @@ paths:
                 summary: Update mission status
                 value:
                   status: "ongoing"
+              hireEducator:
+                summary: Hire an educator
+                value:
+                  hireStatus: "hired"
+                  educatorId: "60d0fe4f5311236168a109cb"
+              rejectEducator:
+                summary: Reject an educator
+                value:
+                  hireStatus: "rejected"
+                  educatorId: "60d0fe4f5311236168a109cb"
+              completeMission:
+                summary: Complete mission with hired educators
+                value:
+                  status: "completed"
+                  hires:
+                    ["60d0fe4f5311236168a109cb", "60d0fe4f5311236168a109cc"]
               scheduleUpdate:
                 summary: Update mission schedule
                 value:
@@ -2232,12 +1096,6 @@ paths:
                   endDate: "2025-09-30"
                   startTime: "08:30"
                   endTime: "16:30"
-              partialUpdate:
-                summary: Update multiple fields
-                value:
-                  title: "Updated Mission Title"
-                  description: "Updated comprehensive mission description"
-                  status: "ongoing"
       responses:
         200:
           $ref: "#/components/responses/MissionUpdateSuccess"
@@ -2289,6 +1147,272 @@ paths:
           description: Mission deleted successfully (No Content)
         401:
           $ref: "#/components/responses/Unauthorized"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/{mId}/organization/{oId}:
+    get:
+      summary: Get specific mission by organization
+      description: |
+        Retrieves a specific mission for a specific organization by mission ID and organization ID.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+
+        **Response Details:**
+        - Returns single mission object with populated organization
+        - **INCLUDES all educator arrays (invited, hired, rejected) and educator feedback for organization management**
+        - Shows complete mission details for organization dashboard
+        - Educator feedback includes populated educator information for comprehensive review
+
+        **Use Cases:**
+        - Organization viewing their mission details
+        - Organization managing educator assignments
+        - Track educator status for mission planning
+
+      operationId: get-mission-by-organization
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/MissionIdPathParam"
+        - $ref: "#/components/parameters/OrganizationIdPathParam"
+      responses:
+        200:
+          $ref: "#/components/responses/MissionProfileResponse"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/{mId}/educator/{eId}:
+    get:
+      summary: Get mission by educator association
+      description: |
+        Retrieves a specific mission where the educator is involved (invited, hired, or rejected).
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have educator role
+
+        **Search Logic:**
+        - Uses $or query to find missions where educator ID appears in:
+          - invitedEducators array
+          - hiredEducators array  
+          - rejectedEducators array
+        - Returns first matching mission with specified mission ID
+
+        **Response Details:**
+        - Returns single mission object with populated organization
+        - **EXCLUDES educator tracking arrays (invitedEducators, hiredEducators, rejectedEducators) for privacy**
+        - **INCLUDES educatorsFeedbacks so educators can see all feedback for the mission**
+        - Educator can see mission details and feedback but not other educators involved
+
+        **Use Cases:**
+        - Educator viewing their assigned/invited missions
+        - Check mission details for specific educator-mission relationship
+        - Mission status tracking for educators
+
+      operationId: get-mission-by-educator-association
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/MissionIdPathParam"
+        - $ref: "#/components/parameters/EducatorIdPathParam"
+      responses:
+        200:
+          description: Mission retrieved successfully (educator view - excludes educator arrays)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EducatorMissionResponse"
+              example:
+                success: true
+                message: "Mission retrieved successfully"
+                data:
+                  _id: "60d0fe4f5311236168a109ca"
+                  organization:
+                    _id: "684a9654caa07bcde4138271"
+                    user:
+                      _id: "684a9654caa07bcde4138272"
+                      phone: "+33123456789"
+                  preferredEducator: "60d0fe4f5311236168a109ca"
+                  title: "Advanced Mathematics Training Program"
+                  description: "Comprehensive training program covering advanced mathematical concepts including calculus, linear algebra, and statistical analysis for secondary education professionals."
+                  branch: "Downtown Branch"
+                  skills: ["mathematics", "algebra", "calculus", "statistics"]
+                  start: "2025-07-01T09:00:00.000Z"
+                  end: "2025-08-30T17:00:00.000Z"
+                  technicalDocument: "https://res.cloudinary.com/dtipq9s09/image/upload/v1751048825/missions/684a9654caa07bcde4138271/technicalDocument.pdf"
+                  status: "ongoing"
+                  educatorsFeedbacks:
+                    [
+                      {
+                        educator: "60d0fe4f5311236168a109ca",
+                        feedback: "Excellent mission with great learning opportunities. The organization provided all necessary resources.",
+                        rating: 5,
+                        createdAt: "2025-06-28T10:15:00.000Z",
+                      },
+                    ]
+                  createdAt: "2025-06-27T14:30:00.000Z"
+                  updatedAt: "2025-06-28T10:15:00.000Z"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/send-invitations:
+    post:
+      summary: Send mission invitations to educators
+      description: |
+        Sends invitations for a specific mission to multiple educators with WhatsApp notifications.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have organization role
+        - Mission and all educator IDs must be valid
+
+        **Business Logic:**
+        - Updates mission's invitedEducators array with provided educator IDs
+        - Updates each educator's missionsInvitedFor array with mission info
+        - Sets invitation status to "pending" for all invitations
+        - Sends WhatsApp messages to educators with mission details
+        - Creates notifications for all invited educators
+
+        **Notification System:**
+        - WhatsApp messages sent to educator phone numbers
+        - In-app notifications created for tracking
+        - Mission ID included in WhatsApp message for reference
+
+        **Bulk Operations:**
+        - Processes multiple educator invitations in a single request
+        - Updates both mission and educator records
+        - Returns count of successful invitations sent
+
+        **Use Cases:**
+        - Bulk invite educators to missions
+        - Organization recruiting process
+        - Mission staffing management
+        - Educator opportunity distribution
+
+      operationId: send-mission-invitations
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationRequest"
+            examples:
+              singleInvitation:
+                summary: Send invitation to one educator
+                value:
+                  missionId: "60d0fe4f5311236168a109ca"
+                  invitees: ["60d0fe4f5311236168a109cb"]
+              multipleInvitations:
+                summary: Send invitations to multiple educators
+                value:
+                  missionId: "60d0fe4f5311236168a109ca"
+                  invitees:
+                    [
+                      "60d0fe4f5311236168a109cb",
+                      "60d0fe4f5311236168a109cc",
+                      "60d0fe4f5311236168a109cd",
+                      "60d0fe4f5311236168a109ce",
+                      "60d0fe4f5311236168a109cf",
+                    ]
+      responses:
+        200:
+          $ref: "#/components/responses/InvitationSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/v1/missions/respond-invitation:
+    post:
+      summary: Respond to mission invitation
+      description: |
+        Allows an educator to respond to a mission invitation with acceptance or rejection.
+
+        **Prerequisites:**
+        - Valid JWT authentication token
+        - User must have educator role
+        - Educator must have received invitation for the specified mission
+
+        **Business Logic:**
+        - Updates the specific mission invitation in educator's missionsInvitedFor array
+        - Uses arrayFilters to target the exact mission invitation
+        - Records invitation status (accepted/rejected) and response timestamp
+        - Creates notification for the organization about the response
+        - Returns updated educator profile with new invitation status
+
+        **Response Tracking:**
+        - Records exact timestamp when educator responds
+        - Updates invitation status from "pending" to "accepted" or "rejected"
+        - Maintains invitation history for tracking and analytics
+        - Notifies organization of educator response
+
+        **Use Cases:**
+        - Educator accepting mission opportunities
+        - Educator declining mission invitations
+        - Tracking educator response patterns
+        - Mission staffing confirmation
+
+      operationId: respond-to-mission-invitation
+      tags: [Mission Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationResponseRequest"
+            examples:
+              acceptInvitation:
+                summary: Accept mission invitation
+                value:
+                  educatorId: "60d0fe4f5311236168a109cb"
+                  missionId: "60d0fe4f5311236168a109ca"
+                  response: "accepted"
+                  responseTime: "2025-07-15T14:30:00.000Z"
+              rejectInvitation:
+                summary: Reject mission invitation
+                value:
+                  educatorId: "60d0fe4f5311236168a109cb"
+                  missionId: "60d0fe4f5311236168a109ca"
+                  response: "rejected"
+                  responseTime: "2025-07-15T16:45:00.000Z"
+      responses:
+        200:
+          $ref: "#/components/responses/InvitationResponseSuccess"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
         404:
           $ref: "#/components/responses/NotFound"
         500:
