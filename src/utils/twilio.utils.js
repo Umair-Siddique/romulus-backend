@@ -1,13 +1,18 @@
 import { twilioClient, env } from "#config/index.js";
 
-const { TWILIO_VERIFY_SERVICE_SID, TWILIO_WHATSAPP_NUMBER } = env;
+const {
+  TWILIO_WHATSAPP_NUMBER,
+  TWILIO_VERIFY_SERVICE_SID,
+  TWILIO_MESSAGE_TEMPLATE_SID,
+} = env;
 
 export const twilioUtils = {
-  sendWhatsAppMessage: async (phone, message) => {
+  sendWhatsAppMessage: async (phone) => {
     return await twilioClient.messages.create({
-      from: TWILIO_WHATSAPP_NUMBER,
+      from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
       to: `whatsapp:${phone}`,
-      body: message,
+      contentSid: TWILIO_MESSAGE_TEMPLATE_SID,
+      body: null,
     });
   },
 
@@ -15,7 +20,7 @@ export const twilioUtils = {
     return await Promise.all(
       phones.map((phone) =>
         twilioClient.messages.create({
-          from: TWILIO_WHATSAPP_NUMBER,
+          from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
           to: `whatsapp:${phone}`,
           body: message,
         })
