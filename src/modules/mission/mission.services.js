@@ -129,7 +129,7 @@ export const missionServices = {
   },
 
   updateById: async (id, data) => {
-    const { hireStatus, educatorId, ...rest } = data;
+    const { hireStatus, educatorId, status, hires, ...rest } = data;
 
     // Handle hired or rejected status
     if (hireStatus && educatorId) {
@@ -143,11 +143,18 @@ export const missionServices = {
 
       if (hireStatus === "hired" && !isAlreadyHired) {
         const isFirstHire = mission.hiredEducators.length === 0;
-        await update.educatorById(educatorId, {
+        const result = await update.educatorById(educatorId, {
           $push: {
             missionsHiredFor: id, // NOT { id }
           },
         });
+
+        const userId = result?.user?._id;
+
+        await save.notification(
+          userId,
+          "You have been hired for the mission you accepted invite for."
+        );
 
         updateOps = {
           $push: { hiredEducators: educatorId },
@@ -156,6 +163,15 @@ export const missionServices = {
       }
 
       if (hireStatus === "rejected" && !isAlreadyRejected) {
+        const result = await read.educatorById(educatorId);
+
+        const userId = result?.user?._id;
+
+        await save.notification(
+          userId,
+          "You have been rejected for a mission you accepted invite for."
+        );
+
         updateOps = {
           $push: { rejectedEducators: educatorId },
         };
@@ -164,6 +180,23 @@ export const missionServices = {
       // Only update if push is valid (not duplicate)
       if (Object.keys(updateOps).length > 0) {
         await update.missionById(id, updateOps);
+      }
+    }
+
+    if (status === "completed") {
+      await update.missionById(id, {
+        ...{ $set: { status: "completed" } },
+      });
+
+      for (const hire of hires) {
+        const educator = await read.educatorById(hire);
+
+        const userId = educator?.user?._id;
+
+        await save.notification(
+          userId,
+          "The mission you've been hired for is completed successfully."
+        );
       }
     }
 
@@ -204,10 +237,7 @@ export const missionServices = {
         },
       });
 
-      await save.notification(
-        userId,
-        "You have been invited to a mission."
-      );
+      await save.notification(userId, "You have been invited to a mission.");
     }
 
     return {

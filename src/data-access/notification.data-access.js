@@ -12,7 +12,9 @@ export const notificationDataAccess = {
 
   read: {
     notificationByUserId: (userId) => {
-      return NotificationModel.find({ user: userId }).exec(); // ✅ Now returns a real Promise
+      return NotificationModel.find({ user: userId })
+        .sort({ createdAt: -1 }) // Descending order = latest first
+        .exec();
     },
   },
 
