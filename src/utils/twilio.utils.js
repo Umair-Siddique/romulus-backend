@@ -7,12 +7,12 @@ const {
 } = env;
 
 export const twilioUtils = {
-  sendWhatsAppMessage: async (phone) => {
+  sendWhatsAppMessage: async (phone, message) => {
     return await twilioClient.messages.create({
       from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
       to: `whatsapp:${phone}`,
       contentSid: TWILIO_MESSAGE_TEMPLATE_SID,
-      body: null,
+      body: message,
     });
   },
 
