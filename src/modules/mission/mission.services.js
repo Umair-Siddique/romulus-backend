@@ -14,6 +14,7 @@ export const missionServices = {
       description,
       branch,
       skills,
+      timezoneOffset,
       startDate,
       endDate,
       startTime,
@@ -40,21 +41,17 @@ export const missionServices = {
     };
 
     // Convert date and time to ISO 8601 format
-    const toISO8601 = (dateString, timeString) => {
+    const toISO8601 = (dateString, timeString, timezoneOffset = 0) => {
       const combined = `${dateString}T${timeString}`;
-
       const dateObj = new Date(combined);
 
       if (isNaN(dateObj.getTime())) {
-        throw createError(400, "Invalid date or time input.", {
-          expose: true,
-          code: "INVALID_DATE_TIME",
-          field: "startDate or startTime or endDate or endTime",
-          operation: "create_mission",
-        });
+        throw createError(400, "Invalid date or time input.");
       }
 
-      return dateObj.toISOString();
+      // Adjust for timezone offset (in minutes)
+      const adjustedTime = new Date(dateObj.getTime() - timezoneOffset * 60000);
+      return adjustedTime.toISOString();
     };
 
     const missionData = {
@@ -63,8 +60,8 @@ export const missionServices = {
       description,
       branch,
       skills: parseDelimitedString(skills),
-      start: toISO8601(startDate, startTime),
-      end: toISO8601(endDate, endTime),
+      start: toISO8601(startDate, startTime, timezoneOffset),
+      end: toISO8601(endDate, endTime, timezoneOffset),
       preferredEducator,
       technicalDocument: getFilePath(technicalDocument),
     };
