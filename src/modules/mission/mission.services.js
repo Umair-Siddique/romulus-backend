@@ -41,11 +41,9 @@ export const missionServices = {
 
     // Convert date and time to ISO 8601 format
     const toISO8601 = (dateString, timeString) => {
-      const combined = `${dateString}T${timeString}`;
+      const localDateTime = new Date(`${dateString}T${timeString}`);
 
-      const dateObj = new Date(combined);
-
-      if (isNaN(dateObj.getTime())) {
+      if (isNaN(localDateTime.getTime())) {
         throw createError(400, "Invalid date or time input.", {
           expose: true,
           code: "INVALID_DATE_TIME",
@@ -54,7 +52,12 @@ export const missionServices = {
         });
       }
 
-      return dateObj.toISOString();
+      // Adjust for server timezone to get correct UTC
+      const utcDate = new Date(
+        localDateTime.getTime() - localDateTime.getTimezoneOffset() * 60000
+      );
+
+      return utcDate.toISOString();
     };
 
     const missionData = {
