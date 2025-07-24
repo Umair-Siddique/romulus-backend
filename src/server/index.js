@@ -8,7 +8,7 @@ import { logger, env } from "#config/index.js";
 import { globalUtils } from "#utils/index.js";
 import appRouter from "#routes/index.js";
 
-const { PORT } = env;
+const { PORT, NODE_ENV, BACKEND_BASE_URL_DEV, BACKEND_BASE_URL_PROD } = env;
 const { asyncHandler } = globalUtils;
 
 const app = express();
@@ -40,6 +40,8 @@ export const startServer = asyncHandler(async () => {
   });
 
   httpServer.listen(PORT || 5000, () => {
-    logger.info(`connected: server at http://localhost:${PORT}`);
+    logger.info(
+      `connected: server at ${NODE_ENV === "development" ? BACKEND_BASE_URL_DEV : BACKEND_BASE_URL_PROD}`
+    );
   });
 });
