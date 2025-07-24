@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import colors from "colors";
 
 import { logger, swaggerSpec } from "#config/index.js";
+import { isProdEnv } from "#constants/index.js";
 
 colors.setTheme({
   database: ["green", "bold", "underline"],
@@ -24,7 +25,6 @@ const corsOptions = {
 
 // eslint-disable-next-line no-unused-vars
 const errorHandler = async (err, req, res, next) => {
-  const isProduction = process.env.NODE_ENV === "production";
   const status = err.statusCode || err.status || 500;
   const message = err.message || "Internal Server Error";
   const stack = err.stack || "No stack trace available";
@@ -41,7 +41,7 @@ const errorHandler = async (err, req, res, next) => {
 
   const response = {
     success: false,
-    message: expose || !isProduction ? message : "Internal Server Error",
+    message: expose || !isProdEnv ? message : "Internal Server Error",
     ...(code && { code }),
     ...(field && { field }),
     ...(operation && expose && { operation }),
@@ -57,7 +57,7 @@ const errorHandler = async (err, req, res, next) => {
       userAgent: req.get("User-Agent"),
       timestamp: new Date().toISOString(),
     },
-    ...(isProduction ? {} : { stack }),
+    ...(isProdEnv ? {} : { stack }),
   };
 
   if (Object.keys(headers).length) res.set(headers);

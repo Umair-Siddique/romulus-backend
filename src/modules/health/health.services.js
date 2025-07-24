@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 import { env, logger } from "#config/index.js";
+import { isProdEnv } from "#constants/index.js";
 
 const {
-  NODE_ENV,
   PORT,
   DATABASE_URI,
   JWT_SECRET_KEY,
@@ -65,14 +65,8 @@ export const healthServices = {
         port: PORT,
         uptime: `${Math.floor(process.uptime())}s`,
         urls: {
-          backend:
-            NODE_ENV === "production"
-              ? BACKEND_BASE_URL_PROD
-              : BACKEND_BASE_URL_DEV,
-          frontend:
-            NODE_ENV === "production"
-              ? FRONTEND_BASE_URL_PROD
-              : FRONTEND_BASE_URL_DEV,
+          backend: isProdEnv ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV,
+          frontend: isProdEnv ? FRONTEND_BASE_URL_PROD : FRONTEND_BASE_URL_DEV,
         },
         configured: {
           database: !!DATABASE_URI,

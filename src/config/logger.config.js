@@ -1,8 +1,6 @@
 import winston from "winston";
 
-import { env } from "./env.config.js";
-
-const { NODE_ENV } = env;
+import { isProdEnv } from "#constants/index.js";
 
 const createLogger = () => {
   const levels = { error: 0, warn: 1, info: 2, debug: 3 };
@@ -19,10 +17,10 @@ const createLogger = () => {
           winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
           winston.format.printf(
             ({ level, message, timestamp }) =>
-              `${timestamp} [${level}]: ${message}`,
-          ),
+              `${timestamp} [${level}]: ${message}`
+          )
         ),
-        level: NODE_ENV === "production" ? "warn" : "debug",
+        level: isProdEnv ? "warn" : "debug",
         handleExceptions: true,
       }),
     ],
