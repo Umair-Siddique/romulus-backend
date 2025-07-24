@@ -1,10 +1,9 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { isProdEnv } from "#constants/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const isDevelopment = process.env.NODE_ENV !== "production";
 
 const swaggerOptions = {
   definition: {
@@ -16,10 +15,10 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: isDevelopment
-          ? "http://localhost:5000"
-          : "https://romulus-backend.onrender.com",
-        description: isDevelopment ? "Development" : "Production",
+        url: isProdEnv
+          ? "https://romulus-backend.onrender.com"
+          : "http://localhost:5000",
+        description: isProdEnv ? "Production" : "Development",
       },
     ],
     components: {

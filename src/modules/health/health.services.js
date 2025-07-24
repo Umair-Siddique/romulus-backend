@@ -61,7 +61,7 @@ export const healthServices = {
           usage: `${memoryMB}MB`,
           status: memoryStatus,
         },
-        environment: NODE_ENV,
+        environment: isProdEnv ? "Production" : "Development",
         port: PORT,
         uptime: `${Math.floor(process.uptime())}s`,
         urls: {
