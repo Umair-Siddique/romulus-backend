@@ -8,6 +8,7 @@ const {
 
 export const twilioUtils = {
   sendWhatsAppMessage: async (phone) => {
+    console.log("sending invitation whatsapp message to:", phone);
     return await twilioClient.messages.create({
       from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
       to: `whatsapp:${phone}`,
