@@ -17,6 +17,6 @@ export const getCoordinates = async (address) => {
 
     return { type: "Point", coordinates: [location.lng, location.lat] };
   } else {
-    throw createError(400, "Unable to fetch coordinates");
+    throw createError(400, "Enter the correct address.");
   }
 };
