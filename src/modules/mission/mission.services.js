@@ -223,8 +223,6 @@ export const missionServices = {
       const phone = educator?.user?.phone;
       const userId = educator?.user?._id;
 
-      await twilioUtils.sendWhatsAppMessage(phone);
-
       await update.educatorById(invitee, {
         $push: {
           missionsInvitedFor: {
@@ -233,8 +231,9 @@ export const missionServices = {
           },
         },
       });
-
       await save.notification(userId, "You have been invited to a mission.");
+
+      await twilioUtils.sendWhatsAppMessage(phone);
     }
 
     return {
