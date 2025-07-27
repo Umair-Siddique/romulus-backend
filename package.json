@@ -9,7 +9,8 @@
     "start": "node src/index.js",
     "format": "prettier --write \"./**/*.{js,jsx,html,yaml,env,md,json,txt}\"",
     "lint": "eslint \"./**/*.js\"",
-    "check:circularDeps": "npx madge --circular ./src"
+    "check:circularDeps": "npx madge --circular ./src",
+    "generateTree": "pwsh generateTree.ps1"
   },
   "devDependencies": {
     "@faker-js/faker": "^9.5.0",

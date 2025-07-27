@@ -41,7 +41,6 @@ ES6 modules with import mapping:
 ```
 📁 romulus-backend
 ├── 📄 eslint.config.js
-├── 📄 generateTree.ps1
 ├── 📄 nodemon.json
 ├── 📄 package-lock.json
 ├── 📄 package.json
