@@ -9,11 +9,9 @@
     "start": "node src/index.js",
     "format": "prettier --write \"./**/*.{js,jsx,html,yaml,env,md,json,txt}\"",
     "lint": "eslint \"./**/*.js\"",
-    "check:circularDeps": "npx madge --circular ./src",
-    "generateTree": "pwsh generateTree.ps1"
+    "check:circularDeps": "npx madge --circular ./src"
   },
   "devDependencies": {
-    "@faker-js/faker": "^9.5.0",
     "eslint": "^9.20.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.0"
@@ -23,15 +21,10 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.41.3",
     "colors": "^1.4.0",
-    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "express-mongo-sanitize": "^2.2.0",
-    "express-rate-limit": "^8.0.1",
-    "helmet": "^8.1.0",
     "http-errors": "^2.0.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
@@ -44,8 +37,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "twilio": "^4.23.0",
-    "winston": "^3.17.0",
-    "xss-clean": "^0.1.4"
+    "winston": "^3.17.0"
   },
   "imports": {
     "#config/*": "./src/config/*",
