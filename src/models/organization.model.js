@@ -203,6 +203,12 @@ const OrganizationSchema = new Schema(
       },
     },
 
+    preferredEducators: {
+      type: [Schema.Types.ObjectId],
+      ref: "Educator",
+      default: [],
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive", "pending"],

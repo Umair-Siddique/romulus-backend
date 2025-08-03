@@ -133,9 +133,7 @@ export const missionServices = {
   updateById: async (id, data) => {
     const { hireStatus, educatorId, status, hires, ...rest } = data;
 
-    // Handle hired or rejected status
     if (hireStatus && educatorId) {
-      // Fetch the mission to inspect current state
       const mission = await read.missionById(id);
 
       const isAlreadyHired = mission.hiredEducators.includes(educatorId);
@@ -147,11 +145,17 @@ export const missionServices = {
         const isFirstHire = mission.hiredEducators.length === 0;
         const result = await update.educatorById(educatorId, {
           $push: {
-            missionsHiredFor: id, // NOT { id }
+            missionsHiredFor: id,
           },
         });
 
         const userId = result?.user?._id;
+
+        await update.organizationById(mission.organization, {
+          $push: {
+            preferredEducators: educatorId,
+          },
+        });
 
         await save.notification(
           userId,
