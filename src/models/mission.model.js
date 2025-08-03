@@ -42,12 +42,12 @@ const MissionSchema = new Schema(
     },
 
     start: {
-      type: Date,
+      type: String,
       required: [true, "Start date and time are required"],
     },
 
     end: {
-      type: Date,
+      type: String,
       required: [true, "End date and time are required"],
     },
 
