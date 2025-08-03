@@ -247,7 +247,7 @@ export const authServices = {
       );
     }
 
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await bcryptUtils.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw createError(401, "Invalid credentials.", {
