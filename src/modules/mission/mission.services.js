@@ -39,26 +39,9 @@ export const missionServices = {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
     };
 
-    // Received date and time
-    console.log("startTime (received):", startTime);
-    console.log("endTime (received):", endTime);
-    console.log("startDate (received):", startDate);
-    console.log("endDate (received):", endDate);
-
-    // Convert date and time to ISO 8601 format
     const toISO8601 = (dateString, timeString) => {
       return `${dateString}T${timeString}:00`; // No "Z", not UTC
     };
-
-    // To be saved date and time
-    console.log(
-      "start (toISO8601(startDate, startTime)):",
-      toISO8601(startDate, startTime)
-    );
-    console.log(
-      "end (toISO8601(endDate, endTime)):",
-      toISO8601(endDate, endTime)
-    );
 
     const missionData = {
       organization: organizationId,
