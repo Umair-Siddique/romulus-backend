@@ -9,8 +9,9 @@ import compression from "compression";
 import xss from "xss-clean";
 import mongoSanitize from "express-mongo-sanitize";
 
-import { logger, swaggerSpec } from "#config/index.js";
-import { isProdEnv } from "#constants/index.js";
+import { swaggerSpec } from "#config/index.js";
+import { errorHandler } from "./error-handler.js";
+import { invalidRouteHandler } from "./invalid-route-handler.js";
 
 colors.setTheme({
   database: ["green", "bold"],
@@ -37,31 +38,6 @@ const apiRateLimiter = rateLimit({
     message: "Too many requests. Please try again later.",
   },
 });
-
-const errorHandler = async (err, _req, res, _next) => {
-  const status = err.statusCode || err.status || 500;
-  const message = err.message || "Internal Server Error";
-  const stack = err.stack || "No stack trace available";
-
-  const response = {
-    success: false,
-    message,
-    ...(isProdEnv ? {} : { stack, status }),
-  };
-
-  const logMethod = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
-
-  logger[logMethod](JSON.stringify(response, null, 2));
-
-  res.status(status).json(response);
-};
-
-const invalidRouteHandler = (_req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Endpoint not found",
-  });
-};
 
 export const applyGlobalMiddleware = (app, appRouter) => {
   app.use(morgan("dev")); // Logs incoming HTTP requests (method, URL, status) for debugging
