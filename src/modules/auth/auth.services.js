@@ -1,14 +1,19 @@
 import createError from "http-errors";
 import bcrypt from "bcryptjs";
 
-import { tokenUtils, emailUtils, twilioUtils } from "#utils/index.js";
+import {
+  tokenUtils,
+  emailUtils,
+  twilioUtils,
+  bcryptUtils,
+} from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { save, read, remove, update } = dataAccess;
 
 export const authServices = {
   signUp: async (payload) => {
-    const { phone, email, password, role } = payload;
+    const { email, password, role, phone } = payload;
 
     if (role === "educator" && !phone) {
       throw createError(400, "Phone number is required for educators.", {
@@ -47,7 +52,15 @@ export const authServices = {
       });
     }
 
-    const newUser = await save.user(phone, email, password, role);
+    const hashedPassword = await bcryptUtils.hash(password, { rounds: 12 });
+
+    const newUser = await save.user({
+      phone: role === "educator" ? phone : undefined,
+      email,
+      password: hashedPassword,
+      role,
+      isPhoneVerified: role === "educator" ? false : undefined,
+    });
 
     if (!newUser) {
       throw createError(500, "Failed to create a new user.", {
@@ -109,6 +122,21 @@ export const authServices = {
             emailType: "verify-email",
             recipient: email,
           },
+        });
+      }
+
+      const isPasswordValid = await bcryptUtils.compare(
+        password,
+        user.password
+      );
+
+      if (!isPasswordValid) {
+        throw createError(401, "Invalid credentials.", {
+          expose: true,
+          code: "INVALID_CREDENTIALS",
+          field: "password",
+          operation: "sign_in",
+          headers: { "www-authenticate": "Bearer" },
         });
       }
 

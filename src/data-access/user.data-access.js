@@ -6,24 +6,18 @@ const { isValidObjectId } = mongoose;
 
 export const userDataAccess = {
   save: {
-    user: (phone, email, password, role) => {
-      return UserModel.create({
-        phone: role === "educator" ? phone : undefined,
-        email,
-        password,
-        role,
-        isPhoneVerified: role === "educator" ? false : undefined,
-      }); // ✅ native Promise
+    user: (data) => {
+      return UserModel.create(data);
     },
   },
 
   read: {
     allUsers: () => {
-      return UserModel.find().exec(); // ✅ ensure native Promise
+      return UserModel.find().exec();
     },
 
     userByEmail: (email) => {
-      return UserModel.findOne({ email }).exec(); // ✅ safer
+      return UserModel.findOne({ email }).exec();
     },
 
     userById: (id) => {

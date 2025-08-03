@@ -1,3 +1,4 @@
+export * from "./bcrypt.utils.js";
 export * from "./email.utils.js";
 export * from "./geo-coding.utils.js";
 export * from "./global.utils.js";
