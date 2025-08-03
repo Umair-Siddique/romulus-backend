@@ -23,8 +23,6 @@ export const twilioServices = {
         },
       });
     }
-
-    return { success: true, message: "OTP sent successfully" };
   },
 
   verifyOTP: async (data) => {
@@ -32,7 +30,7 @@ export const twilioServices = {
 
     const isWhatsAppOtpVerified = await twilioUtils.verifyWhatsAppOTP(
       phone,
-      code,
+      code
     );
 
     if (!isWhatsAppOtpVerified || isWhatsAppOtpVerified.status !== "approved") {
@@ -53,7 +51,5 @@ export const twilioServices = {
     await update.userByPhone(phone, {
       isPhoneVerified: true,
     });
-
-    return { success: true, message: "OTP verified successfully" };
   },
 };

@@ -4,22 +4,14 @@ const { read, update } = dataAccess;
 
 export const notificationServices = {
   read: async (userId) => {
-    const result = await read.notificationByUserId(userId);
+    const notifications = await read.notificationByUserId(userId);
 
-    return {
-      success: true,
-      message: "Notifications retrieved successfully",
-      data: result,
-    };
+    return notifications;
   },
 
   updateById: async (notiId) => {
-    const result = await update.notificationById(notiId);
+    const updatedNotification = await update.notificationById(notiId);
 
-    return {
-      success: true,
-      message: "Notification updated successfully",
-      data: result,
-    };
+    return updatedNotification;
   },
 };

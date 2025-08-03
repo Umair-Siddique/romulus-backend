@@ -6,7 +6,7 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, update, remove } = dataAccess;
 
 export const emailServices = {
-  checkVerificationToken: async (verificationToken) => {
+  checkVerificationEmail: async (verificationToken) => {
     const decodedToken = tokenUtils.decode(verificationToken);
 
     const { id } = decodedToken;
@@ -38,7 +38,7 @@ export const emailServices = {
     return emailUtils.sendVerificationNotification();
   },
 
-  sendVerificationToken: async (email) => {
+  sendVerificationEmail: async (email) => {
     const user = await read.userByEmail(email);
 
     if (!user) {
@@ -53,7 +53,7 @@ export const emailServices = {
 
     const verificationToken = tokenUtils.generate(
       { id: user._id },
-      "verificationToken",
+      "verificationToken"
     );
 
     if (!verificationToken) {
@@ -69,11 +69,12 @@ export const emailServices = {
 
     const isEmailSent = await emailUtils.sendAccountVerification(
       email,
-      verificationToken,
+      verificationToken
     );
 
     if (!isEmailSent) {
       await remove.userById(user._id);
+
       throw createError(500, "Failed to send the welcome email.", {
         expose: false,
         code: "EMAIL_SEND_FAILED",
@@ -86,10 +87,5 @@ export const emailServices = {
         },
       });
     }
-
-    return {
-      success: true,
-      message: "Verification email sent successfully",
-    };
   },
 };

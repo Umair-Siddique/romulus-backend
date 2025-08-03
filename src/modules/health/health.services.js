@@ -46,39 +46,38 @@ export const healthServices = {
     const isHealthy = dbStatus === "healthy" && memoryStatus === "normal";
     const status = isHealthy ? "healthy" : "degraded";
 
-    return {
-      success: true,
-      message: isHealthy ? "System operational" : "System degraded",
-      data: {
-        status,
-        timestamp: new Date().toISOString(),
-        responseTime: `${Date.now() - startTime}ms`,
-        database: {
-          status: dbStatus,
-          responseTime: dbResponseTime ? `${dbResponseTime}ms` : null,
-        },
-        memory: {
-          usage: `${memoryMB}MB`,
-          status: memoryStatus,
-        },
-        environment: isProdEnv ? "Production" : "Development",
-        port: PORT,
-        uptime: `${Math.floor(process.uptime())}s`,
-        urls: {
-          backend: isProdEnv ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV,
-          frontend: isProdEnv ? FRONTEND_BASE_URL_PROD : FRONTEND_BASE_URL_DEV,
-        },
-        configured: {
-          database: !!DATABASE_URI,
-          jwt: !!JWT_SECRET_KEY,
-          cloudinary: !!(
-            CLOUDINARY_CLOUD_NAME &&
-            CLOUDINARY_API_KEY &&
-            CLOUDINARY_API_SECRET
-          ),
-          email: !!(USER_EMAIL && USER_PASSWORD),
-        },
+    const data = {
+      isHealthy,
+      status,
+      timestamp: new Date().toISOString(),
+      responseTime: `${Date.now() - startTime}ms`,
+      database: {
+        status: dbStatus,
+        responseTime: dbResponseTime ? `${dbResponseTime}ms` : "N/A",
+      },
+      memory: {
+        usage: `${memoryMB}MB`,
+        status: memoryStatus,
+      },
+      environment: isProdEnv ? "Production" : "Development",
+      port: PORT,
+      uptime: `${Math.floor(process.uptime())}s`,
+      urls: {
+        backend: isProdEnv ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV,
+        frontend: isProdEnv ? FRONTEND_BASE_URL_PROD : FRONTEND_BASE_URL_DEV,
+      },
+      configured: {
+        database: !!DATABASE_URI,
+        jwt: !!JWT_SECRET_KEY,
+        cloudinary: !!(
+          CLOUDINARY_CLOUD_NAME &&
+          CLOUDINARY_API_KEY &&
+          CLOUDINARY_API_SECRET
+        ),
+        email: !!(USER_EMAIL && USER_PASSWORD),
       },
     };
+
+    return data;
   },
 };

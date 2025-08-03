@@ -4,11 +4,17 @@ import { healthServices } from "./health.services.js";
 const { asyncHandler } = globalUtils;
 
 export const healthControllers = {
-  checkHealth: asyncHandler(async (req, res) => {
-    const result = await healthServices.checkHealth();
+  checkHealth: asyncHandler(async (_, res) => {
+    const data = await healthServices.checkHealth();
 
-    const statusCode = result.data.status === "healthy" ? 200 : 503;
+    const statusCode = data.isHealthy ? 200 : 503;
 
-    res.status(statusCode).json(result);
+    const response = {
+      success: true,
+      message: data.isHealthy ? "System operational" : "System degraded",
+      data: { ...data, isHealthy: undefined },
+    };
+
+    res.status(statusCode).json(response);
   }),
 };

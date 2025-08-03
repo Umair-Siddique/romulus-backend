@@ -7,8 +7,8 @@ import { dataAccess } from "#dataAccess/index.js";
 const { save, read, remove, update } = dataAccess;
 
 export const authServices = {
-  signUp: async (data) => {
-    const { phone, email, password, role } = data;
+  signUp: async (payload) => {
+    const { phone, email, password, role } = payload;
 
     if (role === "educator" && !phone) {
       throw createError(400, "Phone number is required for educators.", {
@@ -112,23 +112,17 @@ export const authServices = {
         });
       }
 
-      return {
-        success: true,
-        message:
-          "Account registered successfully. Please verify your email address.",
-        data: {
-          id: newUser._id,
-          role: newUser.role,
-        },
-      };
+      const data = { id: newUser._id, role: newUser.role };
+
+      return data;
     } catch (err) {
       await remove.userById(newUser._id);
       throw err;
     }
   },
 
-  signIn: async (data) => {
-    const { email, password } = data;
+  signIn: async (payload) => {
+    const { email, password } = payload;
 
     const user = await read.userByEmail(email);
 
@@ -253,17 +247,15 @@ export const authServices = {
       });
     }
 
-    return {
-      success: true,
-      message: "Signed in successfully.",
-      data: {
-        userId,
-        educatorId: !!educatorId ? educatorId : undefined,
-        organizationId: !!organizationId ? organizationId : undefined,
-        role: user.role,
-      },
+    const data = {
+      userId,
+      educatorId: educatorId || undefined,
+      organizationId: organizationId || undefined,
+      role: user.role,
       accessToken,
     };
+
+    return data;
   },
 
   signOut: async (accessToken) => {
@@ -302,11 +294,6 @@ export const authServices = {
         }
       );
     }
-
-    return {
-      success: true,
-      message: "Signed out successfully.",
-    };
   },
 
   forgetPassword: async (data) => {
@@ -353,11 +340,6 @@ export const authServices = {
         },
       });
     }
-
-    return {
-      success: true,
-      message: "Reset password email sent successfully.",
-    };
   },
 
   updatePassword: async (data) => {
@@ -395,7 +377,5 @@ export const authServices = {
         context: { field: "password" },
       });
     }
-
-    return { success: true, message: "Password updated successfully." };
   },
 };

@@ -6,15 +6,27 @@ const { asyncHandler } = globalUtils;
 export const twilioControllers = {
   sendOTP: asyncHandler(async (req, res) => {
     const payload = req.body;
-    const result = await twilioServices.sendOTP(payload);
 
-    res.status(200).json(result);
+    await twilioServices.sendOTP(payload);
+
+    const response = {
+      success: true,
+      message: "OTP sent successfully",
+    };
+
+    res.status(200).json(response);
   }),
 
   verifyOTP: asyncHandler(async (req, res) => {
     const payload = req.body;
-    const result = await twilioServices.verifyOTP(payload);
 
-    res.status(200).json(result);
+    await twilioServices.verifyOTP(payload);
+
+    const response = {
+      success: true,
+      message: "OTP verified successfully",
+    };
+
+    res.status(200).json(response);
   }),
 };

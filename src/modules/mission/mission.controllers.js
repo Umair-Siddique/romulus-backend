@@ -8,71 +8,130 @@ export const missionControllers = {
     const payload = req.body;
     const files = req.files;
 
-    const result = await missionServices.create({ ...payload, ...files });
+    const data = await missionServices.create({ ...payload, ...files });
 
-    res.status(201).json(result);
+    const response = {
+      success: true,
+      message: "Mission created successfully.",
+      data,
+    };
+
+    res.status(201).json(response);
   }),
 
   getAll: asyncHandler(async (req, res) => {
-    const result = await missionServices.getAll();
+    const data = await missionServices.getAll();
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Missions retrieved successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   getAllByOrganizationId: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const result = await missionServices.getAllByOrganizationId(id);
+    const data = await missionServices.getAllByOrganizationId(id);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Missions retrieved successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const result = await missionServices.getById(id);
+    const data = await missionServices.getById(id);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Mission retrieved successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   getByOrganizationId: asyncHandler(async (req, res) => {
     const { mId, oId } = req.params;
-    const result = await missionServices.getByOrganizationId(mId, oId);
+    const data = await missionServices.getByOrganizationId(mId, oId);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Mission retrieved successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   getByEducatorId: asyncHandler(async (req, res) => {
     const { mId, eId } = req.params;
-    const result = await missionServices.getByEducatorId(mId, eId);
+    const data = await missionServices.getByEducatorId(mId, eId);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Mission retrieved successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   updateById: asyncHandler(async (req, res) => {
     const { id } = req.params;
     const payload = req.body;
-    const result = await missionServices.updateById(id, payload);
+    const data = await missionServices.updateById(id, payload);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Mission updated successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   sendInvitation: asyncHandler(async (req, res) => {
     const payload = req.body;
-    const result = await missionServices.sendInvitation(payload);
+    const data = await missionServices.sendInvitation(payload);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: `Invitations sent successfully to ${data} educators.`,
+    };
+
+    res.status(200).json(response);
   }),
 
   respondInvitation: asyncHandler(async (req, res) => {
     const payload = req.body;
-    const result = await missionServices.respondInvitation(payload);
+    const data = await missionServices.respondInvitation(payload);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Invitation response recorded successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   deleteById: asyncHandler(async (req, res) => {
     const { id } = req.params;
+
     await missionServices.deleteById(id);
 
-    res.status(204).send();
+    const response = {
+      success: true,
+      message: "Mission deleted successfully.",
+    };
+
+    res.status(204).json(response);
   }),
 };

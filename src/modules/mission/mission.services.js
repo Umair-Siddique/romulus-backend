@@ -71,61 +71,77 @@ export const missionServices = {
 
     const newMission = await save.mission(missionData);
 
-    return {
-      success: true,
-      message: "Mission created successfully",
-      data: newMission,
-    };
+    return newMission;
   },
 
   getAll: async () => {
-    const result = await read.allMissions();
+    const missions = await read.allMissions();
 
-    return {
-      success: true,
-      message: "Missions retrieved successfully",
-      data: result,
-    };
+    if (!missions) {
+      throw createError(404, "Missions not found", {
+        expose: true,
+        code: "MISSIONS_NOT_FOUND",
+        operation: "get_all_missions",
+      });
+    }
+
+    return missions;
   },
 
   getAllByOrganizationId: async (id) => {
-    const result = await read.missionsByOrganizationId(id);
+    const missions = await read.missionsByOrganizationId(id);
 
-    return {
-      success: true,
-      message: "Missions retrieved successfully",
-      data: result,
-    };
+    if (!missions) {
+      throw createError(404, "Missions not found", {
+        expose: true,
+        code: "MISSIONS_NOT_FOUND",
+        operation: "get_missions_by_organization_id",
+      });
+    }
+
+    return missions;
   },
 
   getById: async (id) => {
-    const result = await read.missionById(id);
+    const mission = await read.missionById(id);
 
-    return {
-      success: true,
-      message: "Mission retrieved successfully",
-      data: result,
-    };
+    if (!mission) {
+      throw createError(404, "Mission not found", {
+        expose: true,
+        code: "MISSION_NOT_FOUND",
+        operation: "get_mission_by_id",
+      });
+    }
+
+    return mission;
   },
 
   getByOrganizationId: async (mId, oId) => {
-    const result = await read.missionByOrganizationId(mId, oId);
+    const mission = await read.missionByOrganizationId(mId, oId);
 
-    return {
-      success: true,
-      message: "Mission retrieved successfully",
-      data: result,
-    };
+    if (!mission) {
+      throw createError(404, "Mission not found", {
+        expose: true,
+        code: "MISSION_NOT_FOUND",
+        operation: "get_mission_by_organization_id",
+      });
+    }
+
+    return mission;
   },
 
   getByEducatorId: async (mId, eId) => {
-    const result = await read.missionByEducatorId(mId, eId);
+    const mission = await read.missionByEducatorId(mId, eId);
 
-    return {
-      success: true,
-      message: "Mission retrieved successfully",
-      data: result,
-    };
+    if (!mission) {
+      throw createError(404, "Mission not found", {
+        expose: true,
+        code: "MISSION_NOT_FOUND",
+        operation: "get_mission_by_educator_id",
+      });
+    }
+
+    return mission;
   },
 
   updateById: async (id, data) => {
@@ -201,13 +217,9 @@ export const missionServices = {
     }
 
     // Update remaining fields
-    const result = await update.missionById(id, { $set: rest });
+    const updatedMission = await update.missionById(id, { $set: rest });
 
-    return {
-      success: true,
-      message: "Mission updated successfully",
-      data: result,
-    };
+    return updatedMission;
   },
 
   sendInvitation: async (data) => {
@@ -216,6 +228,8 @@ export const missionServices = {
     await update.missionById(missionId, {
       invitedEducators: invitees,
     });
+
+    let sentInvitationsCount = 0;
 
     for (const invitee of invitees) {
       const educator = await read.educatorById(invitee);
@@ -231,21 +245,21 @@ export const missionServices = {
           },
         },
       });
+
       await save.notification(userId, "You have been invited to a mission.");
 
       await twilioUtils.sendWhatsAppMessage(phone);
+
+      sentInvitationsCount++;
     }
 
-    return {
-      success: true,
-      message: `Invitations have been sent to ${invitees.length} educators successfully.`,
-    };
+    return sentInvitationsCount;
   },
 
   respondInvitation: async (data) => {
     const { educatorId, missionId, response, responseTime } = data;
 
-    const result = await update.educatorById(
+    const updatedEducator = await update.educatorById(
       educatorId,
       {
         $set: {
@@ -262,6 +276,7 @@ export const missionServices = {
     const mission = await read.missionById(missionId);
 
     const organization = mission?.organization;
+
     const userId = organization?.user?._id;
 
     await save.notification(
@@ -269,11 +284,7 @@ export const missionServices = {
       "A response to your mission invitation has been recorded."
     );
 
-    return {
-      success: true,
-      message: "Invitation response recorded successfully",
-      data: result,
-    };
+    return updatedEducator;
   },
 
   deleteById: async (id) => {
@@ -292,12 +303,6 @@ export const missionServices = {
       );
     }
 
-    const result = await remove.missionById(id);
-
-    return {
-      success: true,
-      message: "Mission deleted successfully",
-      data: result,
-    };
+    await remove.missionById(id);
   },
 };

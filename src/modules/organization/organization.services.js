@@ -141,21 +141,21 @@ export const organizationServices = {
       });
     }
 
-    return {
-      success: true,
-      message: "Organization profile created successfully.",
-      data: newOrganization,
-    };
+    return newOrganization;
   },
 
   getAll: async () => {
     const organizations = await read.allOrganizations();
 
-    return {
-      success: true,
-      message: "Organizations retrieved successfully.",
-      data: organizations,
-    };
+    if (!organizations) {
+      throw createError(404, "Organizations not found.", {
+        expose: true,
+        code: "ORGANIZATIONS_NOT_FOUND",
+        operation: "read.allOrganizations",
+      });
+    }
+
+    return organizations;
   },
 
   getById: async (id) => {
@@ -171,11 +171,7 @@ export const organizationServices = {
       });
     }
 
-    return {
-      success: true,
-      message: "Organization retrieved successfully.",
-      data: organization,
-    };
+    return organization;
   },
 
   updateById: async (id, data) => {
@@ -284,10 +280,6 @@ export const organizationServices = {
       });
     }
 
-    return {
-      success: true,
-      message: "Organization updated successfully.",
-      data: updatedOrganization,
-    };
+    return updatedOrganization;
   },
 };

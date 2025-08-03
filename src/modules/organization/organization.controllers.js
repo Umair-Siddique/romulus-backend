@@ -8,23 +8,41 @@ export const organizationControllers = {
     const payload = req.body;
     const files = req.files;
 
-    const result = await organizationServices.create({ ...payload, ...files });
+    const data = await organizationServices.create({ ...payload, ...files });
 
-    res.status(201).json(result);
+    const response = {
+      success: true,
+      message: "Organization created successfully.",
+      data,
+    };
+
+    res.status(201).json(response);
   }),
 
   getAll: asyncHandler(async (_, res) => {
-    const result = await organizationServices.getAll();
+    const data = await organizationServices.getAll();
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Organizations retrieved successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   getById: asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const result = await organizationServices.getById(id);
+    const data = await organizationServices.getById(id);
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Organization retrieved successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 
   updateById: asyncHandler(async (req, res) => {
@@ -33,11 +51,17 @@ export const organizationControllers = {
     const files = req.files || {};
 
     // Merge payload and files for update processing
-    const result = await organizationServices.updateById(id, {
+    const data = await organizationServices.updateById(id, {
       ...payload,
       ...files,
     });
 
-    res.status(200).json(result);
+    const response = {
+      success: true,
+      message: "Organization updated successfully.",
+      data,
+    };
+
+    res.status(200).json(response);
   }),
 };

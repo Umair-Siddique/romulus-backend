@@ -4,16 +4,25 @@ import { emailServices } from "./email.services.js";
 const { asyncHandler } = globalUtils;
 
 export const emailControllers = {
-  checkVerificationToken: asyncHandler(async (req, res) => {
+  checkVerificationEmail: asyncHandler(async (req, res) => {
     const { verificationToken } = req.query;
-    const result =
-      await emailServices.checkVerificationToken(verificationToken);
-    res.status(200).send(result);
+
+    const response =
+      await emailServices.checkVerificationEmail(verificationToken);
+
+    res.status(200).send(response);
   }),
 
-  sendVerificationToken: asyncHandler(async (req, res) => {
+  sendVerificationEmail: asyncHandler(async (req, res) => {
     const { email } = req.body;
-    const result = await emailServices.sendVerificationToken(email);
-    res.status(200).json(result);
+
+    await emailServices.sendVerificationEmail(email);
+
+    const response = {
+      success: true,
+      message: "Verification email sent successfully",
+    };
+
+    res.status(200).json(response);
   }),
 };

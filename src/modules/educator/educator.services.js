@@ -113,21 +113,21 @@ export const educatorServices = {
       });
     }
 
-    return {
-      success: true,
-      message: "Educator Profile Created Successfully",
-      data: newEducator,
-    };
+    return newEducator;
   },
 
   getAll: async () => {
     const educators = await read.allEducators();
 
-    return {
-      success: true,
-      message: "Educators retrieved successfully.",
-      data: educators,
-    };
+    if (!educators) {
+      throw createError(404, "Educators not found.", {
+        expose: true,
+        code: "EDUCATORS_NOT_FOUND",
+        operation: "read.allEducators",
+      });
+    }
+
+    return educators;
   },
 
   getById: async (id) => {
@@ -144,11 +144,7 @@ export const educatorServices = {
       });
     }
 
-    return {
-      success: true,
-      message: "Educator profile retrieved successfully.",
-      data: educator,
-    };
+    return educator;
   },
 
   updateById: async (id, data) => {
@@ -181,11 +177,7 @@ export const educatorServices = {
       });
     }
 
-    return {
-      success: true,
-      message: "Educator Profile Updated Successfully",
-      data: updatedEducator,
-    };
+    return updatedEducator;
   },
 
   getNearBy: async (coordinates, distance, skills) => {
@@ -207,10 +199,6 @@ export const educatorServices = {
 
     const filteredEducators = filterEducatorsBySkills(educators, parsedSkills);
 
-    return {
-      success: true,
-      message: "Nearby educators retrieved successfully.",
-      data: filteredEducators,
-    };
+    return filteredEducators;
   },
 };
