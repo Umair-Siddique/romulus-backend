@@ -39,23 +39,26 @@ export const missionServices = {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
     };
 
+    // Received date and time
+    console.log("startTime (received):", startTime);
+    console.log("endTime (received):", endTime);
+    console.log("startDate (received):", startDate);
+    console.log("endDate (received):", endDate);
+
     // Convert date and time to ISO 8601 format
     const toISO8601 = (dateString, timeString) => {
-      const combined = `${dateString}T${timeString}`;
-
-      const dateObj = new Date(combined);
-
-      if (isNaN(dateObj.getTime())) {
-        throw createError(400, "Invalid date or time input.", {
-          expose: true,
-          code: "INVALID_DATE_TIME",
-          field: "startDate or startTime or endDate or endTime",
-          operation: "create_mission",
-        });
-      }
-
-      return dateObj.toISOString();
+      return `${dateString}T${timeString}:00`; // No "Z", not UTC
     };
+
+    // To be saved date and time
+    console.log(
+      "start (toISO8601(startDate, startTime)):",
+      toISO8601(startDate, startTime)
+    );
+    console.log(
+      "end (toISO8601(endDate, endTime)):",
+      toISO8601(endDate, endTime)
+    );
 
     const missionData = {
       organization: organizationId,
