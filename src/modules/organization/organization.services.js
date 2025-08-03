@@ -74,7 +74,7 @@ export const organizationServices = {
 
         try {
           branchAddressCoordinates = await getCoordinates(branchAddress);
-        } catch (error) {
+        } catch (_err) {
           // Fallback to default coordinates if geocoding fails
           branchAddressCoordinates = DEFAULT_BRANCH_COORDINATES;
         }
@@ -103,7 +103,7 @@ export const organizationServices = {
     try {
       officeAddressCoordinates = await getCoordinates(officeAddress);
     // eslint-disable-next-line no-unused-vars
-    } catch (_) {
+    } catch (_err) {
       // Fallback to default coordinates if geocoding fails
       officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
     }
@@ -231,7 +231,7 @@ export const organizationServices = {
       try {
         updateData.officeAddressCoordinates =
           await getCoordinates(officeAddress);
-      } catch (error) {
+      } catch (_err) {
         updateData.officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
       }
     }
@@ -248,7 +248,7 @@ export const organizationServices = {
               branchAddressCoordinates = await getCoordinates(
                 branch.branchAddress
               );
-            } catch (error) {
+            } catch (_err) {
               branchAddressCoordinates = DEFAULT_BRANCH_COORDINATES;
             }
           }

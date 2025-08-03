@@ -4,7 +4,7 @@ import { healthServices } from "./health.services.js";
 const { asyncHandler } = globalUtils;
 
 export const healthControllers = {
-  checkHealth: asyncHandler(async (_, res) => {
+  checkHealth: asyncHandler(async (_req, res) => {
     const data = await healthServices.checkHealth();
 
     const statusCode = data.isHealthy ? 200 : 503;

@@ -19,7 +19,7 @@ export const educatorControllers = {
     res.status(201).json(response);
   }),
 
-  getAll: asyncHandler(async (_, res) => {
+  getAll: asyncHandler(async (_req, res) => {
     const data = await educatorServices.getAll();
 
     const response = {
