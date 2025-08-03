@@ -1,5 +1,4 @@
 import createError from "http-errors";
-import bcrypt from "bcryptjs";
 
 import {
   tokenUtils,
