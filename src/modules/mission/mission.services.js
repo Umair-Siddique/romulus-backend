@@ -107,89 +107,91 @@ export const missionServices = {
   updateById: async (id, data) => {
     const { hireStatus, educatorId, status, hires, ...rest } = data;
 
-    if (hireStatus && educatorId) {
-      const mission = await read.missionById(id);
+    console.log(data);
 
+    const mission = await read.missionById(id);
+    if (!mission) throw createError(404, "Mission not found");
+
+    // --- Handle Hiring or Rejection ---
+    if (hireStatus && educatorId) {
       const isAlreadyHired = mission.hiredEducators.includes(educatorId);
       const isAlreadyRejected = mission.rejectedEducators.includes(educatorId);
 
-      let updateOps = {};
-
       if (hireStatus === "hired" && !isAlreadyHired) {
         const isFirstHire = mission.hiredEducators.length === 0;
-        const result = await update.educatorById(educatorId, {
-          $push: {
-            missionsHiredFor: id,
-          },
-          $set: {
-            availableForHiring: false,
-          },
+
+        const { user } = await update.educatorById(educatorId, {
+          $push: { missionsHiredFor: id },
+          $set: { availableForHiring: false },
         });
 
-        const userId = result?.user?._id;
-
-        await update.organizationById(mission.organization, {
-          $addToSet: {
-            preferredEducators: educatorId,
-          },
-        });
-
-        await write.notification(
-          userId,
-          "You have been hired for the mission you accepted invite for."
-        );
-
-        updateOps = {
-          $push: { hiredEducators: educatorId },
-          ...(isFirstHire && { $set: { status: "ongoing" } }),
-        };
+        await Promise.all([
+          update.organizationById(mission.organization, {
+            $addToSet: { preferredEducators: educatorId },
+          }),
+          write.notification(
+            user?._id,
+            "You have been hired for the mission you accepted invite for."
+          ),
+          update.missionById(id, {
+            $push: { hiredEducators: educatorId },
+            ...(isFirstHire && { $set: { status: "ongoing" } }),
+          }),
+        ]);
       }
 
       if (hireStatus === "rejected" && !isAlreadyRejected) {
-        const result = await read.educatorById(educatorId);
-
-        const userId = result?.user?._id;
-
-        await write.notification(
-          userId,
-          "You have been rejected for a mission you accepted invite for."
-        );
-
-        updateOps = {
-          $push: { rejectedEducators: educatorId },
-        };
-      }
-
-      // Only update if push is valid (not duplicate)
-      if (Object.keys(updateOps).length > 0) {
-        await update.missionById(id, updateOps);
+        const { user } = await read.educatorById(educatorId);
+        await Promise.all([
+          write.notification(
+            user?._id,
+            "You have been rejected for a mission you accepted invite for."
+          ),
+          update.missionById(id, { $push: { rejectedEducators: educatorId } }),
+        ]);
       }
     }
 
+    // --- Handle Completion ---
     if (status === "completed") {
+      await update.missionById(id, { $set: { status: "completed" } });
+
+      await Promise.all(
+        hires.map(async (hireId) => {
+          const { user } = await read.educatorById(hireId);
+
+          await Promise.all([
+            update.educatorById(hireId, { $set: { availableForHiring: true } }),
+            write.notification(
+              user?._id,
+              "The mission you've been hired for is completed successfully."
+            ),
+          ]);
+        })
+      );
+    }
+
+    // --- Handle Educator Feedback ---
+    if (rest.feedback) {
       await update.missionById(id, {
-        ...{ $set: { status: "completed" } },
+        $push: {
+          educatorsFeedbacks: {
+            educatorId,
+            userName: rest.userName,
+            feedback: rest.feedback,
+            rating: rest.rating,
+            createdAt: new Date(),
+          },
+        },
       });
 
-      for (const hire of hires) {
-        const educator = await read.educatorById(hire);
-
-        await update.educatorById(hire, {
-          $set: {
-            availableForHiring: true,
-          },
-        });
-
-        const userId = educator?.user?._id;
-
-        await write.notification(
-          userId,
-          "The mission you've been hired for is completed successfully."
-        );
-      }
+      delete rest.educatorId;
+      delete rest.userName;
+      delete rest.feedback;
+      delete rest.rating;
     }
 
-    // Update remaining fields
+    // --- Update Remaining Fields ---
     const updatedMission = await update.missionById(id, { $set: rest });
 
     return updatedMission;

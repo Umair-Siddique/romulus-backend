@@ -100,10 +100,15 @@ const MissionSchema = new Schema(
 
     educatorsFeedbacks: [
       {
-        educator: {
+        educatorId: {
           type: Schema.Types.ObjectId,
           ref: "Educator",
-          required: [true, "Educator ID is required"],
+        },
+
+        userName: {
+          type: String,
+          trim: true,
+          required: [true, "User name is required"],
         },
 
         feedback: {

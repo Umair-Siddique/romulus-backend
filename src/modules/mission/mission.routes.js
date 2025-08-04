@@ -8,44 +8,13 @@ import { missionControllers } from "./mission.controllers.js";
 export const missionRoutes = express.Router();
 
 missionRoutes
-  .post(
-    "/",
-    upload,
-    validate.dto(missionDto.create),
-    validate.authRole("organization"),
-    missionControllers.create
-  )
+  .post("/", upload, validate.dto(missionDto.create), missionControllers.create)
   .get("/", missionControllers.getAll)
   .get("/:id", missionControllers.getById)
-  .get(
-    "/organization/:id",
-    validate.authRole("organization"),
-    missionControllers.getAllByOrganizationId
-  )
-  .get(
-    "/:mId/organization/:oId",
-    validate.authRole("organization"),
-    missionControllers.getByOrganizationId
-  )
-  .get(
-    "/:mId/educator/:eId",
-    validate.authRole("educator"),
-    missionControllers.getByEducatorId
-  )
-  .patch(
-    "/:id",
-    upload,
-    validate.authRole("organization"),
-    missionControllers.updateById
-  )
-  .post(
-    "/send-invitations",
-    validate.authRole("organization"),
-    missionControllers.sendInvitation
-  )
-  .post(
-    "/respond-invitation",
-    validate.authRole("educator"),
-    missionControllers.respondInvitation
-  )
+  .get("/organization/:id", missionControllers.getAllByOrganizationId)
+  .get("/:mId/organization/:oId", missionControllers.getByOrganizationId)
+  .get("/:mId/educator/:eId", missionControllers.getByEducatorId)
+  .patch("/:id", upload, missionControllers.updateById)
+  .post("/send-invitations", missionControllers.sendInvitation)
+  .post("/respond-invitation", missionControllers.respondInvitation)
   .delete("/:id", missionControllers.deleteById);
