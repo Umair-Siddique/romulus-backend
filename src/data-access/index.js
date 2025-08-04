@@ -6,15 +6,6 @@ import { organizationDataAccess } from "./organization.data-access.js";
 import { userDataAccess } from "./user.data-access.js";
 
 export const dataAccess = {
-  save: {
-    ...blacklistedTokenDataAccess.save,
-    ...educatorDataAccess.save,
-    ...missionDataAccess.save,
-    ...notificationDataAccess.save,
-    ...organizationDataAccess.save,
-    ...userDataAccess.save,
-  },
-
   read: {
     ...blacklistedTokenDataAccess.read,
     ...educatorDataAccess.read,
@@ -22,6 +13,15 @@ export const dataAccess = {
     ...notificationDataAccess.read,
     ...organizationDataAccess.read,
     ...userDataAccess.read,
+  },
+
+  write: {
+    ...blacklistedTokenDataAccess.write,
+    ...educatorDataAccess.write,
+    ...missionDataAccess.write,
+    ...notificationDataAccess.write,
+    ...organizationDataAccess.write,
+    ...userDataAccess.write,
   },
 
   update: {

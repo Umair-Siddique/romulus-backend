@@ -3,7 +3,7 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { globalUtils, getCoordinates } from "#utils/index.js";
 
-const { save, read, update } = dataAccess;
+const { write, read, update } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const educatorServices = {
@@ -97,13 +97,13 @@ export const educatorServices = {
       diploma: getFilePath(diploma),
     };
 
-    const newEducator = await save.educator(educatorData);
+    const newEducator = await write.educator(educatorData);
 
     if (!newEducator) {
       throw createError(500, "An error occurred while creating the profile.", {
         expose: false,
         code: "EDUCATOR_CREATION_FAILED",
-        operation: "save.educator",
+        operation: "write.educator",
         userId: userId,
         context: {
           hasProfilePicture: !!educatorData.avatar,

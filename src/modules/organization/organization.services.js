@@ -3,7 +3,7 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { getCoordinates } from "#utils/index.js";
 
-const { save, read, update } = dataAccess;
+const { write, read, update } = dataAccess;
 
 // Default coordinates as mentioned in OpenAPI docs
 const DEFAULT_OFFICE_COORDINATES = {
@@ -124,13 +124,13 @@ export const organizationServices = {
       branches: processedBranches,
     };
 
-    const newOrganization = await save.organization(organizationData);
+    const newOrganization = await write.organization(organizationData);
 
     if (!newOrganization) {
       throw createError(500, "Failed to create organization.", {
         expose: false,
         code: "ORGANIZATION_CREATION_FAILED",
-        operation: "save.organization",
+        operation: "write.organization",
         userId: userId,
         context: {
           organizationName,

@@ -3,7 +3,7 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { globalUtils, twilioUtils } from "#utils/index.js";
 
-const { save, read, update, remove } = dataAccess;
+const { write, read, update, remove } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const missionServices = {
@@ -55,7 +55,7 @@ export const missionServices = {
       technicalDocument: getFilePath(technicalDocument),
     };
 
-    const newMission = await save.mission(missionData);
+    const newMission = await write.mission(missionData);
 
     return newMission;
   },
@@ -157,7 +157,7 @@ export const missionServices = {
           },
         });
 
-        await save.notification(
+        await write.notification(
           userId,
           "You have been hired for the mission you accepted invite for."
         );
@@ -173,7 +173,7 @@ export const missionServices = {
 
         const userId = result?.user?._id;
 
-        await save.notification(
+        await write.notification(
           userId,
           "You have been rejected for a mission you accepted invite for."
         );
@@ -199,7 +199,7 @@ export const missionServices = {
 
         const userId = educator?.user?._id;
 
-        await save.notification(
+        await write.notification(
           userId,
           "The mission you've been hired for is completed successfully."
         );
@@ -236,7 +236,7 @@ export const missionServices = {
         },
       });
 
-      await save.notification(userId, "You have been invited to a mission.");
+      await write.notification(userId, "You have been invited to a mission.");
 
       await twilioUtils.sendWhatsAppMessage(phone);
 
@@ -269,7 +269,7 @@ export const missionServices = {
 
     const userId = organization?.user?._id;
 
-    await save.notification(
+    await write.notification(
       userId,
       "A response to your mission invitation has been recorded."
     );

@@ -1,12 +1,6 @@
 import { MissionModel } from "#models/index.js";
 
 export const missionDataAccess = {
-  save: {
-    mission: (missionData) => {
-      return MissionModel.create(missionData); // ✅ Already executes, returns native Promise
-    },
-  },
-
   read: {
     allMissions: () => {
       return MissionModel.find().populate("organization").exec(); // ✅ Query + populate → needs exec
@@ -53,6 +47,12 @@ export const missionDataAccess = {
           rejectedEducators: 0,
         })
         .exec(); // ✅ Already correct
+    },
+  },
+
+  write: {
+    mission: (missionData) => {
+      return MissionModel.create(missionData); // ✅ Already executes, returns native Promise
     },
   },
 

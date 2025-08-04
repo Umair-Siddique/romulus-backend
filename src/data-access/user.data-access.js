@@ -5,12 +5,6 @@ import { UserModel } from "#models/index.js";
 const { isValidObjectId } = mongoose;
 
 export const userDataAccess = {
-  save: {
-    user: (data) => {
-      return UserModel.create(data);
-    },
-  },
-
   read: {
     allUsers: () => {
       return UserModel.find().exec();
@@ -30,6 +24,12 @@ export const userDataAccess = {
 
     userByPhone: (phone) => {
       return UserModel.findOne({ phone }).exec(); // ✅ consistency
+    },
+  },
+
+  write: {
+    user: (data) => {
+      return UserModel.create(data);
     },
   },
 
@@ -62,6 +62,16 @@ export const userDataAccess = {
         { password },
         { new: true, upsert: true }
       ); // ✅ native
+    },
+  },
+
+  remove: {
+    userById: (id) => {
+      if (!isValidObjectId(id)) {
+        throw createError(400, "Invalid user ID format.");
+      }
+
+      return UserModel.findByIdAndDelete(id).exec(); // ✅ native Promise
     },
   },
 };

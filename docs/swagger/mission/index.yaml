@@ -1110,7 +1110,7 @@ paths:
         500:
           $ref: "#/components/responses/InternalServerError"
 
-    delete:
+    remove:
       summary: Delete mission by ID
       description: |
         Deletes a mission and cleans up all related educator invitations.
@@ -1136,7 +1136,7 @@ paths:
         - Data cleanup and management
         - Organization mission management
 
-      operationId: delete-mission-by-id
+      operationId: remove-mission-by-id
       tags: [Mission Management]
       security:
         - BearerAuth: []

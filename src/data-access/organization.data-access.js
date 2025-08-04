@@ -1,12 +1,6 @@
 import { OrganizationModel } from "#models/index.js";
 
 export const organizationDataAccess = {
-  save: {
-    organization: (organizationData) => {
-      return OrganizationModel.create(organizationData); // ✅ Already native
-    },
-  },
-
   read: {
     allOrganizations: () => {
       return OrganizationModel.find().populate("user").exec(); // ✅ convert to native Promise
@@ -20,6 +14,12 @@ export const organizationDataAccess = {
       return OrganizationModel.findOne({ user: userId })
         .populate("user")
         .exec(); // ✅ same reason
+    },
+  },
+
+  write: {
+    organization: (organizationData) => {
+      return OrganizationModel.create(organizationData); // ✅ Already native
     },
   },
 

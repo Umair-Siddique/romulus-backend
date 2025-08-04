@@ -8,7 +8,7 @@ import {
 } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
-const { save, read, remove, update } = dataAccess;
+const { write, read, remove, update } = dataAccess;
 
 export const authServices = {
   signUp: async (payload) => {
@@ -53,7 +53,7 @@ export const authServices = {
 
     const hashedPassword = await bcryptUtils.hash(password, { rounds: 12 });
 
-    const newUser = await save.user({
+    const newUser = await write.user({
       phone: role === "educator" ? phone : undefined,
       email,
       password: hashedPassword,
@@ -65,7 +65,7 @@ export const authServices = {
       throw createError(500, "Failed to create a new user.", {
         expose: false,
         code: "USER_CREATION_FAILED",
-        operation: "save.user",
+        operation: "write.user",
         context: { email, role },
       });
     }
@@ -144,6 +144,7 @@ export const authServices = {
       return data;
     } catch (err) {
       await remove.userById(newUser._id);
+
       throw err;
     }
   },
@@ -302,7 +303,7 @@ export const authServices = {
 
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1-hour expiration
 
-    const blacklistedToken = await save.blacklistedToken(
+    const blacklistedToken = await write.blacklistedToken(
       accessToken,
       id,
       expiresAt
@@ -315,7 +316,7 @@ export const authServices = {
         {
           expose: false,
           code: "TOKEN_BLACKLIST_FAILED",
-          operation: "save.blacklistedToken",
+          operation: "write.blacklistedToken",
           id,
           context: { expiresAt: expiresAt.toISOString() },
         }

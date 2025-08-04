@@ -48,4 +48,4 @@ missionRoutes
     validate.authRole("educator"),
     missionControllers.respondInvitation
   )
-  .delete("/:id", missionControllers.deleteById);
+  .remove("/:id", missionControllers.deleteById);

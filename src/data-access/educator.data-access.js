@@ -1,12 +1,6 @@
 import { EducatorModel } from "#models/index.js";
 
 export const educatorDataAccess = {
-  save: {
-    educator: (educatorData) => {
-      return EducatorModel.create(educatorData); // ✅ Native promise
-    },
-  },
-
   read: {
     allEducators: () => {
       return EducatorModel.find().populate("user").exec(); // ✅ to ensure native Promise
@@ -49,6 +43,12 @@ export const educatorDataAccess = {
       })
         .populate("user")
         .exec(); // ✅ critical for geo queries + population
+    },
+  },
+
+  write: {
+    educator: (educatorData) => {
+      return EducatorModel.create(educatorData); // ✅ Native promise
     },
   },
 
