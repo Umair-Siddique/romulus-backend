@@ -35,13 +35,7 @@ export const organizationServices = {
     const existingUser = await read.userById(userId);
 
     if (!existingUser) {
-      throw createError(404, "User does not exist.", {
-        expose: true,
-        code: "USER_NOT_FOUND",
-        field: "user",
-        userId: userId,
-        operation: "create_organization_profile",
-      });
+      throw createError(404, "User does not exist.");
     }
 
     const [existingEducator, existingOrganization] = await Promise.all([
@@ -50,21 +44,9 @@ export const organizationServices = {
     ]);
 
     if (existingEducator) {
-      throw createError(400, "User already has educator profile.", {
-        expose: true,
-        code: "EDUCATOR_PROFILE_EXISTS",
-        userId: userId,
-        operation: "create_organization_profile",
-        context: { conflictType: "educator" },
-      });
+      throw createError(400, "User already has educator profile.");
     } else if (existingOrganization) {
-      throw createError(400, "User already has organization profile.", {
-        expose: true,
-        code: "ORGANIZATION_PROFILE_EXISTS",
-        userId: userId,
-        operation: "create_organization_profile",
-        context: { conflictType: "organization" },
-      });
+      throw createError(400, "User already has organization profile.");
     }
 
     const organizationBranches = await Promise.all(
@@ -102,7 +84,7 @@ export const organizationServices = {
     let officeAddressCoordinates;
     try {
       officeAddressCoordinates = await getCoordinates(officeAddress);
-    // eslint-disable-next-line no-unused-vars
+      // eslint-disable-next-line no-unused-vars
     } catch (_err) {
       // Fallback to default coordinates if geocoding fails
       officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
@@ -127,18 +109,7 @@ export const organizationServices = {
     const newOrganization = await write.organization(organizationData);
 
     if (!newOrganization) {
-      throw createError(500, "Failed to create organization.", {
-        expose: false,
-        code: "ORGANIZATION_CREATION_FAILED",
-        operation: "write.organization",
-        userId: userId,
-        context: {
-          organizationName,
-          branchesCount: processedBranches?.length || 0,
-          hasProfilePicture: !!organizationData.avatar,
-          hasSiretNumber: !!siretNumber,
-        },
-      });
+      throw createError(500, "Failed to create organization.");
     }
 
     return newOrganization;
@@ -148,11 +119,7 @@ export const organizationServices = {
     const organizations = await read.allOrganizations();
 
     if (!organizations) {
-      throw createError(404, "Organizations not found.", {
-        expose: true,
-        code: "ORGANIZATIONS_NOT_FOUND",
-        operation: "read.allOrganizations",
-      });
+      throw createError(404, "Organizations not found.");
     }
 
     return organizations;
@@ -162,13 +129,7 @@ export const organizationServices = {
     const organization = await read.organizationById(id);
 
     if (!organization) {
-      throw createError(404, "Organization not found.", {
-        expose: true,
-        code: "ORGANIZATION_NOT_FOUND",
-        field: "id",
-        id,
-        operation: "get_organization_by_id",
-      });
+      throw createError(404, "Organization not found.");
     }
 
     return organization;
@@ -178,13 +139,7 @@ export const organizationServices = {
     const existingOrganization = await read.organizationById(id);
 
     if (!existingOrganization) {
-      throw createError(404, "Organization not found.", {
-        expose: true,
-        code: "ORGANIZATION_NOT_FOUND",
-        field: "id",
-        id,
-        operation: "update_organization_by_id",
-      });
+      throw createError(404, "Organization not found.");
     }
 
     // Check if at least one field is provided for update
@@ -196,16 +151,7 @@ export const organizationServices = {
     );
 
     if (updateFields.length === 0 && !hasBranchFiles && !data.branches) {
-      throw createError(
-        400,
-        "At least one field must be provided for update.",
-        {
-          expose: true,
-          code: "UPDATE_REQUIRES_FIELDS",
-          operation: "update_organization_by_id",
-          id,
-        }
-      );
+      throw createError(400, "At least one field must be provided for update.");
     }
 
     // Extract files and regular data
@@ -272,12 +218,7 @@ export const organizationServices = {
     const updatedOrganization = await update.organizationById(id, updateData);
 
     if (!updatedOrganization) {
-      throw createError(500, "Failed to update organization.", {
-        expose: false,
-        code: "ORGANIZATION_UPDATE_FAILED",
-        operation: "updateOrganizationById",
-        id,
-      });
+      throw createError(500, "Failed to update organization.");
     }
 
     return updatedOrganization;

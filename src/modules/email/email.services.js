@@ -12,13 +12,7 @@ export const emailServices = {
     const { id } = decodedToken;
 
     if (!id) {
-      throw createError(400, "Token does not contain the user id", {
-        expose: true,
-        code: "INVALID_TOKEN_PAYLOAD",
-        field: "verificationToken",
-        operation: "email_verification",
-        context: { tokenDecoded: !!decoded },
-      });
+      throw createError(400, "Token does not contain the user id");
     }
 
     const isUserUpdated = await update.userById(id, {
@@ -26,13 +20,7 @@ export const emailServices = {
     });
 
     if (!isUserUpdated) {
-      throw createError(500, "An error occurred while verifying the email", {
-        expose: false,
-        code: "EMAIL_VERIFICATION_FAILED",
-        operation: "update.userById",
-        userId: id,
-        context: { field: "isEmailVerified" },
-      });
+      throw createError(500, "An error occurred while verifying the email");
     }
 
     return emailUtils.sendVerificationNotification();
@@ -42,13 +30,7 @@ export const emailServices = {
     const user = await read.userByEmail(email);
 
     if (!user) {
-      throw createError(404, "User not found", {
-        expose: true,
-        code: "USER_NOT_FOUND",
-        field: "email",
-        operation: "send_verification_email",
-        context: { email },
-      });
+      throw createError(404, "User not found");
     }
 
     const verificationToken = tokenUtils.generate(
@@ -58,13 +40,7 @@ export const emailServices = {
 
     if (!verificationToken) {
       await remove.userById(user._id);
-      throw createError(500, "An error occurred while generating the token.", {
-        expose: false,
-        code: "TOKEN_GENERATION_FAILED",
-        operation: "tokenUtils.tils.generate",
-        userId: user._id,
-        context: { purpose: "email_verification", resend: true },
-      });
+      throw createError(500, "An error occurred while generating the token.");
     }
 
     const isEmailSent = await emailUtils.sendAccountVerification(
@@ -75,17 +51,7 @@ export const emailServices = {
     if (!isEmailSent) {
       await remove.userById(user._id);
 
-      throw createError(500, "Failed to send the welcome email.", {
-        expose: false,
-        code: "EMAIL_SEND_FAILED",
-        operation: "emailUtils.sendAccountVerification",
-        userId: user._id,
-        context: {
-          emailType: "verification",
-          recipient: email,
-          resend: true,
-        },
-      });
+      throw createError(500, "Failed to send the welcome email.");
     }
   },
 };

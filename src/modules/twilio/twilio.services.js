@@ -12,16 +12,7 @@ export const twilioServices = {
     const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
 
     if (!isWhatsAppOtpSent) {
-      throw createError(500, "Failed to send OTP", {
-        expose: false,
-        code: "TWILIO_OTP_SEND_FAILED",
-        operation: "send_whatsapp_otp",
-        context: {
-          phone,
-          channel: "whatsapp",
-          service: "twilio_verify",
-        },
-      });
+      throw createError(500, "Failed to send OTP");
     }
   },
 
@@ -34,18 +25,7 @@ export const twilioServices = {
     );
 
     if (!isWhatsAppOtpVerified || isWhatsAppOtpVerified.status !== "approved") {
-      throw createError(400, "Invalid OTP", {
-        expose: true,
-        code: "OTP_VERIFICATION_FAILED",
-        field: "code",
-        operation: "verify_whatsapp_otp",
-        context: {
-          phone,
-          verificationStatus: isWhatsAppOtpVerified?.status,
-          channel: "whatsapp",
-          providedCodeLength: code?.length,
-        },
-      });
+      throw createError(400, "Invalid OTP");
     }
 
     await update.userByPhone(phone, {

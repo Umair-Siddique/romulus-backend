@@ -6,7 +6,7 @@ const { asyncHandler } = globalUtils;
 
 export const validate = {
   dto: (schema) =>
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, _res, next) => {
       const { value, error } = schema.validate(req.body, { abortEarly: false });
 
       if (error) {
@@ -21,7 +21,7 @@ export const validate = {
       next();
     }),
 
-  accessToken: asyncHandler(async (req, res, next) => {
+  accessToken: asyncHandler(async (req, _res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -37,7 +37,7 @@ export const validate = {
   }),
 
   authRole: (authorizedRole) =>
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, _res, next) => {
       if (!req.user) {
         throw createError(401, "Authentication required.");
       }

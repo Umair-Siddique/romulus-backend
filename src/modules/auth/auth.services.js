@@ -15,13 +15,7 @@ export const authServices = {
     const { email, password, role, phone } = payload;
 
     if (role === "educator" && !phone) {
-      throw createError(400, "Phone number is required for educators.", {
-        expose: true,
-        code: "PHONE_REQUIRED",
-        field: "phone",
-        operation: "sign_up",
-        context: { role },
-      });
+      throw createError(400, "Phone number is required for educators.");
     }
 
     const [existingEmail, existingPhone] = await Promise.all([
@@ -32,23 +26,11 @@ export const authServices = {
     ]);
 
     if (existingEmail) {
-      throw createError(400, "A user with this email already exists.", {
-        expose: true,
-        code: "EMAIL_EXISTS",
-        field: "email",
-        operation: "sign_up",
-        context: { email, role },
-      });
+      throw createError(400, "A user with this email already exists.");
     }
 
     if (existingPhone) {
-      throw createError(400, "A user with this phone number already exists.", {
-        expose: true,
-        code: "PHONE_EXISTS",
-        field: "phone",
-        operation: "sign_up",
-        context: { phone, role },
-      });
+      throw createError(400, "A user with this phone number already exists.");
     }
 
     const hashedPassword = await bcryptUtils.hash(password, { rounds: 12 });
@@ -62,28 +44,14 @@ export const authServices = {
     });
 
     if (!newUser) {
-      throw createError(500, "Failed to create a new user.", {
-        expose: false,
-        code: "USER_CREATION_FAILED",
-        operation: "write.user",
-        context: { email, role },
-      });
+      throw createError(500, "Failed to create a new user.");
     }
 
     try {
       if (role === "educator") {
         const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
         if (!isWhatsAppOtpSent) {
-          throw createError(500, "Failed to send OTP", {
-            expose: false,
-            code: "TWILIO_OTP_SEND_FAILED",
-            operation: "send_whatsapp_otp",
-            context: {
-              phone,
-              channel: "whatsapp",
-              service: "twilio_verify",
-            },
-          });
+          throw createError(500, "Failed to send OTP");
         }
       }
 
@@ -93,17 +61,7 @@ export const authServices = {
       );
 
       if (!verificationToken) {
-        throw createError(
-          500,
-          "An error occurred while generating the token.",
-          {
-            expose: false,
-            code: "TOKEN_GENERATION_FAILED",
-            operation: "Account Verification",
-            id: newUser._id,
-            context: { purpose: "email_verification" },
-          }
-        );
+        throw createError(500, "An error occurred while generating the token.");
       }
 
       const isEmailSent = await emailUtils.sendAccountVerification(
@@ -112,31 +70,7 @@ export const authServices = {
       );
 
       if (!isEmailSent) {
-        throw createError(500, "Failed to send the welcome email.", {
-          expose: false,
-          code: "EMAIL_SEND_FAILED",
-          operation: "Sending Verification Email",
-          id: newUser._id,
-          context: {
-            emailType: "verify-email",
-            recipient: email,
-          },
-        });
-      }
-
-      const isPasswordValid = await bcryptUtils.compare(
-        password,
-        user.password
-      );
-
-      if (!isPasswordValid) {
-        throw createError(401, "Invalid credentials.", {
-          expose: true,
-          code: "INVALID_CREDENTIALS",
-          field: "password",
-          operation: "sign_in",
-          headers: { "www-authenticate": "Bearer" },
-        });
+        throw createError(500, "Failed to send the welcome email.");
       }
 
       const data = { id: newUser._id, role: newUser.role };
@@ -155,13 +89,7 @@ export const authServices = {
     const user = await read.userByEmail(email);
 
     if (!user) {
-      throw createError(401, "Invalid credentials.", {
-        expose: true,
-        code: "INVALID_CREDENTIALS",
-        field: "email",
-        operation: "sign_in",
-        headers: { "www-authenticate": "Bearer" },
-      });
+      throw createError(401, "Invalid credentials.");
     }
 
     const userId = user._id;
@@ -185,17 +113,7 @@ export const authServices = {
       );
 
       if (!verificationToken) {
-        throw createError(
-          500,
-          "An error occurred while generating the token.",
-          {
-            expose: false,
-            code: "TOKEN_GENERATION_FAILED",
-            operation: "tokenUtils.generate",
-            id: userId,
-            context: { purpose: "email_verification" },
-          }
-        );
+        throw createError(500, "An error occurred while generating the token.");
       }
 
       // Send verification email
@@ -205,59 +123,27 @@ export const authServices = {
       );
 
       if (!isEmailSent) {
-        throw createError(500, "Failed to send the verification email.", {
-          expose: false,
-          code: "EMAIL_SEND_FAILED",
-          operation: "emailUtils.sendAccountVerification",
-          id: userId,
-          context: {
-            emailType: "verify-email",
-            recipient: email,
-          },
-        });
+        throw createError(500, "Failed to send the verification email.");
       }
 
       // Then throw error informing the user
       throw createError(
         403,
-        "Email not verified. A new verification link has been sent to your inbox.",
-        {
-          expose: true,
-          code: "EMAIL_NOT_VERIFIED",
-          id: userId,
-          operation: "sign_in",
-          context: { action: "verify_email" },
-        }
+        "Email not verified. A new verification link has been sent to your inbox."
       );
     }
 
     if (user.role === "educator" && !user.isPhoneVerified) {
       throw createError(
         403,
-        "Phone number not verified. Educators must verify their phone numbers.",
-        {
-          expose: true,
-          code: "PHONE_NOT_VERIFIED",
-          id: userId,
-          operation: "sign_in",
-          context: {
-            role: user.role,
-            action: "verify_phone",
-          },
-        }
+        "Phone number not verified. Educators must verify their phone numbers."
       );
     }
 
     const isPasswordValid = await bcryptUtils.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw createError(401, "Invalid credentials.", {
-        expose: true,
-        code: "INVALID_CREDENTIALS",
-        field: "password",
-        operation: "sign_in",
-        headers: { "www-authenticate": "Bearer" },
-      });
+      throw createError(401, "Invalid credentials.");
     }
 
     const accessToken = tokenUtils.generate(
@@ -266,13 +152,7 @@ export const authServices = {
     );
 
     if (!accessToken) {
-      throw createError(500, "Token generation failed.", {
-        expose: false,
-        code: "TOKEN_GENERATION_FAILED",
-        operation: "tokenUtils.generate",
-        id: userId,
-        context: { role: user.role, purpose: "authentication" },
-      });
+      throw createError(500, "Token generation failed.");
     }
 
     const data = {
@@ -290,12 +170,7 @@ export const authServices = {
     const existingBlacklistedToken = await read.blacklistedToken(accessToken);
 
     if (existingBlacklistedToken) {
-      throw createError(400, "Token is already blacklisted.", {
-        expose: true,
-        code: "TOKEN_BLACKLISTED",
-        operation: "read.blacklistedToken",
-        context: { accessToken },
-      });
+      throw createError(400, "Token is already blacklisted.");
     }
 
     const decodedToken = tokenUtils.decode(accessToken);
@@ -312,14 +187,7 @@ export const authServices = {
     if (!blacklistedToken) {
       throw createError(
         500,
-        "An error occurred while blacklisting the accessToken.",
-        {
-          expose: false,
-          code: "TOKEN_BLACKLIST_FAILED",
-          operation: "write.blacklistedToken",
-          id,
-          context: { expiresAt: expiresAt.toISOString() },
-        }
+        "An error occurred while blacklisting the accessToken."
       );
     }
   },
@@ -330,13 +198,7 @@ export const authServices = {
     const existingUser = await read.userByEmail(email);
 
     if (!existingUser) {
-      throw createError(404, "User not found", {
-        expose: true,
-        code: "USER_NOT_FOUND",
-        field: "email",
-        operation: "forget_password",
-        context: { email },
-      });
+      throw createError(404, "User not found");
     }
 
     const resetToken = tokenUtils.generate(
@@ -345,28 +207,13 @@ export const authServices = {
     );
 
     if (!resetToken) {
-      throw createError(500, "Failed to generate reset token", {
-        expose: false,
-        code: "TOKEN_GENERATION_FAILED",
-        operation: "tokenUtils.generate",
-        id: existingUser._id,
-        context: { purpose: "password_reset" },
-      });
+      throw createError(500, "Failed to generate reset token");
     }
 
     const isEmailSent = await emailUtils.sendResetPassword(email, resetToken);
 
     if (!isEmailSent) {
-      throw createError(500, "Failed to send reset password email", {
-        expose: false,
-        code: "EMAIL_SEND_FAILED",
-        operation: "emailUtils.sendResetPassword",
-        id: existingUser._id,
-        context: {
-          emailType: "reset-password",
-          recipient: email,
-        },
-      });
+      throw createError(500, "Failed to send reset password email");
     }
   },
 
@@ -380,30 +227,49 @@ export const authServices = {
     const existingUser = await read.userById(id);
 
     if (!existingUser) {
-      throw createError(404, "User not found", {
-        expose: true,
-        code: "USER_NOT_FOUND",
-        field: "userId",
-        id,
-        operation: "update_password",
-      });
+      throw createError(404, "User not found");
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcryptUtils.hash(password, { rounds: 12 });
 
     const isPasswordUpdated = await update.userById(id, {
       password: hashedPassword,
     });
 
     if (!isPasswordUpdated) {
-      throw createError(500, "Password update failed", {
-        expose: false,
-        code: "PASSWORD_UPDATE_FAILED",
-        operation: "update.userById",
-        id,
-        context: { field: "password" },
-      });
+      throw createError(500, "Failed to update password");
+    }
+
+    const isBlacklistedTokenRemoved = await remove.blacklistedToken(resetToken);
+
+    if (!isBlacklistedTokenRemoved) {
+      throw createError(500, "Failed to remove blacklisted token");
+    }
+
+    return true;
+  },
+
+  updatePassword: async (data) => {
+    const { password, resetToken } = data;
+
+    const decodedToken = tokenUtils.decode(resetToken);
+
+    const { id } = decodedToken;
+
+    const existingUser = await read.userById(id);
+
+    if (!existingUser) {
+      throw createError(404, "User not found");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, { rounds: 12 });
+
+    const isPasswordUpdated = await update.userById(id, {
+      password: hashedPassword,
+    });
+
+    if (!isPasswordUpdated) {
+      throw createError(500, "Password update failed");
     }
   },
 };

@@ -25,13 +25,7 @@ export const missionServices = {
     const existingOrganization = await read.organizationById(organizationId);
 
     if (!existingOrganization) {
-      throw createError(404, "Organization not found", {
-        expose: true,
-        code: "ORGANIZATION_NOT_FOUND",
-        field: "organization",
-        id: organizationId,
-        operation: "create_mission",
-      });
+      throw createError(404, "Organization not found");
     }
 
     // Handle file URLs - extract path if file object exists
@@ -64,11 +58,7 @@ export const missionServices = {
     const missions = await read.allMissions();
 
     if (!missions) {
-      throw createError(404, "Missions not found", {
-        expose: true,
-        code: "MISSIONS_NOT_FOUND",
-        operation: "get_all_missions",
-      });
+      throw createError(404, "Missions not found");
     }
 
     return missions;
@@ -78,11 +68,7 @@ export const missionServices = {
     const missions = await read.missionsByOrganizationId(id);
 
     if (!missions) {
-      throw createError(404, "Missions not found", {
-        expose: true,
-        code: "MISSIONS_NOT_FOUND",
-        operation: "get_missions_by_organization_id",
-      });
+      throw createError(404, "Missions not found");
     }
 
     return missions;
@@ -92,11 +78,7 @@ export const missionServices = {
     const mission = await read.missionById(id);
 
     if (!mission) {
-      throw createError(404, "Mission not found", {
-        expose: true,
-        code: "MISSION_NOT_FOUND",
-        operation: "get_mission_by_id",
-      });
+      throw createError(404, "Mission not found");
     }
 
     return mission;
@@ -106,11 +88,7 @@ export const missionServices = {
     const mission = await read.missionByOrganizationId(mId, oId);
 
     if (!mission) {
-      throw createError(404, "Mission not found", {
-        expose: true,
-        code: "MISSION_NOT_FOUND",
-        operation: "get_mission_by_organization_id",
-      });
+      throw createError(404, "Mission not found");
     }
 
     return mission;
@@ -120,11 +98,7 @@ export const missionServices = {
     const mission = await read.missionByEducatorId(mId, eId);
 
     if (!mission) {
-      throw createError(404, "Mission not found", {
-        expose: true,
-        code: "MISSION_NOT_FOUND",
-        operation: "get_mission_by_educator_id",
-      });
+      throw createError(404, "Mission not found");
     }
 
     return mission;
