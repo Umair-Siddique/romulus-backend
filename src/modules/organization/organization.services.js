@@ -3,7 +3,7 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { getCoordinates } from "#utils/index.js";
 
-const { write, read, update } = dataAccess;
+const { read, write, update } = dataAccess;
 
 // Default coordinates as mentioned in OpenAPI docs
 const DEFAULT_OFFICE_COORDINATES = {

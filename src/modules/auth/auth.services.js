@@ -8,7 +8,7 @@ import {
 } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
-const { write, read, remove, update } = dataAccess;
+const { read, write, update, remove } = dataAccess;
 
 export const authServices = {
   signUp: async (payload) => {

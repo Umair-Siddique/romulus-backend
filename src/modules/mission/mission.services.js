@@ -3,7 +3,7 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { globalUtils, twilioUtils } from "#utils/index.js";
 
-const { write, read, update, remove } = dataAccess;
+const { read, write, update, remove } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const missionServices = {

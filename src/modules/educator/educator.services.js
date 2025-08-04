@@ -3,7 +3,7 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { globalUtils, getCoordinates } from "#utils/index.js";
 
-const { write, read, update } = dataAccess;
+const { read, write, update } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const educatorServices = {
