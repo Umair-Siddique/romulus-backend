@@ -34,5 +34,6 @@ export const dataAccess = {
 
   remove: {
     ...missionDataAccess.remove,
+    ...userDataAccess.remove,
   },
 };
