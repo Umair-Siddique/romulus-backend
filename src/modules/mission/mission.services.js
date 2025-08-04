@@ -45,7 +45,7 @@ export const missionServices = {
       skills: parseDelimitedString(skills),
       start: toISO8601(startDate, startTime),
       end: toISO8601(endDate, endTime),
-      preferredEducator,
+      preferredEducator: preferredEducator || undefined,
       technicalDocument: getFilePath(technicalDocument),
     };
 
@@ -121,12 +121,15 @@ export const missionServices = {
           $push: {
             missionsHiredFor: id,
           },
+          $set: {
+            availableForHiring: false,
+          },
         });
 
         const userId = result?.user?._id;
 
         await update.organizationById(mission.organization, {
-          $push: {
+          $addToSet: {
             preferredEducators: educatorId,
           },
         });
@@ -170,6 +173,12 @@ export const missionServices = {
 
       for (const hire of hires) {
         const educator = await read.educatorById(hire);
+
+        await update.educatorById(hire, {
+          $set: {
+            availableForHiring: true,
+          },
+        });
 
         const userId = educator?.user?._id;
 

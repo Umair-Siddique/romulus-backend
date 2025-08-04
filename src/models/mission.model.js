@@ -53,8 +53,7 @@ const MissionSchema = new Schema(
 
     preferredEducator: {
       type: Schema.Types.ObjectId,
-      ref: "Educator",
-      default: null,
+      ref: "Educator"
     },
 
     technicalDocument: {

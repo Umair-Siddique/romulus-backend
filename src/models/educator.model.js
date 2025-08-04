@@ -239,6 +239,18 @@ const EducatorSchema = new Schema(
       },
     ],
 
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: 0,
+    },
+
+    availableForHiring: {
+      type: Boolean,
+      default: true,
+    },
+
     status: {
       type: String,
       enum: ["active", "inactive", "pending"],
