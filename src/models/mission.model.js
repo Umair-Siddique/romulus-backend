@@ -131,6 +131,11 @@ const MissionSchema = new Schema(
         _id: false,
       },
     ],
+
+    hasGivenFeedbackToEducator: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

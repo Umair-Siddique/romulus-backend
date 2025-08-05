@@ -11,21 +11,17 @@ educatorRoutes
   .post(
     "/",
     upload,
-    validate.authRole("educator"),
     validate.dto(educatorDto.create),
     educatorControllers.create,
   )
   .get("/", educatorControllers.getAll)
   .get(
     "/nearby",
-    validate.authRole("organization"),
     educatorControllers.getNearBy,
   )
   .get("/:id", educatorControllers.getById)
   .patch(
     "/:id",
     upload,
-    validate.authRole("educator"),
-    validate.dto(educatorDto.update),
     educatorControllers.updateById,
   );

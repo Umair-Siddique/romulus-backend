@@ -114,6 +114,42 @@ export const educatorServices = {
       throw createError(404, "Educator profile not found.");
     }
 
+    if (data.feedback) {
+      const updatedEducator = await update.educatorById(
+        id,
+        {
+          $push: {
+            organizationsFeedbacks: {
+              organizationId: existingEducator.organization,
+              userName: data.userName,
+              feedback: data.feedback,
+              rating: data.rating,
+              createdAt: new Date(),
+            },
+          },
+        },
+        {
+          new: true,
+          returnDocument: "after", // for MongoDB 5+ safety
+        }
+      );
+
+      const updatedAverageRating =
+        (existingEducator.rating + data.rating) /
+        updatedEducator.organizationsFeedbacks.length;
+
+      await update.educatorById(id, {
+        $set: {
+          rating: updatedAverageRating,
+        },
+      });
+
+      delete data.organizationId;
+      delete data.userName;
+      delete data.feedback;
+      delete data.rating;
+    }
+
     const updatedEducator = await update.educatorById(id, data);
 
     if (!updatedEducator) {

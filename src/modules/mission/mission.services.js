@@ -107,8 +107,6 @@ export const missionServices = {
   updateById: async (id, data) => {
     const { hireStatus, educatorId, status, hires, ...rest } = data;
 
-    console.log(data);
-
     const mission = await read.missionById(id);
     if (!mission) throw createError(404, "Mission not found");
 
