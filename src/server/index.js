@@ -33,10 +33,10 @@ export const startServer = asyncHandler(async () => {
   });
 
   io.on("connection", (socket) => {
-    logger.info(`✅ Socket connected: ${socket.id}`);
+    logger.info(`connected: socket at ${socket.id}`);
 
     socket.on("disconnect", () => {
-      logger.info(`❌ Socket disconnected: ${socket.id}`);
+      logger.info(`disconnected: socket at ${socket.id}`);
     });
   });
 
