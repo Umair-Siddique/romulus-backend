@@ -2,7 +2,7 @@ import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
 
-const { read, write } = dataAccess;
+const { read, write, update } = dataAccess;
 
 export const reportsServices = {
   createReport: async (request) => {
