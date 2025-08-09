@@ -5,7 +5,7 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, write } = dataAccess;
 
 export const reportsServices = {
-  sendReport: async (request) => {
+  createReport: async (request) => {
     const { reportProof } = request.files;
     const {
       educatorId,
@@ -29,12 +29,12 @@ export const reportsServices = {
     const newReport = await write.report(data);
 
     if (!newReport) {
-      throw createError(500, "Failed to send report.");
+      throw createError(500, "Failed to create report.");
     }
 
     return {
       success: true,
-      message: "Report sent successfully.",
+      message: "Report created successfully.",
       data: newReport,
     };
   },

@@ -4,8 +4,8 @@ import { reportsServices } from "./reports.services.js";
 const { asyncHandler } = globalUtils;
 
 export const reportsControllers = {
-  sendReport: asyncHandler(async (request, response) => {
-    const responseBody = await reportsServices.sendReport(request);
+  createReport: asyncHandler(async (request, response) => {
+    const responseBody = await reportsServices.createReport(request);
     response.status(200).json(responseBody);
   }),
 
