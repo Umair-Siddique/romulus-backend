@@ -54,7 +54,7 @@ export const missionServices = {
     return {
       success: true,
       message: "Mission created successfully.",
-      newMission,
+      data: newMission,
     };
   },
 
@@ -68,7 +68,7 @@ export const missionServices = {
     return {
       success: true,
       message: "Missions retrieved successfully.",
-      missions,
+      data: missions,
     };
   },
 
@@ -84,7 +84,7 @@ export const missionServices = {
     return {
       success: true,
       message: "Missions retrieved successfully.",
-      missions,
+      data: missions,
     };
   },
 
@@ -100,7 +100,7 @@ export const missionServices = {
     return {
       success: true,
       message: "Mission retrieved successfully.",
-      mission,
+      data: mission,
     };
   },
 
@@ -116,7 +116,7 @@ export const missionServices = {
     return {
       success: true,
       message: "Mission retrieved successfully.",
-      mission,
+      data: mission,
     };
   },
 
@@ -132,7 +132,7 @@ export const missionServices = {
     return {
       success: true,
       message: "Mission retrieved successfully.",
-      mission,
+      data: mission,
     };
   },
 
@@ -225,13 +225,11 @@ export const missionServices = {
     // --- Update Remaining Fields ---
     const updatedMission = await update.missionById(id, { $set: rest });
 
-    const responseBody = {
+    return {
       success: true,
       message: "Mission updated successfully.",
-      updatedMission,
+      data: updatedMission,
     };
-
-    return responseBody;
   },
 
   sendInvitation: async (request) => {
