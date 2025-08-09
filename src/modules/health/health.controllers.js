@@ -6,7 +6,6 @@ const { asyncHandler } = globalUtils;
 export const healthControllers = {
   checkHealth: asyncHandler(async (_request, response) => {
     const responseBody = await healthServices.checkHealth();
-
     response.status(200).json(responseBody);
   }),
 };
