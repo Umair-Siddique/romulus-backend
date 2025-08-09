@@ -8,6 +8,7 @@ import {
   notificationRoutes,
   organizationRoutes,
   healthRoutes,
+  reportsRoutes,
   twilioRoutes,
 } from "#modules/index.js";
 import { validate } from "#middleware/index.js";
@@ -24,6 +25,7 @@ v1Router.use("/email", emailRoutes);
 v1Router.use("/missions", validate.accessToken, missionRoutes);
 v1Router.use("/notifications", validate.accessToken, notificationRoutes);
 v1Router.use("/organizations", validate.accessToken, organizationRoutes);
+v1Router.use("/reports", validate.accessToken, reportsRoutes);
 v1Router.use("/twilio", twilioRoutes);
 
 export default appRouter;
