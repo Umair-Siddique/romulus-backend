@@ -36,6 +36,7 @@ export const storage = new CloudinaryStorage({
       "criminalRecord",
       "certificateOfHonor",
       "diploma",
+      "reportProof",
     ];
 
     const missionFields = ["technicalDocument"];

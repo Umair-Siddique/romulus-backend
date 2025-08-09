@@ -6,4 +6,6 @@ export const reportsRoutes = express.Router();
 
 reportsRoutes
   .post("/", reportsControllers.sendReport)
-  .get("/", reportsControllers.getReport);
+  .get("/", reportsControllers.getReports)
+  .get("/:id", reportsControllers.getById)
+  .patch("/:id", reportsControllers.updateById);

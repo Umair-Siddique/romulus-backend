@@ -9,6 +9,7 @@ const knownFields = [
   { name: "certificateOfHonor", maxCount: 1 },
   { name: "diploma", maxCount: 1 },
   { name: "technicalDocument", maxCount: 1 },
+  { name: "reportProof", maxCount: 1 },
 ];
 
 // Add expected dynamic branch fields (assuming max 10 branches for safety)

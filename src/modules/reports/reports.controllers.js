@@ -9,8 +9,18 @@ export const reportsControllers = {
     response.status(200).json(responseBody);
   }),
 
-  getReport: asyncHandler(async (request, response) => {
-    const responseBody = await reportsServices.getReport(request);
+  getReports: asyncHandler(async (_request, response) => {
+    const responseBody = await reportsServices.getReports();
+    response.status(200).json(responseBody);
+  }),
+
+  getById: asyncHandler(async (request, response) => {
+    const responseBody = await reportsServices.getById(request);
+    response.status(200).json(responseBody);
+  }),
+
+  updateById: asyncHandler(async (request, response) => {
+    const responseBody = await reportsServices.updateById(request);
     response.status(200).json(responseBody);
   }),
 };
