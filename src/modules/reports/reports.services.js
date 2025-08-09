@@ -23,7 +23,7 @@ export const reportsServices = {
       educatorName,
       organizationName,
       reportReason,
-      reportProof,
+      reportProof: reportProof[0].path,
     };
 
     const newReport = await write.report(data);
