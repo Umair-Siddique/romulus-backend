@@ -54,8 +54,8 @@ export const reportsServices = {
   },
 
   getById: async (request) => {
-    const { reportId } = request.params;
-    const report = await read.report(reportId);
+    const { id } = request.params;
+    const report = await read.report(id);
 
     if (!report) {
       throw createError(404, "Report not found.");
@@ -69,16 +69,16 @@ export const reportsServices = {
   },
 
   updateById: async (request) => {
-    const { reportId } = request.params;
+    const { id } = request.params;
     const { reportStatus } = request.body;
 
-    const report = await read.report(reportId);
+    const report = await read.report(id);
 
     if (!report) {
       throw createError(404, "Report not found.");
     }
 
-    const updatedReport = await update.report(reportId, { reportStatus });
+    const updatedReport = await update.report(id, { reportStatus });
 
     return {
       success: true,
