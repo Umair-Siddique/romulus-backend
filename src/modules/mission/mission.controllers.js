@@ -4,134 +4,63 @@ import { missionServices } from "./mission.services.js";
 const { asyncHandler } = globalUtils;
 
 export const missionControllers = {
-  create: asyncHandler(async (req, res) => {
-    const payload = req.body;
-    const files = req.files;
+  create: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.create(request);
 
-    const data = await missionServices.create({ ...payload, ...files });
-
-    const response = {
-      success: true,
-      message: "Mission created successfully.",
-      data,
-    };
-
-    res.status(201).json(response);
+    response.status(201).json(responseBody);
   }),
 
-  getAll: asyncHandler(async (req, res) => {
-    const data = await missionServices.getAll();
+  getAll: asyncHandler(async (_request, response) => {
+    const responseBody = await missionServices.getAll();
 
-    const response = {
-      success: true,
-      message: "Missions retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  getAllByOrganizationId: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const data = await missionServices.getAllByOrganizationId(id);
+  getAllByOrganizationId: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.getAllByOrganizationId(request);
 
-    const response = {
-      success: true,
-      message: "Missions retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  getById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const data = await missionServices.getById(id);
+  getById: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.getById(request);
 
-    const response = {
-      success: true,
-      message: "Mission retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  getByOrganizationId: asyncHandler(async (req, res) => {
-    const { mId, oId } = req.params;
-    const data = await missionServices.getByOrganizationId(mId, oId);
+  getByOrganizationId: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.getByOrganizationId(request);
 
-    const response = {
-      success: true,
-      message: "Mission retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  getByEducatorId: asyncHandler(async (req, res) => {
-    const { mId, eId } = req.params;
-    const data = await missionServices.getByEducatorId(mId, eId);
+  getByEducatorId: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.getByEducatorId(request);
 
-    const response = {
-      success: true,
-      message: "Mission retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  updateById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const payload = req.body;
-    const data = await missionServices.updateById(id, payload);
+  updateById: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.updateById(request);
 
-    const response = {
-      success: true,
-      message: "Mission updated successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  sendInvitation: asyncHandler(async (req, res) => {
-    const payload = req.body;
-    const data = await missionServices.sendInvitation(payload);
+  sendInvitation: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.sendInvitation(request);
 
-    const response = {
-      success: true,
-      message: `Invitations sent successfully to ${data} educators.`,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  respondInvitation: asyncHandler(async (req, res) => {
-    const payload = req.body;
-    const data = await missionServices.respondInvitation(payload);
+  respondInvitation: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.respondInvitation(request);
 
-    const response = {
-      success: true,
-      message: "Invitation response recorded successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  deleteById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
+  deleteById: asyncHandler(async (request, response) => {
+    const responseBody = await missionServices.deleteById(request);
 
-    await missionServices.deleteById(id);
-
-    const response = {
-      success: true,
-      message: "Mission deleted successfully.",
-    };
-
-    res.status(204).json(response);
+    response.status(204).json(responseBody);
   }),
 };

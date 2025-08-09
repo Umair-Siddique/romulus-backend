@@ -7,7 +7,8 @@ const { read, write, update, remove } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const missionServices = {
-  create: async (data) => {
+  create: async (request) => {
+    const { technicalDocument } = request.files;
     const {
       organization: organizationId,
       title,
@@ -19,8 +20,7 @@ export const missionServices = {
       startTime,
       endTime,
       preferredEducator,
-      technicalDocument,
-    } = data;
+    } = request.body;
 
     const existingOrganization = await read.organizationById(organizationId);
 
@@ -51,7 +51,11 @@ export const missionServices = {
 
     const newMission = await write.mission(missionData);
 
-    return newMission;
+    return {
+      success: true,
+      message: "Mission created successfully.",
+      newMission,
+    };
   },
 
   getAll: async () => {
@@ -61,51 +65,80 @@ export const missionServices = {
       throw createError(404, "Missions not found");
     }
 
-    return missions;
+    return {
+      success: true,
+      message: "Missions retrieved successfully.",
+      missions,
+    };
   },
 
-  getAllByOrganizationId: async (id) => {
+  getAllByOrganizationId: async (request) => {
+    const { id } = request.params;
+
     const missions = await read.missionsByOrganizationId(id);
 
     if (!missions) {
       throw createError(404, "Missions not found");
     }
 
-    return missions;
+    return {
+      success: true,
+      message: "Missions retrieved successfully.",
+      missions,
+    };
   },
 
-  getById: async (id) => {
+  getById: async (request) => {
+    const { id } = request.params;
+
     const mission = await read.missionById(id);
 
     if (!mission) {
       throw createError(404, "Mission not found");
     }
 
-    return mission;
+    return {
+      success: true,
+      message: "Mission retrieved successfully.",
+      mission,
+    };
   },
 
-  getByOrganizationId: async (mId, oId) => {
+  getByOrganizationId: async (request) => {
+    const { mId, oId } = request.params;
+
     const mission = await read.missionByOrganizationId(mId, oId);
 
     if (!mission) {
       throw createError(404, "Mission not found");
     }
 
-    return mission;
+    return {
+      success: true,
+      message: "Mission retrieved successfully.",
+      mission,
+    };
   },
 
-  getByEducatorId: async (mId, eId) => {
+  getByEducatorId: async (request) => {
+    const { mId, eId } = request.params;
+
     const mission = await read.missionByEducatorId(mId, eId);
 
     if (!mission) {
       throw createError(404, "Mission not found");
     }
 
-    return mission;
+    return {
+      success: true,
+      message: "Mission retrieved successfully.",
+      mission,
+    };
   },
 
-  updateById: async (id, data) => {
-    const { hireStatus, educatorId, status, hires, ...rest } = data;
+  updateById: async (request) => {
+    const { id } = request.params;
+    const { hireStatus, educatorId, status, hires, ...rest } = request.body;
 
     const mission = await read.missionById(id);
     if (!mission) throw createError(404, "Mission not found");
@@ -192,11 +225,17 @@ export const missionServices = {
     // --- Update Remaining Fields ---
     const updatedMission = await update.missionById(id, { $set: rest });
 
-    return updatedMission;
+    const responseBody = {
+      success: true,
+      message: "Mission updated successfully.",
+      updatedMission,
+    };
+
+    return responseBody;
   },
 
-  sendInvitation: async (data) => {
-    const { missionId, invitees } = data;
+  sendInvitation: async (request) => {
+    const { missionId, invitees } = request.body;
 
     await update.missionById(missionId, {
       invitedEducators: invitees,
@@ -226,11 +265,15 @@ export const missionServices = {
       sentInvitationsCount++;
     }
 
-    return sentInvitationsCount;
+    return {
+      success: true,
+      message: `Invitations sent successfully to ${sentInvitationsCount} educators.`,
+      data: sentInvitationsCount,
+    };
   },
 
-  respondInvitation: async (data) => {
-    const { educatorId, missionId, response, responseTime } = data;
+  respondInvitation: async (request) => {
+    const { educatorId, missionId, response, responseTime } = request.body;
 
     const updatedEducator = await update.educatorById(
       educatorId,
@@ -257,10 +300,15 @@ export const missionServices = {
       "A response to your mission invitation has been recorded."
     );
 
-    return updatedEducator;
+    return {
+      success: true,
+      message: "Invitation response recorded successfully.",
+      data: updatedEducator,
+    };
   },
 
-  deleteById: async (id) => {
+  deleteById: async (request) => {
+    const { id } = request.params;
     const existingMission = await read.missionById(id);
     const { invitedEducators } = existingMission;
 
@@ -277,5 +325,10 @@ export const missionServices = {
     }
 
     await remove.missionById(id);
+
+    return {
+      success: true,
+      message: "Mission deleted successfully.",
+    };
   },
 };

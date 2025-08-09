@@ -4,77 +4,33 @@ import { educatorServices } from "./educator.services.js";
 const { asyncHandler } = globalUtils;
 
 export const educatorControllers = {
-  create: asyncHandler(async (req, res) => {
-    const payload = req.body;
-    const files = req.files;
+  create: asyncHandler(async (request, response) => {
+    const responseBody = await educatorServices.create(request);
 
-    const data = await educatorServices.create({ ...payload, ...files });
-
-    const response = {
-      success: true,
-      message: "Educator Profile Created Successfully.",
-      data,
-    };
-
-    res.status(201).json(response);
+    response.status(201).json(responseBody);
   }),
 
-  getAll: asyncHandler(async (_req, res) => {
-    const data = await educatorServices.getAll();
+  getAll: asyncHandler(async (_request, response) => {
+    const responseBody = await educatorServices.getAll();
 
-    const response = {
-      success: true,
-      message: "Educators retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  getById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
+  getById: asyncHandler(async (request, response) => {
+    const responseBody = await educatorServices.getById(request);
 
-    const data = await educatorServices.getById(id);
-
-    const response = {
-      success: true,
-      message: "Educator profile retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  updateById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const payload = req.body;
+  updateById: asyncHandler(async (request, response) => {
+    const responseBody = await educatorServices.updateById(request);
 
-    const data = await educatorServices.updateById(id, payload);
-
-    const response = {
-      success: true,
-      message: "Educator profile updated successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  getNearBy: asyncHandler(async (req, res) => {
-    const { coordinates, distance, skills } = req.query;
+  getNearBy: asyncHandler(async (request, response) => {
+    const responseBody = await educatorServices.getNearBy(request);
 
-    const data = await educatorServices.getNearBy(
-      coordinates,
-      distance,
-      skills
-    );
-
-    const response = {
-      success: true,
-      message: "Educators retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 };

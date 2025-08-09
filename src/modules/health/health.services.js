@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import { env, logger } from "#config/index.js";
 import { isProdEnv } from "#constants/index.js";
+import { createError } from "http-errors";
 
 const {
   PORT,
@@ -46,6 +47,10 @@ export const healthServices = {
     const isHealthy = dbStatus === "healthy" && memoryStatus === "normal";
     const status = isHealthy ? "healthy" : "degraded";
 
+    if (!isHealthy) {
+      throw createError(503, "System degraded");
+    }
+
     const data = {
       isHealthy,
       status,
@@ -78,6 +83,10 @@ export const healthServices = {
       },
     };
 
-    return data;
+    return {
+      success: true,
+      message: data.isHealthy ? "System operational" : "System degraded",
+      data,
+    };
   },
 };

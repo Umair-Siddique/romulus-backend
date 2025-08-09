@@ -3,6 +3,7 @@ import { educatorDataAccess } from "./educator.data-access.js";
 import { missionDataAccess } from "./mission.data-access.js";
 import { notificationDataAccess } from "./notification.data-access.js";
 import { organizationDataAccess } from "./organization.data-access.js";
+import { reportDataAccess } from "./report.data-access.js";
 import { userDataAccess } from "./user.data-access.js";
 
 export const dataAccess = {
@@ -12,6 +13,7 @@ export const dataAccess = {
     ...missionDataAccess.read,
     ...notificationDataAccess.read,
     ...organizationDataAccess.read,
+    ...reportDataAccess.read,
     ...userDataAccess.read,
   },
 
@@ -21,6 +23,7 @@ export const dataAccess = {
     ...missionDataAccess.write,
     ...notificationDataAccess.write,
     ...organizationDataAccess.write,
+    ...reportDataAccess.write,
     ...userDataAccess.write,
   },
 
@@ -29,6 +32,7 @@ export const dataAccess = {
     ...missionDataAccess.update,
     ...notificationDataAccess.update,
     ...organizationDataAccess.update,
+    ...reportDataAccess.update,
     ...userDataAccess.update,
   },
 

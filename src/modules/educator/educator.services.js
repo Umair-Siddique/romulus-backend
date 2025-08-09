@@ -7,7 +7,7 @@ const { read, write, update } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const educatorServices = {
-  create: async (data) => {
+  create: async (request) => {
     const {
       user: userId,
       firstName,
@@ -22,12 +22,15 @@ export const educatorServices = {
       hourlyRate,
       skills,
       education,
+    } = request.body;
+
+    const {
       avatar,
       identityProof,
       criminalRecord,
       certificateOfHonor,
       diploma,
-    } = data;
+    } = request.files;
 
     const existingUser = await read.userById(userId);
 
@@ -84,46 +87,59 @@ export const educatorServices = {
       throw createError(500, "An error occurred while creating the profile.");
     }
 
-    return newEducator;
+    return {
+      success: true,
+      message: "Educator Profile Created Successfully.",
+      data: newEducator,
+    };
   },
 
   getAll: async () => {
     const educators = await read.allEducators();
 
-    if (!educators) {
-      throw createError(404, "Educators not found.");
-    }
-
-    return educators;
+    return {
+      success: true,
+      message: "Educators retrieved successfully.",
+      data: educators,
+    };
   },
 
-  getById: async (id) => {
+  getById: async (request) => {
+    const { id } = request.params;
+
     const educator = await read.educatorById(id);
 
     if (!educator) {
       throw createError(404, "Educator profile not found.");
     }
 
-    return educator;
+    return {
+      success: true,
+      message: "Educator profile retrieved successfully.",
+      data: educator,
+    };
   },
 
-  updateById: async (id, data) => {
+  updateById: async (request) => {
+    const reqBody = request.body;
+    const { id } = request.params;
+
     const existingEducator = await read.educatorById(id);
 
     if (!existingEducator) {
       throw createError(404, "Educator profile not found.");
     }
 
-    if (data.feedback) {
+    if (reqBody.feedback) {
       const updatedEducator = await update.educatorById(
         id,
         {
           $push: {
             organizationsFeedbacks: {
               organizationId: existingEducator.organization,
-              userName: data.userName,
-              feedback: data.feedback,
-              rating: data.rating,
+              userName: reqBody.userName,
+              feedback: reqBody.feedback,
+              rating: reqBody.rating,
               createdAt: new Date(),
             },
           },
@@ -135,7 +151,7 @@ export const educatorServices = {
       );
 
       const updatedAverageRating =
-        (existingEducator.rating + data.rating) /
+        (existingEducator.rating + reqBody.rating) /
         updatedEducator.organizationsFeedbacks.length;
 
       await update.educatorById(id, {
@@ -144,22 +160,28 @@ export const educatorServices = {
         },
       });
 
-      delete data.organizationId;
-      delete data.userName;
-      delete data.feedback;
-      delete data.rating;
+      delete reqBody.organizationId;
+      delete reqBody.userName;
+      delete reqBody.feedback;
+      delete reqBody.rating;
     }
 
-    const updatedEducator = await update.educatorById(id, data);
+    const updatedEducator = await update.educatorById(id, reqBody);
 
     if (!updatedEducator) {
       throw createError(500, "An error occurred while updating the profile.");
     }
 
-    return updatedEducator;
+    return {
+      success: true,
+      message: "Educator profile updated successfully.",
+      data: updatedEducator,
+    };
   },
 
-  getNearBy: async (coordinates, distance, skills) => {
+  getNearBy: async (request) => {
+    const { coordinates, distance, skills } = request.query;
+
     const educators = await read.educatorsNearby(
       parseDelimitedString(coordinates),
       distance
@@ -178,6 +200,10 @@ export const educatorServices = {
 
     const filteredEducators = filterEducatorsBySkills(educators, parsedSkills);
 
-    return filteredEducators;
+    return {
+      success: true,
+      message: "Educators retrieved successfully.",
+      data: filteredEducators,
+    };
   },
 };

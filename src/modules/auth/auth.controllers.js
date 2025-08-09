@@ -4,73 +4,33 @@ import { authServices } from "./auth.services.js";
 const { asyncHandler } = globalUtils;
 
 export const authControllers = {
-  signUp: asyncHandler(async (req, res) => {
-    const payload = req.body;
+  signUp: asyncHandler(async (request, response) => {
+    const responseBody = await authServices.signUp(request);
 
-    const data = await authServices.signUp(payload);
-
-    const response = {
-      success: true,
-      message:
-        "Account registered successfully. Please verify your email address.",
-      data,
-    };
-
-    res.status(201).json(response);
+    response.status(201).json(responseBody);
   }),
 
-  signIn: asyncHandler(async (req, res) => {
-    const payload = req.body;
+  signIn: asyncHandler(async (request, response) => {
+    const responseBody = await authServices.signIn(request);
 
-    const data = await authServices.signIn(payload);
-
-    const response = {
-      success: true,
-      message: "Signed in successfully.",
-      data,
-      accessToken: data.accessToken,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  signOut: asyncHandler(async (req, res) => {
-    const authHeader = req.headers.authorization;
-    const token = authHeader ? authHeader.replace("Bearer ", "") : null;
+  signOut: asyncHandler(async (request, response) => {
+    const responseBody = await authServices.signOut(request);
 
-    await authServices.signOut(token);
-
-    const response = {
-      success: true,
-      message: "Signed out successfully.",
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  forgetPassword: asyncHandler(async (req, res) => {
-    const payload = req.body;
+  forgetPassword: asyncHandler(async (request, response) => {
+    const responseBody = await authServices.forgetPassword(request);
 
-    await authServices.forgetPassword(payload);
-
-    const response = {
-      success: true,
-      message: "Reset password email sent successfully.",
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  updatePassword: asyncHandler(async (req, res) => {
-    const payload = req.body;
+  updatePassword: asyncHandler(async (request, response) => {
+    const responseBody = await authServices.updatePassword(request);
 
-    await authServices.updatePassword(payload);
-
-    const response = {
-      success: true,
-      message: "Password updated successfully.",
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 };

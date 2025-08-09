@@ -17,7 +17,8 @@ const DEFAULT_BRANCH_COORDINATES = {
 };
 
 export const organizationServices = {
-  create: async (data) => {
+  create: async (request) => {
+    const data = { ...request.body, ...request.files };
     const {
       user: userId,
       organizationName,
@@ -56,7 +57,7 @@ export const organizationServices = {
 
         try {
           branchAddressCoordinates = await getCoordinates(branchAddress);
-        } catch (_err) {
+        } catch (_error) {
           // Fallback to default coordinates if geocoding fails
           branchAddressCoordinates = DEFAULT_BRANCH_COORDINATES;
         }
@@ -85,7 +86,7 @@ export const organizationServices = {
     try {
       officeAddressCoordinates = await getCoordinates(officeAddress);
       // eslint-disable-next-line no-unused-vars
-    } catch (_err) {
+    } catch (_error) {
       // Fallback to default coordinates if geocoding fails
       officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
     }
@@ -112,7 +113,11 @@ export const organizationServices = {
       throw createError(500, "Failed to create organization.");
     }
 
-    return newOrganization;
+    return {
+      success: true,
+      message: "Organization created successfully.",
+      data: newOrganization,
+    };
   },
 
   getAll: async () => {
@@ -122,20 +127,36 @@ export const organizationServices = {
       throw createError(404, "Organizations not found.");
     }
 
-    return organizations;
+    return {
+      success: true,
+      message: "Organizations retrieved successfully.",
+      data: organizations,
+    };
   },
 
-  getById: async (id) => {
+  getById: async (request) => {
+    const { id } = request.params;
+
     const organization = await read.organizationById(id);
 
     if (!organization) {
       throw createError(404, "Organization not found.");
     }
 
-    return organization;
+    return {
+      success: true,
+      message: "Organization retrieved successfully.",
+      data: organization,
+    };
   },
 
-  updateById: async (id, data) => {
+  updateById: async (request) => {
+    const { id } = request.params;
+    const reqBody = request.body;
+    const files = request.files || {};
+
+    const data = { ...reqBody, ...files };
+
     const existingOrganization = await read.organizationById(id);
 
     if (!existingOrganization) {
@@ -177,7 +198,7 @@ export const organizationServices = {
       try {
         updateData.officeAddressCoordinates =
           await getCoordinates(officeAddress);
-      } catch (_err) {
+      } catch (_error) {
         updateData.officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
       }
     }
@@ -194,7 +215,7 @@ export const organizationServices = {
               branchAddressCoordinates = await getCoordinates(
                 branch.branchAddress
               );
-            } catch (_err) {
+            } catch (_error) {
               branchAddressCoordinates = DEFAULT_BRANCH_COORDINATES;
             }
           }
@@ -221,6 +242,10 @@ export const organizationServices = {
       throw createError(500, "Failed to update organization.");
     }
 
-    return updatedOrganization;
+    return {
+      success: true,
+      message: "Organization updated successfully.",
+      data: updatedOrganization,
+    };
   },
 };

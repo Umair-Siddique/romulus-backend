@@ -4,64 +4,27 @@ import { organizationServices } from "./organization.services.js";
 const { asyncHandler } = globalUtils;
 
 export const organizationControllers = {
-  create: asyncHandler(async (req, res) => {
-    const payload = req.body;
-    const files = req.files;
+  create: asyncHandler(async (request, response) => {
+    const responseBody = await organizationServices.create(request);
 
-    const data = await organizationServices.create({ ...payload, ...files });
-
-    const response = {
-      success: true,
-      message: "Organization created successfully.",
-      data,
-    };
-
-    res.status(201).json(response);
+    response.status(201).json(responseBody);
   }),
 
-  getAll: asyncHandler(async (_req, res) => {
-    const data = await organizationServices.getAll();
+  getAll: asyncHandler(async (_request, response) => {
+    const responseBody = await organizationServices.getAll();
 
-    const response = {
-      success: true,
-      message: "Organizations retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  getById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
+  getById: asyncHandler(async (request, response) => {
+    const responseBody = await organizationServices.getById(request);
 
-    const data = await organizationServices.getById(id);
-
-    const response = {
-      success: true,
-      message: "Organization retrieved successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 
-  updateById: asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const payload = req.body;
-    const files = req.files || {};
+  updateById: asyncHandler(async (request, response) => {
+    const responseBody = await organizationServices.updateById(request);
 
-    // Merge payload and files for update processing
-    const data = await organizationServices.updateById(id, {
-      ...payload,
-      ...files,
-    });
-
-    const response = {
-      success: true,
-      message: "Organization updated successfully.",
-      data,
-    };
-
-    res.status(200).json(response);
+    response.status(200).json(responseBody);
   }),
 };

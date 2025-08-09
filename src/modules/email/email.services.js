@@ -6,7 +6,9 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, update, remove } = dataAccess;
 
 export const emailServices = {
-  checkVerificationEmail: async (verificationToken) => {
+  checkVerificationEmail: async (request) => {
+    const { verificationToken } = request.query;
+
     const decodedToken = tokenUtils.decode(verificationToken);
 
     const { id } = decodedToken;
@@ -26,7 +28,8 @@ export const emailServices = {
     return emailUtils.sendVerificationNotification();
   },
 
-  sendVerificationEmail: async (email) => {
+  sendVerificationEmail: async (request) => {
+    const { email } = request.body;
     const user = await read.userByEmail(email);
 
     if (!user) {
@@ -53,5 +56,10 @@ export const emailServices = {
 
       throw createError(500, "Failed to send the welcome email.");
     }
+
+    return {
+      success: true,
+      message: "Verification email sent successfully",
+    };
   },
 };

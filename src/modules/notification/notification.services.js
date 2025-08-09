@@ -3,15 +3,27 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, update } = dataAccess;
 
 export const notificationServices = {
-  read: async (userId) => {
+  read: async (request) => {
+    const { userId } = request.params;
+
     const notifications = await read.notificationByUserId(userId);
 
-    return notifications;
+    return {
+      success: true,
+      message: "Notifications retrieved successfully.",
+      data: notifications,
+    };
   },
 
-  updateById: async (notiId) => {
+  updateById: async (request) => {
+    const { notiId } = request.params;
+
     const updatedNotification = await update.notificationById(notiId);
 
-    return updatedNotification;
+    return {
+      success: true,
+      message: "Notification updated successfully.",
+      data: updatedNotification,
+    };
   },
 };

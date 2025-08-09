@@ -8,11 +8,11 @@ import {
 } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
-const { read, write, update, remove } = dataAccess;
+const { read, write, update } = dataAccess;
 
 export const authServices = {
-  signUp: async (payload) => {
-    const { email, password, role, phone } = payload;
+  signUp: async (request) => {
+    const { email, password, role, phone } = request.data;
 
     if (role === "educator" && !phone) {
       throw createError(400, "Phone number is required for educators.");
@@ -47,44 +47,43 @@ export const authServices = {
       throw createError(500, "Failed to create a new user.");
     }
 
-    try {
-      if (role === "educator") {
-        const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
-        if (!isWhatsAppOtpSent) {
-          throw createError(500, "Failed to send OTP");
-        }
+    if (role === "educator") {
+      const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
+      if (!isWhatsAppOtpSent) {
+        throw createError(500, "Failed to send OTP");
       }
-
-      const verificationToken = tokenUtils.generate(
-        { id: newUser._id },
-        "verificationToken"
-      );
-
-      if (!verificationToken) {
-        throw createError(500, "An error occurred while generating the token.");
-      }
-
-      const isEmailSent = await emailUtils.sendAccountVerification(
-        email,
-        verificationToken
-      );
-
-      if (!isEmailSent) {
-        throw createError(500, "Failed to send the welcome email.");
-      }
-
-      const data = { id: newUser._id, role: newUser.role };
-
-      return data;
-    } catch (err) {
-      await remove.userById(newUser._id);
-
-      throw err;
     }
+
+    const verificationToken = tokenUtils.generate(
+      { id: newUser._id },
+      "verificationToken"
+    );
+
+    if (!verificationToken) {
+      throw createError(500, "An error occurred while generating the token.");
+    }
+
+    const isEmailSent = await emailUtils.sendAccountVerification(
+      email,
+      verificationToken
+    );
+
+    if (!isEmailSent) {
+      throw createError(500, "Failed to send the welcome email.");
+    }
+
+    const data = { id: newUser._id, role: newUser.role };
+
+    return {
+      success: true,
+      message:
+        "Account registered successfully. Please verify your email address.",
+      data,
+    };
   },
 
-  signIn: async (payload) => {
-    const { email, password } = payload;
+  signIn: async (request) => {
+    const { email, password } = request.body;
 
     const user = await read.userByEmail(email);
 
@@ -163,10 +162,17 @@ export const authServices = {
       accessToken,
     };
 
-    return data;
+    return {
+      success: true,
+      message: "Signed in successfully.",
+      data,
+      accessToken,
+    };
   },
 
-  signOut: async (accessToken) => {
+  signOut: async (request) => {
+    const reqHeaders = request.headers.authorization;
+    const accessToken = reqHeaders ? reqHeaders.replace("Bearer ", "") : null;
     const existingBlacklistedToken = await read.blacklistedToken(accessToken);
 
     if (existingBlacklistedToken) {
@@ -190,10 +196,15 @@ export const authServices = {
         "An error occurred while blacklisting the accessToken."
       );
     }
+
+    return {
+      success: true,
+      message: "Signed out successfully.",
+    };
   },
 
-  forgetPassword: async (data) => {
-    const { email } = data;
+  forgetPassword: async (request) => {
+    const { email } = request.body;
 
     const existingUser = await read.userByEmail(email);
 
@@ -215,42 +226,15 @@ export const authServices = {
     if (!isEmailSent) {
       throw createError(500, "Failed to send reset password email");
     }
+
+    return {
+      success: true,
+      message: "Reset password email sent successfully.",
+    };
   },
 
-  updatePassword: async (data) => {
-    const { password, resetToken } = data;
-
-    const decodedToken = tokenUtils.decode(resetToken);
-
-    const { id } = decodedToken;
-
-    const existingUser = await read.userById(id);
-
-    if (!existingUser) {
-      throw createError(404, "User not found");
-    }
-
-    const hashedPassword = await bcryptUtils.hash(password, { rounds: 12 });
-
-    const isPasswordUpdated = await update.userById(id, {
-      password: hashedPassword,
-    });
-
-    if (!isPasswordUpdated) {
-      throw createError(500, "Failed to update password");
-    }
-
-    const isBlacklistedTokenRemoved = await remove.blacklistedToken(resetToken);
-
-    if (!isBlacklistedTokenRemoved) {
-      throw createError(500, "Failed to remove blacklisted token");
-    }
-
-    return true;
-  },
-
-  updatePassword: async (data) => {
-    const { password, resetToken } = data;
+  updatePassword: async (request) => {
+    const { password, resetToken } = request.body;
 
     const decodedToken = tokenUtils.decode(resetToken);
 
@@ -271,5 +255,10 @@ export const authServices = {
     if (!isPasswordUpdated) {
       throw createError(500, "Password update failed");
     }
+
+    return {
+      success: true,
+      message: "Password updated successfully.",
+    };
   },
 };
