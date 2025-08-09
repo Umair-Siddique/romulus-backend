@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 import { env, logger } from "#config/index.js";
 import { isProdEnv } from "#constants/index.js";
-import { createError } from "http-errors";
+import createError from "http-errors";
 
 const {
   PORT,
