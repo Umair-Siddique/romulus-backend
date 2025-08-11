@@ -24,7 +24,7 @@ const corsOptions = {
 };
 
 export const applyGlobalMiddleware = (app, appRouter) => {
-  app.use(morgan("combined")); // Logs incoming HTTP requests (method, URL, status) for debugging
+  app.use(morgan("common")); // Logs incoming HTTP requests (method, URL, status) for debugging
 
   app.use(cors(corsOptions)); // Enables CORS with the specified options (cross-origin requests support)
 
