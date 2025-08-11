@@ -222,6 +222,13 @@ export const missionServices = {
       delete rest.rating;
     }
 
+    if (status === "ongoing" && educatorId) {
+      await update.missionById(id, {
+        $push: { hiredEducators: educatorId },
+        $set: { status },
+      });
+    }
+
     // --- Update Remaining Fields ---
     const updatedMission = await update.missionById(id, { $set: rest });
 

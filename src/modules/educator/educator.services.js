@@ -120,10 +120,9 @@ export const educatorServices = {
     };
   },
 
-  updateById: async (requestPathVariables, requestBody, requestFiles) => {
+  updateById: async (requestPathVariables, requestBody) => {
     const { id } = requestPathVariables;
     const reqBody = requestBody;
-    const reqFiles = requestFiles;
 
     const existingEducator = await read.educatorById(id);
 
@@ -165,6 +164,13 @@ export const educatorServices = {
       delete reqBody.userName;
       delete reqBody.feedback;
       delete reqBody.rating;
+    }
+
+    if (reqBody.missionId && !reqBody.availableForHiring) {
+      await update.educatorById(id, {
+        $push: { missionsHiredFor: reqBody.missionId },
+        $set: { availableForHiring: false },
+      });
     }
 
     const updatedEducator = await update.educatorById(id, reqBody);

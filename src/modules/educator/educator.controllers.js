@@ -30,12 +30,10 @@ export const educatorControllers = {
   updateById: asyncHandler(async (request, response) => {
     const requestPathVariables = request.params;
     const requestBody = request.body;
-    const requestFiles = request.files;
 
     const responseBody = await educatorServices.updateById(
       requestPathVariables,
-      requestBody,
-      requestFiles
+      requestBody
     );
 
     response.status(200).json(responseBody);
