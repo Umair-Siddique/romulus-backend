@@ -3,8 +3,8 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, update } = dataAccess;
 
 export const notificationServices = {
-  read: async (request) => {
-    const { userId } = request.params;
+  read: async (requestPathVariables) => {
+    const { userId } = requestPathVariables;
 
     const notifications = await read.notificationByUserId(userId);
 
@@ -15,8 +15,8 @@ export const notificationServices = {
     };
   },
 
-  updateById: async (request) => {
-    const { notiId } = request.params;
+  updateById: async (requestPathVariables) => {
+    const { notiId } = requestPathVariables;
 
     const updatedNotification = await update.notificationById(notiId);
 

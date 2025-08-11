@@ -4,15 +4,15 @@ import {
   tokenUtils,
   emailUtils,
   twilioUtils,
-  bcryptUtils,
+  passwordUtils,
 } from "#utils/index.js";
 import { dataAccess } from "#dataAccess/index.js";
 
 const { read, write, update } = dataAccess;
 
 export const authServices = {
-  signUp: async (request) => {
-    const { email, password, role, phone } = request.data;
+  signUp: async (requestBody) => {
+    const { email, password, role, phone } = requestBody;
 
     if (role === "educator" && !phone) {
       throw createError(400, "Phone number is required for educators.");
@@ -33,7 +33,7 @@ export const authServices = {
       throw createError(400, "A user with this phone number already exists.");
     }
 
-    const hashedPassword = await bcryptUtils.hash(password, { rounds: 12 });
+    const hashedPassword = await passwordUtils.hash(password, { rounds: 12 });
 
     const newUser = await write.user({
       phone: role === "educator" ? phone : undefined,
@@ -82,8 +82,8 @@ export const authServices = {
     };
   },
 
-  signIn: async (request) => {
-    const { email, password } = request.body;
+  signIn: async (requestBody) => {
+    const { email, password } = requestBody;
 
     const user = await read.userByEmail(email);
 
@@ -139,7 +139,10 @@ export const authServices = {
       );
     }
 
-    const isPasswordValid = await bcryptUtils.compare(password, user.password);
+    const isPasswordValid = await passwordUtils.compare(
+      password,
+      user.password
+    );
 
     if (!isPasswordValid) {
       throw createError(401, "Invalid credentials.");
@@ -170,9 +173,10 @@ export const authServices = {
     };
   },
 
-  signOut: async (request) => {
-    const reqHeaders = request.headers.authorization;
-    const accessToken = reqHeaders ? reqHeaders.replace("Bearer ", "") : null;
+  signOut: async (requestHeaders) => {
+    const { authorization: authHeader } = requestHeaders;
+
+    const accessToken = authHeader ? authHeader.replace("Bearer ", "") : null;
     const existingBlacklistedToken = await read.blacklistedToken(accessToken);
 
     if (existingBlacklistedToken) {
@@ -203,8 +207,8 @@ export const authServices = {
     };
   },
 
-  forgetPassword: async (request) => {
-    const { email } = request.body;
+  forgetPassword: async (requestBody) => {
+    const { email } = requestBody;
 
     const existingUser = await read.userByEmail(email);
 

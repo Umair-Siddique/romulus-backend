@@ -5,7 +5,14 @@ const { asyncHandler } = globalUtils;
 
 export const educatorControllers = {
   create: asyncHandler(async (request, response) => {
-    const responseBody = await educatorServices.create(request);
+    const requestBody = request.body;
+    const requestFiles = request.files;
+
+    const responseBody = await educatorServices.create(
+      requestBody,
+      requestFiles
+    );
+
     response.status(201).json(responseBody);
   }),
 
@@ -15,17 +22,28 @@ export const educatorControllers = {
   }),
 
   getById: asyncHandler(async (request, response) => {
-    const responseBody = await educatorServices.getById(request);
+    const requestPathVariables = request.params;
+    const responseBody = await educatorServices.getById(requestPathVariables);
     response.status(200).json(responseBody);
   }),
 
   updateById: asyncHandler(async (request, response) => {
-    const responseBody = await educatorServices.updateById(request);
+    const requestPathVariables = request.params;
+    const requestBody = request.body;
+    const requestFiles = request.files;
+
+    const responseBody = await educatorServices.updateById(
+      requestPathVariables,
+      requestBody,
+      requestFiles
+    );
+
     response.status(200).json(responseBody);
   }),
 
   getNearBy: asyncHandler(async (request, response) => {
-    const responseBody = await educatorServices.getNearBy(request);
+    const requestQuery = request.query;
+    const responseBody = await educatorServices.getNearBy(requestQuery);
     response.status(200).json(responseBody);
   }),
 };

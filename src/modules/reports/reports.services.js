@@ -5,8 +5,8 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, write, update } = dataAccess;
 
 export const reportsServices = {
-  createReport: async (request) => {
-    const { reportProof } = request.files;
+  createReport: async (requestFiles, requestBody) => {
+    const { reportProof } = requestFiles;
     const {
       educatorId,
       organizationId,
@@ -14,7 +14,7 @@ export const reportsServices = {
       educatorName,
       organizationName,
       reportReason,
-    } = request.body;
+    } = requestBody;
 
     const data = {
       educatorId,
@@ -53,8 +53,8 @@ export const reportsServices = {
     };
   },
 
-  getById: async (request) => {
-    const { id } = request.params;
+  getById: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
     const report = await read.report(id);
 
     if (!report) {
@@ -68,9 +68,9 @@ export const reportsServices = {
     };
   },
 
-  updateById: async (request) => {
-    const { id } = request.params;
-    const { reportStatus } = request.body;
+  updateById: async (requestPathVariables, requestBody) => {
+    const { id } = requestPathVariables;
+    const { reportStatus } = requestBody;
 
     const report = await read.report(id);
 

@@ -1,7 +1,7 @@
 import createError from "http-errors";
 import bcrypt from "bcryptjs";
 
-export const bcryptUtils = {
+export const passwordUtils = {
   hash: async (password, options = {}) => {
     const { rounds = 12 } = options;
 

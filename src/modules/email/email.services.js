@@ -6,8 +6,8 @@ import { dataAccess } from "#dataAccess/index.js";
 const { read, update, remove } = dataAccess;
 
 export const emailServices = {
-  checkVerificationEmail: async (request) => {
-    const { verificationToken } = request.query;
+  checkVerificationEmail: async (requestQuery) => {
+    const { verificationToken } = requestQuery;
 
     const decodedToken = tokenUtils.decode(verificationToken);
 
@@ -28,8 +28,8 @@ export const emailServices = {
     return emailUtils.sendVerificationNotification();
   },
 
-  sendVerificationEmail: async (request) => {
-    const { email } = request.body;
+  sendVerificationEmail: async (requestBody) => {
+    const { email } = requestBody;
     const user = await read.userByEmail(email);
 
     if (!user) {

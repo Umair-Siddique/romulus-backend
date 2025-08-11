@@ -6,8 +6,8 @@ import { dataAccess } from "#dataAccess/index.js";
 const { update } = dataAccess;
 
 export const twilioServices = {
-  sendOTP: async (request) => {
-    const { phone } = request.body;
+  sendOTP: async (requestBody) => {
+    const { phone } = requestBody;
 
     const isWhatsAppOtpSent = await twilioUtils.sendWhatsAppOTP(phone);
 
@@ -21,8 +21,8 @@ export const twilioServices = {
     };
   },
 
-  verifyOTP: async (request) => {
-    const { phone, code } = request.body;
+  verifyOTP: async (requestBody) => {
+    const { phone, code } = requestBody;
 
     const isWhatsAppOtpVerified = await twilioUtils.verifyWhatsAppOTP(
       phone,

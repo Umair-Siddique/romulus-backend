@@ -17,8 +17,8 @@ const DEFAULT_BRANCH_COORDINATES = {
 };
 
 export const organizationServices = {
-  create: async (request) => {
-    const data = { ...request.body, ...request.files };
+  create: async (requestFiles, requestBody) => {
+    const data = { ...requestBody, ...requestFiles };
     const {
       user: userId,
       organizationName,
@@ -134,8 +134,8 @@ export const organizationServices = {
     };
   },
 
-  getById: async (request) => {
-    const { id } = request.params;
+  getById: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
 
     const organization = await read.organizationById(id);
 
@@ -150,9 +150,9 @@ export const organizationServices = {
     };
   },
 
-  updateById: async (request) => {
-    const { id } = request.params;
-    const reqBody = request.body;
+  updateById: async (requestPathVariables, requestBody) => {
+    const { id } = requestPathVariables;
+    const reqBody = requestBody;
     const files = request.files || {};
 
     const data = { ...reqBody, ...files };

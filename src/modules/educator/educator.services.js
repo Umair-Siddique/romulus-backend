@@ -7,7 +7,7 @@ const { read, write, update } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const educatorServices = {
-  create: async (request) => {
+  create: async (requestBody, requestFiles) => {
     const {
       user: userId,
       firstName,
@@ -22,7 +22,7 @@ export const educatorServices = {
       hourlyRate,
       skills,
       education,
-    } = request.body;
+    } = requestBody;
 
     const {
       avatar,
@@ -30,7 +30,7 @@ export const educatorServices = {
       criminalRecord,
       certificateOfHonor,
       diploma,
-    } = request.files;
+    } = requestFiles;
 
     const existingUser = await read.userById(userId);
 
@@ -104,8 +104,8 @@ export const educatorServices = {
     };
   },
 
-  getById: async (request) => {
-    const { id } = request.params;
+  getById: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
 
     const educator = await read.educatorById(id);
 
@@ -120,9 +120,10 @@ export const educatorServices = {
     };
   },
 
-  updateById: async (request) => {
-    const reqBody = request.body;
-    const { id } = request.params;
+  updateById: async (requestPathVariables, requestBody, requestFiles) => {
+    const { id } = requestPathVariables;
+    const reqBody = requestBody;
+    const reqFiles = requestFiles;
 
     const existingEducator = await read.educatorById(id);
 
@@ -179,8 +180,8 @@ export const educatorServices = {
     };
   },
 
-  getNearBy: async (request) => {
-    const { coordinates, distance, skills } = request.query;
+  getNearBy: async (requestQuery) => {
+    const { coordinates, distance, skills } = requestQuery;
 
     const educators = await read.educatorsNearby(
       parseDelimitedString(coordinates),

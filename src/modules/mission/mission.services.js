@@ -7,8 +7,8 @@ const { read, write, update, remove } = dataAccess;
 const { parseDelimitedString } = globalUtils;
 
 export const missionServices = {
-  create: async (request) => {
-    const { technicalDocument } = request.files;
+  create: async (requestBody, requestFiles) => {
+    const { technicalDocument } = requestFiles;
     const {
       organization: organizationId,
       title,
@@ -20,7 +20,7 @@ export const missionServices = {
       startTime,
       endTime,
       preferredEducator,
-    } = request.body;
+    } = requestBody;
 
     const existingOrganization = await read.organizationById(organizationId);
 
@@ -72,8 +72,8 @@ export const missionServices = {
     };
   },
 
-  getAllByOrganizationId: async (request) => {
-    const { id } = request.params;
+  getAllByOrganizationId: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
 
     const missions = await read.missionsByOrganizationId(id);
 
@@ -88,8 +88,8 @@ export const missionServices = {
     };
   },
 
-  getById: async (request) => {
-    const { id } = request.params;
+  getById: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
 
     const mission = await read.missionById(id);
 
@@ -104,8 +104,8 @@ export const missionServices = {
     };
   },
 
-  getByOrganizationId: async (request) => {
-    const { mId, oId } = request.params;
+  getByOrganizationId: async (requestPathVariables) => {
+    const { mId, oId } = requestPathVariables;
 
     const mission = await read.missionByOrganizationId(mId, oId);
 
@@ -120,8 +120,8 @@ export const missionServices = {
     };
   },
 
-  getByEducatorId: async (request) => {
-    const { mId, eId } = request.params;
+  getByEducatorId: async (requestPathVariables) => {
+    const { mId, eId } = requestPathVariables;
 
     const mission = await read.missionByEducatorId(mId, eId);
 
@@ -136,9 +136,9 @@ export const missionServices = {
     };
   },
 
-  updateById: async (request) => {
-    const { id } = request.params;
-    const { hireStatus, educatorId, status, hires, ...rest } = request.body;
+  updateById: async (requestPathVariables, requestBody) => {
+    const { id } = requestPathVariables;
+    const { hireStatus, educatorId, status, hires, ...rest } = requestBody;
 
     const mission = await read.missionById(id);
     if (!mission) throw createError(404, "Mission not found");
@@ -232,8 +232,8 @@ export const missionServices = {
     };
   },
 
-  sendInvitation: async (request) => {
-    const { missionId, invitees } = request.body;
+  sendInvitation: async (requestBody) => {
+    const { missionId, invitees } = requestBody;
 
     await update.missionById(missionId, {
       invitedEducators: invitees,
@@ -270,8 +270,8 @@ export const missionServices = {
     };
   },
 
-  respondInvitation: async (request) => {
-    const { educatorId, missionId, response, responseTime } = request.body;
+  respondInvitation: async (requestBody) => {
+    const { educatorId, missionId, response, responseTime } = requestBody;
 
     const updatedEducator = await update.educatorById(
       educatorId,
@@ -305,8 +305,8 @@ export const missionServices = {
     };
   },
 
-  deleteById: async (request) => {
-    const { id } = request.params;
+  deleteById: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
     const existingMission = await read.missionById(id);
     const { invitedEducators } = existingMission;
 
