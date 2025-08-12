@@ -3,3 +3,4 @@ node_modules
 .vercel
 generateTree.ps1
 directory_tree.md
+index.ps1
