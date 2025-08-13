@@ -21,10 +21,17 @@ export const missionControllers = {
     response.status(200).json(responseBody);
   }),
 
-  getAllByOrganizationId: asyncHandler(async (request, response) => {
+  getMissionsByOrganizationId: asyncHandler(async (request, response) => {
     const requestPathVariables = request.params;
     const responseBody =
-      await missionServices.getAllByOrganizationId(requestPathVariables);
+      await missionServices.getMissionsByOrganizationId(requestPathVariables);
+    response.status(200).json(responseBody);
+  }),
+
+  getMissionsByEducatorId: asyncHandler(async (request, response) => {
+    const requestPathVariables = request.params;
+    const responseBody =
+      await missionServices.getMissionsByEducatorId(requestPathVariables);
     response.status(200).json(responseBody);
   }),
 

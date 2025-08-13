@@ -1,10 +1,8 @@
 import morgan from "morgan";
 import cors from "cors";
 import express from "express";
-import swaggerUi from "swagger-ui-express";
 import colors from "colors";
 
-import { swaggerSpec } from "#config/index.js";
 import { errorHandler } from "./error-handler.js";
 import { invalidRouteHandler } from "./invalid-route-handler.js";
 
@@ -31,8 +29,6 @@ export const applyGlobalMiddleware = (app, appRouter) => {
   app.use(express.json({ limit: "10mb" })); // Parses incoming JSON payloads (with a size limit)
 
   app.use(express.urlencoded({ extended: true, limit: "10mb" })); // Parses URL-encoded payloads (form data)
-
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // Serves Swagger UI for API documentation
 
   app.use(appRouter); // Mounts the main application router (your routes go here)
 

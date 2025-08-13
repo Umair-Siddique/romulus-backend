@@ -72,10 +72,26 @@ export const missionServices = {
     };
   },
 
-  getAllByOrganizationId: async (requestPathVariables) => {
+  getMissionsByOrganizationId: async (requestPathVariables) => {
     const { id } = requestPathVariables;
 
     const missions = await read.missionsByOrganizationId(id);
+
+    if (!missions) {
+      throw createError(404, "Missions not found");
+    }
+
+    return {
+      success: true,
+      message: "Missions retrieved successfully.",
+      data: missions,
+    };
+  },
+
+  getMissionsByEducatorId: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
+
+    const missions = await read.missionsByEducatorId(id);
 
     if (!missions) {
       throw createError(404, "Missions not found");

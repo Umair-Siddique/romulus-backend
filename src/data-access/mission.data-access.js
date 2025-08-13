@@ -1,4 +1,5 @@
 import { MissionModel } from "#models/index.js";
+import mongoose from "mongoose";
 
 export const missionDataAccess = {
   read: {
@@ -10,6 +11,14 @@ export const missionDataAccess = {
       return MissionModel.find({ organization: organizationId })
         .populate("organization")
         .exec(); // ✅ Query + populate → needs exec
+    },
+
+    missionsByEducatorId: (educatorId) => {
+      return MissionModel.find({
+        hiredEducators: { $in: [new mongoose.Types.ObjectId(educatorId)] },
+      })
+        .populate("organization")
+        .exec();
     },
 
     missionById: (missionId) => {
