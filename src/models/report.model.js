@@ -51,8 +51,8 @@ const ReportSchema = new Schema(
     reportStatus: {
       type: String,
       enum: {
-        values: ["opened", "resolved", "dismissed"],
-        message: "Status must be opened, resolved, or dismissed",
+        values: ["open", "resolved", "dismissed"],
+        message: "Status must be open, resolved, or dismissed",
       },
       default: "open",
     },
