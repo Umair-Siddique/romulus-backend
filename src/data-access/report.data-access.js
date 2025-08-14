@@ -3,11 +3,11 @@ import { ReportModel } from "#models/index.js";
 export const reportDataAccess = {
   read: {
     allReports: () => {
-      return ReportModel.find().populate("user").exec();
+      return ReportModel.find();
     },
 
     reportById: (id) => {
-      return ReportModel.findOne({ _id: id }).populate("user").exec();
+      return ReportModel.findOne({ _id: id });
     },
   },
 
@@ -22,9 +22,7 @@ export const reportDataAccess = {
       return ReportModel.findByIdAndUpdate(id, data, {
         new: true,
         runValidators: true,
-      })
-        .populate("user")
-        .exec();
+      });
     },
   },
 };
