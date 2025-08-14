@@ -54,7 +54,7 @@ const ReportSchema = new Schema(
         values: ["opened", "resolved", "dismissed"],
         message: "Status must be opened, resolved, or dismissed",
       },
-      default: "opened",
+      default: "open",
     },
   },
   {
