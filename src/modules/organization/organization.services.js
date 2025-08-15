@@ -150,10 +150,10 @@ export const organizationServices = {
     };
   },
 
-  updateById: async (requestPathVariables, requestBody) => {
+  updateById: async (requestPathVariables, requestBody, requestFiles) => {
     const { id } = requestPathVariables;
     const reqBody = requestBody;
-    const files = request.files || {};
+    const files = requestFiles || {};
 
     const data = { ...reqBody, ...files };
 
