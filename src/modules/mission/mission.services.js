@@ -285,7 +285,7 @@ export const missionServices = {
       try {
         await twilioUtils.sendWhatsAppMessage(phone);
       } catch (error) {
-        logger.error(error);
+        logger.error(`Error sending WhatsApp message: ${error}`);
       }
 
       sentInvitationsCount++;
