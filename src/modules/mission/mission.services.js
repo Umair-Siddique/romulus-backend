@@ -2,6 +2,7 @@ import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
 import { globalUtils, twilioUtils } from "#utils/index.js";
+import { logger } from "#config/index.js";
 
 const { read, write, update, remove } = dataAccess;
 const { parseDelimitedString } = globalUtils;
@@ -281,7 +282,11 @@ export const missionServices = {
 
       await write.notification(userId, "You have been invited to a mission.");
 
-      await twilioUtils.sendWhatsAppMessage(phone);
+      try {
+        await twilioUtils.sendWhatsAppMessage(phone);
+      } catch (error) {
+        logger.error(error);
+      }
 
       sentInvitationsCount++;
     }
