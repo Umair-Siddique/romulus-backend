@@ -12,8 +12,7 @@ organizationRoutes
     "/",
     upload,
     validate.dto(organizationDto.create),
-    validate.authRole("organization"),
-    organizationControllers.create,
+    organizationControllers.create
   )
   .get("/", organizationControllers.getAll)
   .get("/:id", organizationControllers.getById)
@@ -21,6 +20,5 @@ organizationRoutes
     "/:id",
     upload,
     validate.dto(organizationDto.update),
-    validate.authRole("organization"),
-    organizationControllers.updateById,
+    organizationControllers.updateById
   );
