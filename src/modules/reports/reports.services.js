@@ -55,7 +55,7 @@ export const reportsServices = {
 
   getById: async (requestPathVariables) => {
     const { id } = requestPathVariables;
-    const report = await read.report(id);
+    const report = await read.reportById(id);
 
     if (!report) {
       throw createError(404, "Report not found.");
@@ -68,17 +68,32 @@ export const reportsServices = {
     };
   },
 
+  getByOrganizationId: async (requestPathVariables) => {
+    const { id } = requestPathVariables;
+    const report = await read.reportByOrganizationId(id);
+
+    if (!report) {
+      throw createError(404, "Reports not found.");
+    }
+
+    return {
+      success: true,
+      message: "Reports retrieved successfully.",
+      data: report,
+    };
+  },
+
   updateById: async (requestPathVariables, requestBody) => {
     const { id } = requestPathVariables;
     const { reportStatus } = requestBody;
 
-    const report = await read.report(id);
+    const report = await read.reportById(id);
 
     if (!report) {
       throw createError(404, "Report not found.");
     }
 
-    const updatedReport = await update.report(id, { reportStatus });
+    const updatedReport = await update.reportById(id, { reportStatus });
 
     return {
       success: true,

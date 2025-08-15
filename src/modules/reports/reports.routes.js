@@ -9,4 +9,5 @@ reportsRoutes
   .post("/", upload, reportsControllers.createReport)
   .get("/", reportsControllers.getReports)
   .get("/:id", reportsControllers.getById)
+  .get("/organization/:id", reportsControllers.getByOrganizationId)
   .patch("/:id", reportsControllers.updateById);

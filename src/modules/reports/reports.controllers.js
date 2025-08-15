@@ -25,6 +25,13 @@ export const reportsControllers = {
     response.status(200).json(responseBody);
   }),
 
+  getByOrganizationId: asyncHandler(async (request, response) => {
+    const requestPathVariables = request.params;
+    const responseBody =
+      await reportsServices.getByOrganizationId(requestPathVariables);
+    response.status(200).json(responseBody);
+  }),
+
   updateById: asyncHandler(async (request, response) => {
     const requestPathVariables = request.params;
     const requestBody = request.body;

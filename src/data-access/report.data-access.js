@@ -9,6 +9,10 @@ export const reportDataAccess = {
     reportById: (id) => {
       return ReportModel.findOne({ _id: id });
     },
+
+    reportByOrganizationId: (id) => {
+      return ReportModel.find({ organizationId: id });
+    },
   },
 
   write: {
