@@ -21,6 +21,18 @@ export const educatorControllers = {
     response.status(200).json(responseBody);
   }),
 
+  getNearBy: asyncHandler(async (request, response) => {
+    const requestQuery = request.query;
+    const responseBody = await educatorServices.getNearBy(requestQuery);
+    response.status(200).json(responseBody);
+  }),
+
+  getBySkills: asyncHandler(async (request, response) => {
+    const requestQuery = request.query;
+    const responseBody = await educatorServices.getBySkills(requestQuery);
+    response.status(200).json(responseBody);
+  }),
+
   getById: asyncHandler(async (request, response) => {
     const requestPathVariables = request.params;
     const responseBody = await educatorServices.getById(requestPathVariables);
@@ -36,12 +48,6 @@ export const educatorControllers = {
       requestBody
     );
 
-    response.status(200).json(responseBody);
-  }),
-
-  getNearBy: asyncHandler(async (request, response) => {
-    const requestQuery = request.query;
-    const responseBody = await educatorServices.getNearBy(requestQuery);
     response.status(200).json(responseBody);
   }),
 };

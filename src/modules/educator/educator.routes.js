@@ -19,6 +19,7 @@ educatorRoutes
     "/nearby",
     educatorControllers.getNearBy,
   )
+  .get("/get-by-skills", educatorControllers.getBySkills)
   .get("/:id", educatorControllers.getById)
   .patch(
     "/:id",
