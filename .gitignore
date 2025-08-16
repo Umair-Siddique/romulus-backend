@@ -1,6 +1,3 @@
 node_modules
+
 .env
-.vercel
-generateTree.ps1
-directory_tree.md
-index.ps1
