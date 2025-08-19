@@ -80,6 +80,12 @@ const BranchSchema = new Schema(
     residenceGuidelines: {
       type: String, // Store file paths/URLs - Optional field
     },
+
+    status: {
+      type: String,
+      enum: ["active", "inactive", "pending"],
+      default: "pending",
+    },
   },
   {
     _id: false, // Disable automatic _id generation for sub-documents
