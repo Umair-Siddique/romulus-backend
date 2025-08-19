@@ -98,9 +98,33 @@ export const authServices = {
 
     if (userRole === "educator") {
       const educator = await read.educatorByUserId(userId);
+
+      if (educator.status === "pending") {
+        throw createError(
+          403,
+          "Your educator account is pending approval. Please wait until your account has been reviewed."
+        );
+      }
+
+      if (educator.status === "inactive") {
+        throw createError(403, "Your educator account has been suspended.");
+      }
+
       educatorId = educator?._id;
     } else if (userRole === "organization") {
       const organization = await read.organizationByUserId(userId);
+
+      if (organization.status === "pending") {
+        throw createError(
+          403,
+          "Your organization account is pending approval. Please wait until your account has been reviewed."
+        );
+      }
+
+      if (organization.status === "inactive") {
+        throw createError(403, "Your organization account has been suspended.");
+      }
+
       organizationId = organization?._id;
     }
 
