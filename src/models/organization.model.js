@@ -88,7 +88,7 @@ const BranchSchema = new Schema(
     },
   },
   {
-    _id: false, // Disable automatic _id generation for sub-documents
+    timestamps: true,
   }
 );
 
