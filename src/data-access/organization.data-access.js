@@ -24,13 +24,14 @@ export const organizationDataAccess = {
   },
 
   update: {
-    organizationById: (id, data) => {
+    organizationById: (id, data, options = {}) => {
       return OrganizationModel.findByIdAndUpdate(id, data, {
         new: true,
         runValidators: true,
+        ...options, // ✅ merge in arrayFilters or any other caller options
       })
         .populate("user")
-        .exec(); // ✅ populate after update — must exec to run the whole query
+        .exec();
     },
   },
 };

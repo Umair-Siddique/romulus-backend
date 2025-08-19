@@ -8,6 +8,7 @@ import {
   city,
   country,
   address,
+  status,
 } from "../validations.js";
 import { schemaUtils } from "./utils.js";
 
@@ -20,6 +21,7 @@ const branchValidation = Joi.object({
   branchCity: city.optional(),
   branchCountry: country.optional(),
   branchAddress: address.required(),
+  status,
 })
   .unknown(false)
   .messages({

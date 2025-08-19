@@ -6,7 +6,7 @@ const createStringValidation = (
   fieldName,
   min = 2,
   max = 100,
-  pattern = null,
+  pattern = null
 ) => {
   let validation = Joi.string().trim().min(min).max(max);
 
@@ -83,16 +83,14 @@ export const role = Joi.string()
     "any.required": "Role is required.",
   });
 
-export const resetToken = Joi.string()
-  .required()
-  .messages({
-    "string.base": "Reset token should be a type of text.",
-    "string.empty": "Reset token should not be empty.",
-    "string.alphanum": "Reset token must contain only alphanumeric characters.",
-    "string.min": "Reset token must be at least 32 characters long.",
-    "string.max": "Reset token must not exceed 128 characters.",
-    "any.required": "Reset token is required.",
-  });
+export const resetToken = Joi.string().required().messages({
+  "string.base": "Reset token should be a type of text.",
+  "string.empty": "Reset token should not be empty.",
+  "string.alphanum": "Reset token must contain only alphanumeric characters.",
+  "string.min": "Reset token must be at least 32 characters long.",
+  "string.max": "Reset token must not exceed 128 characters.",
+  "any.required": "Reset token is required.",
+});
 
 // ID validations
 export const userId = createIdValidation("User ID");
@@ -103,7 +101,7 @@ export const educatorId = createIdValidation("Educator ID");
 export const organizationName = createStringValidation(
   "Organization name",
   2,
-  100,
+  100
 );
 
 export const foundedYear = Joi.date().min("1800-01-01").max("now").messages({
@@ -128,12 +126,20 @@ export const description = createStringValidation("Description", 10, 2000);
 export const branch = createStringValidation("Branch", 2, 100);
 
 export const status = Joi.string()
-  .valid("ongoing", "completed", "pending", "rejected", "cancelled")
+  .valid(
+    "ongoing",
+    "completed",
+    "pending",
+    "rejected",
+    "cancelled",
+    "active",
+    "inactive"
+  )
   .lowercase()
   .messages({
     "string.base": "Status should be a type of text.",
     "any.only":
-      "Status must be ongoing, completed, pending, rejected, or cancelled.",
+      "Status must be ongoing, completed, pending, rejected, cancelled, active, or inactive.",
     "any.required": "Status is required.",
   });
 
@@ -197,7 +203,7 @@ export const skills = Joi.alternatives()
           value
             .split(/[,;]/)
             .map((skill) => skill.trim())
-            .filter((skill) => skill.length > 0 && skill.length <= 50),
+            .filter((skill) => skill.length > 0 && skill.length <= 50)
         ),
       ];
 
@@ -210,7 +216,7 @@ export const skills = Joi.alternatives()
       }
 
       return skillList;
-    }),
+    })
   )
   .messages({
     "array.base": "Skills should be an array or comma-separated string.",

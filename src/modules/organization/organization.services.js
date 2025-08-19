@@ -2,6 +2,7 @@ import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
 import { getCoordinates } from "#utils/index.js";
+import mongoose from "mongoose";
 
 const { read, write, update } = dataAccess;
 
@@ -152,10 +153,7 @@ export const organizationServices = {
 
   updateById: async (requestPathVariables, requestBody, requestFiles) => {
     const { id } = requestPathVariables;
-    const reqBody = requestBody;
-    const files = requestFiles || {};
-
-    const data = { ...reqBody, ...files };
+    const data = { ...requestBody, ...requestFiles };
 
     const existingOrganization = await read.organizationById(id);
 
@@ -186,6 +184,25 @@ export const organizationServices = {
 
     // Prepare update data
     const updateData = { ...rest };
+
+    if (requestBody.branchId) {
+      await update.organizationById(
+        id,
+        {
+          $set: Object.fromEntries(
+            Object.entries(updateData).map(([key, value]) => [
+              `branches.$[branch].${key}`,
+              value,
+            ])
+          ),
+        },
+        {
+          arrayFilters: [
+            { "branch._id": new mongoose.Types.ObjectId(requestBody.branchId) },
+          ],
+        }
+      );
+    }
 
     // Handle avatar update
     if (avatar) {
