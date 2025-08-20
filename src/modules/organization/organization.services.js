@@ -2,7 +2,7 @@ import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
 import { getCoordinates } from "#utils/index.js";
-import mongoose from "mongoose";
+import { logger } from "#config/index.js";
 
 const { read, write, update } = dataAccess;
 
@@ -58,8 +58,10 @@ export const organizationServices = {
 
         try {
           branchAddressCoordinates = await getCoordinates(branchAddress);
-        } catch (_error) {
-          // Fallback to default coordinates if geocoding fails
+        } catch (error) {
+          logger.error(
+            `Failed to get coordinates for branch address: ${branchAddress}\n$error: ${error}`
+          );
           branchAddressCoordinates = DEFAULT_BRANCH_COORDINATES;
         }
 
@@ -86,9 +88,10 @@ export const organizationServices = {
     let officeAddressCoordinates;
     try {
       officeAddressCoordinates = await getCoordinates(officeAddress);
-      // eslint-disable-next-line no-unused-vars
-    } catch (_error) {
-      // Fallback to default coordinates if geocoding fails
+    } catch (error) {
+      logger.error(
+        `Failed to get coordinates for office address: ${officeAddress}\n$error: ${error}`
+      );
       officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
     }
 
@@ -154,6 +157,18 @@ export const organizationServices = {
   updateById: async (requestPathVariables, requestBody, requestFiles) => {
     const { id } = requestPathVariables;
     const data = { ...requestBody, ...requestFiles };
+    const {
+      organizationName,
+      foundedYear,
+      phone,
+      siretNumber,
+      city,
+      country,
+      officeAddress,
+      avatar,
+      branches,
+      ...rest // this will contain dynamically named file fields
+    } = data;
 
     const existingOrganization = await read.organizationById(id);
 
@@ -161,20 +176,17 @@ export const organizationServices = {
       throw createError(404, "Organization not found.");
     }
 
-    // Check if at least one field is provided for update
-    const updateFields = Object.keys(data).filter(
-      (key) => !key.startsWith("branches[") && key !== "files"
-    );
-    const hasBranchFiles = Object.keys(data).some((key) =>
-      key.startsWith("branches[")
-    );
-
-    if (updateFields.length === 0 && !hasBranchFiles && !data.branches) {
-      throw createError(400, "At least one field must be provided for update.");
+    let officeAddressCoordinates;
+    if (officeAddress) {
+      try {
+        officeAddressCoordinates = await getCoordinates(officeAddress);
+      } catch (error) {
+        logger.error(
+          `Failed to get coordinates for office address: ${officeAddress}\n$error: ${error}`
+        );
+        officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
+      }
     }
-
-    // Extract files and regular data
-    const { avatar, branches, officeAddress, ...rest } = data;
 
     const getFilePath = (file) => {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
@@ -182,82 +194,63 @@ export const organizationServices = {
       return file;
     };
 
-    // Prepare update data
-    const updateData = { ...rest };
-
-    if (requestBody.branchId) {
-      await update.organizationById(
-        id,
-        {
-          $set: Object.fromEntries(
-            Object.entries(updateData).map(([key, value]) => [
-              `branches.$[branch].${key}`,
-              value,
-            ])
-          ),
-        },
-        {
-          arrayFilters: [
-            { "branch._id": new mongoose.Types.ObjectId(requestBody.branchId) },
-          ],
-        }
+    if (rest.branchId) {
+      const branchIndex = existingOrganization.branches.findIndex(
+        (branch) => branch._id.toString() === rest.branchId
       );
-    }
 
-    // Handle avatar update
-    if (avatar) {
-      updateData.avatar = getFilePath(avatar);
-    }
-
-    // Handle office address coordinate update
-    if (officeAddress) {
-      updateData.officeAddress = officeAddress;
-      try {
-        updateData.officeAddressCoordinates =
-          await getCoordinates(officeAddress);
-      } catch (_error) {
-        updateData.officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
+      if (branchIndex === -1) {
+        throw createError(404, "Branch not found.");
       }
+
+      const targetBranch = existingOrganization.branches[branchIndex];
+
+      if (rest.branchName) {
+        targetBranch.branchName = rest.branchName;
+      }
+      if (rest.branchEmail) {
+        targetBranch.branchEmail = rest.branchEmail;
+      }
+      if (rest.branchPhone) {
+        targetBranch.branchPhone = rest.branchPhone;
+      }
+      if (rest.branchCity) {
+        targetBranch.branchCity = rest.branchCity;
+      }
+      if (rest.branchCountry) {
+        targetBranch.branchCountry = rest.branchCountry;
+      }
+      if (rest.branchAddress) {
+        targetBranch.branchAddress = rest.branchAddress;
+        const branchAddressCoordinates = await getCoordinates(
+          rest.branchAddress
+        );
+        targetBranch.branchAddressCoordinates = branchAddressCoordinates;
+      }
+      if (rest.status) {
+        targetBranch.branchStatus = rest.status;
+      }
+
+      await update.organizationById(id, existingOrganization);
+
+      return {
+        success: true,
+        message: "Branch updated successfully.",
+        data: existingOrganization,
+      };
     }
 
-    // Handle branches update with file processing
-    if (branches) {
-      const processedBranches = await Promise.all(
-        branches.map(async (branch, index) => {
-          let branchAddressCoordinates = branch.branchAddressCoordinates;
-
-          // Generate coordinates if address is provided
-          if (branch.branchAddress) {
-            try {
-              branchAddressCoordinates = await getCoordinates(
-                branch.branchAddress
-              );
-            } catch (_error) {
-              branchAddressCoordinates = DEFAULT_BRANCH_COORDINATES;
-            }
-          }
-
-          // Handle residence guidelines file for this branch
-          const dynamicKey = `branches[${index}][residenceGuidelines]`;
-          const residenceGuidelines =
-            getFilePath(data[dynamicKey]) || branch.residenceGuidelines || "";
-
-          return {
-            ...branch,
-            branchAddressCoordinates,
-            residenceGuidelines,
-          };
-        })
-      );
-
-      updateData.branches = processedBranches;
-    }
-
-    const updatedOrganization = await update.organizationById(id, updateData);
-
-    if (!updatedOrganization) {
-      throw createError(500, "Failed to update organization.");
-    }
+    const updatedOrganization = update.organizationById(id, {
+      avatar: getFilePath(avatar),
+      organizationName,
+      foundedYear,
+      phone,
+      siretNumber,
+      city,
+      country,
+      officeAddress,
+      officeAddressCoordinates,
+    });
 
     return {
       success: true,
