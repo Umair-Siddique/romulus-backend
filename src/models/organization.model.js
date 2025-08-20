@@ -81,10 +81,10 @@ const BranchSchema = new Schema(
       type: String, // Store file paths/URLs - Optional field
     },
 
-    status: {
+    branchStatus: {
       type: String,
-      enum: ["active", "inactive", "pending"],
-      default: "pending",
+      enum: ["active", "inactive"],
+      default: "active",
     },
   },
   {
