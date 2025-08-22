@@ -9,40 +9,40 @@ import { globalUtils } from "#utils/index.js";
 import { isProdEnv } from "#constants/index.js";
 import appRouter from "#routes/index.js";
 
-const { PORT, BACKEND_BASE_URL_DEV, BACKEND_BASE_URL_PROD } = env;
+const {
+  PORT,
+  BACKEND_BASE_URL_DEV,
+  BACKEND_BASE_URL_PROD,
+  FRONTEND_BASE_URL_DEV,
+  FRONTEND_BASE_URL_PROD,
+} = env;
 const { asyncHandler } = globalUtils;
 
 const app = express();
-const httpServer = createServer(app);
+const server = createServer(app);
 
-let io;
-
-export const getIO = () => {
-  if (!io) throw new Error("Socket.io not initialized");
-  return io;
-};
+export const io = new SocketIOServer(server, {
+  cors: {
+    origin: isProdEnv ? FRONTEND_BASE_URL_PROD : FRONTEND_BASE_URL_DEV,
+  },
+});
 
 export const startServer = asyncHandler(async () => {
   await connectDatabase();
   applyGlobalMiddleware(app, appRouter);
 
-  io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: "*",
-    },
-  });
-
-  io.on("connection", (socket) => {
-    logger.info(`connected: socket at ${socket.id}`);
+  io.on("connect", (socket) => {
+    logger.info(`connected: Socket at ${socket.id}`.socket);
 
     socket.on("disconnect", () => {
-      logger.info(`disconnected: socket at ${socket.id}`);
+      logger.info(`disconnected: Socket from ${socket.id}`.socket);
     });
   });
 
-  httpServer.listen(PORT || 5000, () => {
+  server.listen(PORT || 5000, () => {
     logger.info(
-      `connected: server at ${isProdEnv ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV}`
+      `connected: Server at ${isProdEnv ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV}`
+        .server
     );
   });
 });

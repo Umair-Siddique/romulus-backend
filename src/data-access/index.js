@@ -1,5 +1,6 @@
 import { blacklistedTokenDataAccess } from "./blacklisted-token.data-access.js";
 import { educatorDataAccess } from "./educator.data-access.js";
+import { messageDataAccess } from "./message.data-access.js";
 import { missionDataAccess } from "./mission.data-access.js";
 import { notificationDataAccess } from "./notification.data-access.js";
 import { organizationDataAccess } from "./organization.data-access.js";
@@ -11,6 +12,7 @@ export const dataAccess = {
     ...blacklistedTokenDataAccess.read,
     ...educatorDataAccess.read,
     ...missionDataAccess.read,
+    ...messageDataAccess.read,
     ...notificationDataAccess.read,
     ...organizationDataAccess.read,
     ...reportDataAccess.read,
@@ -21,6 +23,7 @@ export const dataAccess = {
     ...blacklistedTokenDataAccess.write,
     ...educatorDataAccess.write,
     ...missionDataAccess.write,
+    ...messageDataAccess.write,
     ...notificationDataAccess.write,
     ...organizationDataAccess.write,
     ...reportDataAccess.write,

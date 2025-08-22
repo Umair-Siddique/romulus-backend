@@ -23,7 +23,7 @@ export const connectDatabase = async () => {
     await OrganizationModel.syncIndexes();
 
     isConnected = !!connection.connections[0].readyState;
-    logger.info("connected: MongoDB Database".database);
+    logger.info(`connected: Database at ${DATABASE_URI}`.database);
 
     const db = mongoose.connection;
 

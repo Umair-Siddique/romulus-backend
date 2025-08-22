@@ -10,6 +10,7 @@ colors.setTheme({
   database: ["green", "bold"],
   server: ["white", "bold"],
   service: ["brightMagenta", "bold"],
+  socket: ["brightBlue", "bold"],
   error: ["red", "bold"],
   success: ["brightGreen", "bold"],
   warning: ["yellow", "bold"],

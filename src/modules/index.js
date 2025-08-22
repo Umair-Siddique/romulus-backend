@@ -1,4 +1,5 @@
 export * from "./auth/auth.routes.js";
+export * from "./chat/chat.routes.js";
 export * from "./educator/educator.routes.js";
 export * from "./email/email.routes.js";
 export * from "./health/health.routes.js";
