@@ -11,7 +11,7 @@ twilioClient.api
   .accounts(TWILIO_ACCOUNT_SID)
   .fetch()
   .then(() => {
-    logger.info("connected: Twilio".service);
+    logger.info("Connected: Twilio".service);
   })
   .catch((error) => {
     logger.error(`Connection Failed: Twilio\nerror: ${error.message}`.error);

@@ -10,7 +10,7 @@ const { DATABASE_URI } = env;
 
 export const connectDatabase = async () => {
   if (isConnected) {
-    logger.warn("Using existing MongoDB connection".warning);
+    logger.warn("Using existing Database connection".warning);
     return;
   }
 
@@ -23,26 +23,28 @@ export const connectDatabase = async () => {
     await OrganizationModel.syncIndexes();
 
     isConnected = !!connection.connections[0].readyState;
-    logger.info(`connected: Database at ${DATABASE_URI}`.database);
+    logger.info(`Connected: Database at ${DATABASE_URI}`.database);
 
     const db = mongoose.connection;
 
     db.on("error", (error) => {
-      logger.error(`Connection Failed: MongoDB\nerror: ${error.message}`.error);
+      logger.error(
+        `Connection Failed: Database\nerror: ${error.message}`.error
+      );
     });
 
     db.on("disconnected", () => {
-      logger.error("MongoDB disconnected".error);
+      logger.error("Disconnected: Database".error);
       isConnected = false;
     });
 
     process.on("SIGINT", async () => {
       await db.close();
-      logger.info("MongoDB connection closed".info);
+      logger.info("Disconnected: Database".info);
       process.exit(0);
     });
   } catch (error) {
-    logger.error(`Failed to connect to MongoDB: ${error.message}`.error);
+    logger.error(`Connection Failed: Database\nerror: ${error.message}`.error);
     process.exit(1);
   }
 };

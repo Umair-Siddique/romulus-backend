@@ -22,7 +22,7 @@ const createTransporter = () => {
         `Connection Failed: Nodemailer\nerror: ${error.message}`.error
       );
     } else {
-      logger.info("connected: Nodemailer".service);
+      logger.info("Connected: Nodemailer".service);
     }
   });
 
