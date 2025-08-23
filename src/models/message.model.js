@@ -39,8 +39,6 @@ const MessageSchema = new Schema(
   },
   {
     timestamps: true,
-    _id: false,
-    _v: false,
   }
 );
 

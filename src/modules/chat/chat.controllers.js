@@ -10,15 +10,15 @@ export const chatControllers = {
     response.status(200).send(responseBody);
   }),
 
-  getChats: asyncHandler(async (request, response) => {
+  getChatList: asyncHandler(async (request, response) => {
     const requestQuery = request.query;
-    const responseBody = await chatServices.getChats(requestQuery);
+    const responseBody = await chatServices.getChatList(requestQuery);
     response.status(200).send(responseBody);
   }),
 
-  getConversation: asyncHandler(async (request, response) => {
+  getMessageList: asyncHandler(async (request, response) => {
     const requestQuery = request.query;
-    const responseBody = await chatServices.getConversation(requestQuery);
+    const responseBody = await chatServices.getMessageList(requestQuery);
     response.status(200).send(responseBody);
   }),
 };

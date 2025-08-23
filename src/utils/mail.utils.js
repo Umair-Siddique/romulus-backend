@@ -2,7 +2,11 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 
 import { env, transporter } from "#config/index.js";
-import { viewsDirectory, backendUrl, frontendUrl } from "#constants/index.js";
+import {
+  VIEWS_DIRECTORY,
+  BACKEND_URL,
+  FRONTEND_URL,
+} from "#constants/index.js";
 
 const { USER_EMAIL } = env;
 
@@ -17,7 +21,7 @@ const getEmailTemplate = async (folder, filename) => {
   }
 
   try {
-    const filePath = join(viewsDirectory, folder, filename);
+    const filePath = join(VIEWS_DIRECTORY, folder, filename);
     const template = await readFile(filePath, "utf-8");
 
     // Cache template for future use
@@ -53,7 +57,7 @@ export const emailUtils = {
   sendAccountVerification: async (email, verificationToken) => {
     const template = await getEmailTemplate("verification-email", "index.html");
     const html = processTemplate(template, {
-      backendUrl,
+      BACKEND_URL,
       verificationToken,
     });
 
@@ -71,14 +75,14 @@ export const emailUtils = {
     );
 
     return processTemplate(template, {
-      frontendUrl: `${frontendUrl}/login`,
+      FRONTEND_URL: `${FRONTEND_URL}/login`,
     });
   },
 
   sendResetPassword: async (email, resetToken) => {
     const template = await getEmailTemplate("reset-password", "index.html");
     const html = processTemplate(template, {
-      frontendUrl,
+      FRONTEND_URL,
       resetToken,
     });
 

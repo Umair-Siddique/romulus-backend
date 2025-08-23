@@ -28,7 +28,7 @@ export const chatServices = {
     };
   },
 
-  getChats: async (requestQuery) => {
+  getChatList: async (requestQuery) => {
     const { userId } = requestQuery;
 
     const chats = await read.chats(userId);
@@ -44,7 +44,7 @@ export const chatServices = {
     };
   },
 
-  getConversation: async (requestQuery) => {
+  getMessageList: async (requestQuery) => {
     const { user1, user2 } = requestQuery;
 
     const messages = await read.conversation(user1, user2);

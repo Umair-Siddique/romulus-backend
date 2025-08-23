@@ -5,5 +5,5 @@ export const chatRoutes = express.Router();
 
 chatRoutes
   .post("/send-message", chatControllers.sendMessage)
-  .get("/chats-list", chatControllers.getChats)
-  .get("/get-conversation", chatControllers.getConversation);
+  .get("/chat-list", chatControllers.getChatList)
+  .get("/message-list", chatControllers.getMessageList);

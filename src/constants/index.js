@@ -6,7 +6,7 @@ import { env } from "#config/index.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const viewsDirectory = path.join(__dirname, "../views");
+const VIEWS_DIRECTORY = path.join(__dirname, "../views");
 
 const {
   NODE_ENV,
@@ -16,12 +16,12 @@ const {
   FRONTEND_BASE_URL_PROD,
 } = env;
 
-const isProdEnv = NODE_ENV === "production";
+const IS_PROD_ENV = NODE_ENV === "production";
 
-const backendUrl = isProdEnv ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV;
+const BACKEND_URL = IS_PROD_ENV ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV;
 
-const frontendUrl = isProdEnv
+const FRONTEND_URL = IS_PROD_ENV
   ? FRONTEND_BASE_URL_PROD
   : FRONTEND_BASE_URL_DEV;
 
-export { viewsDirectory, backendUrl, frontendUrl, isProdEnv };
+export { VIEWS_DIRECTORY, BACKEND_URL, FRONTEND_URL, IS_PROD_ENV };

@@ -1,48 +1,62 @@
 import express from "express";
-import { Server as SocketIOServer } from "socket.io";
 import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
 
+import appRouter from "#routes/index.js";
+import { globalUtils } from "#utils/index.js";
+import { logger, env } from "#config/index.js";
 import { connectDatabase } from "#config/index.js";
 import { applyGlobalMiddleware } from "#middleware/index.js";
-import { logger, env } from "#config/index.js";
-import { globalUtils } from "#utils/index.js";
-import { isProdEnv } from "#constants/index.js";
-import appRouter from "#routes/index.js";
+import { FRONTEND_URL, BACKEND_URL } from "#constants/index.js";
 
-const {
-  PORT,
-  BACKEND_BASE_URL_DEV,
-  BACKEND_BASE_URL_PROD,
-  FRONTEND_BASE_URL_DEV,
-  FRONTEND_BASE_URL_PROD,
-} = env;
+const { PORT } = env;
+
 const { asyncHandler } = globalUtils;
 
 const app = express();
 const server = createServer(app);
 
-export const io = new SocketIOServer(server, {
-  cors: {
-    origin: isProdEnv ? FRONTEND_BASE_URL_PROD : FRONTEND_BASE_URL_DEV,
-  },
-});
+const createSocketServer = (server) => {
+  const io = new SocketIOServer(server, {
+    cors: {
+      origin: FRONTEND_URL,
+    },
+  });
 
-export const startServer = asyncHandler(async () => {
-  await connectDatabase();
-  applyGlobalMiddleware(app, appRouter);
+  io.on("connection", (socket) => {
+    logger.info(`Connected: Socket (socket id: ${socket.id})`.socket);
 
-  io.on("connect", (socket) => {
-    logger.info(`connected: Socket at ${socket.id}`.socket);
+    socket.on("connect_error", (err) => {
+      logger.error(
+        `Connection error (socket id: ${socket.id}): ${err.message}`.error
+      );
+    });
 
-    socket.on("disconnect", () => {
-      logger.info(`disconnected: Socket from ${socket.id}`.socket);
+    socket.on("error", (err) => {
+      logger.error(
+        `Runtime error (socket id: ${socket.id}): ${err.message}`.error
+      );
+    });
+
+    socket.on("disconnect", (reason) => {
+      logger.info(
+        `Disconnected: Socket (socket id: ${socket.id}), reason: ${reason}`
+          .socket
+      );
     });
   });
 
+  return io;
+};
+
+export const io = createSocketServer(server);
+
+export const startServer = asyncHandler(async () => {
+  await connectDatabase();
+
+  applyGlobalMiddleware(app, appRouter);
+
   server.listen(PORT || 5000, () => {
-    logger.info(
-      `connected: Server at ${isProdEnv ? BACKEND_BASE_URL_PROD : BACKEND_BASE_URL_DEV}`
-        .server
-    );
+    logger.info(`connected: Server (url: ${BACKEND_URL})`.server);
   });
 });

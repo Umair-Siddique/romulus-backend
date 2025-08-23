@@ -1,4 +1,4 @@
-import { isProdEnv } from "#constants/index.js";
+import { IS_PROD_ENV } from "#constants/index.js";
 import { logger } from "#config/index.js";
 
 export const errorHandler = async (error, _request, response, _next) => {
@@ -9,7 +9,7 @@ export const errorHandler = async (error, _request, response, _next) => {
   const responseBody = {
     success: false,
     message,
-    ...(isProdEnv ? {} : { stack, status }),
+    ...(IS_PROD_ENV ? {} : { stack }),
   };
 
   const logMethod = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
