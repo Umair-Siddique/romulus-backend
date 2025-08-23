@@ -1,7 +1,6 @@
 import express from "express";
 
-import { upload } from "#middleware/index.js";
-import { validate } from "#middleware/index.js";
+import { upload, validate } from "#middleware/index.js";
 import { organizationDto } from "#dtos/index.js";
 import { organizationControllers } from "./organization.controllers.js";
 

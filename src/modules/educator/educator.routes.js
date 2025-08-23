@@ -1,7 +1,6 @@
 import express from "express";
 
-import { upload } from "#middleware/index.js";
-import { validate } from "#middleware/index.js";
+import { upload, validate } from "#middleware/index.js";
 import { educatorDto } from "#dtos/index.js";
 import { educatorControllers } from "./educator.controllers.js";
 
@@ -12,17 +11,10 @@ educatorRoutes
     "/",
     upload,
     validate.dto(educatorDto.create),
-    educatorControllers.create,
+    educatorControllers.create
   )
   .get("/", educatorControllers.getAll)
-  .get(
-    "/nearby",
-    educatorControllers.getNearBy,
-  )
+  .get("/nearby", educatorControllers.getNearBy)
   .get("/get-by-skills", educatorControllers.getBySkills)
   .get("/:id", educatorControllers.getById)
-  .patch(
-    "/:id",
-    upload,
-    educatorControllers.updateById,
-  );
+  .patch("/:id", upload, educatorControllers.updateById);

@@ -1,7 +1,6 @@
 import express from "express";
 
-import { upload } from "#middleware/index.js";
-import { validate } from "#middleware/index.js";
+import { upload, validate } from "#middleware/index.js";
 import { missionDto } from "#dtos/index.js";
 import { missionControllers } from "./mission.controllers.js";
 

@@ -4,10 +4,9 @@ import { Server as SocketIOServer } from "socket.io";
 
 import appRouter from "#routes/index.js";
 import { globalUtils } from "#utils/index.js";
-import { logger, env } from "#config/index.js";
-import { connectDatabase } from "#config/index.js";
 import { applyGlobalMiddleware } from "#middleware/index.js";
 import { FRONTEND_URL, BACKEND_URL } from "#constants/index.js";
+import { logger, env, connectDatabase } from "#config/index.js";
 
 const { PORT } = env;
 
