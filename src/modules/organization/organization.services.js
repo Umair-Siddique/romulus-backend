@@ -166,6 +166,7 @@ export const organizationServices = {
       country,
       officeAddress,
       avatar,
+      status,
       branches,
       ...rest // this will contain dynamically named file fields
     } = data;
@@ -250,6 +251,7 @@ export const organizationServices = {
       country,
       officeAddress,
       officeAddressCoordinates,
+      status,
     });
 
     return {

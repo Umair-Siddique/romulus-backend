@@ -11,6 +11,6 @@ export const createWebServer = async (server, app) => {
   applyGlobalMiddleware(app, appRouter);
 
   server.listen(PORT || 5000, () => {
-    logger.info(`[connected] Server (url: ${BACKEND_URL})`);
+    logger.info(`[connected] Server (url: ${BACKEND_URL})`.server);
   });
 };
