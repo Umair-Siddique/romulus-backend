@@ -32,6 +32,17 @@ export const missionDataAccess = {
         .exec();
     },
 
+    missionsByOrganizationId: (organizationId) => {
+      return MissionModel.find({
+        organization: organizationId,
+      })
+        .populate({
+          path: "organization",
+          populate: { path: "user" },
+        })
+        .exec();
+    },
+
     missionByOrganizationId: (mId, oId) => {
       return MissionModel.findOne({
         _id: mId,
