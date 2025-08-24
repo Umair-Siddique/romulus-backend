@@ -13,12 +13,17 @@ export const educatorDataAccess = {
           {
             path: "missionsInvitedFor.mission",
             select: "-hiredEducators -invitedEducators -rejectedEducators",
+            populate: {
+              path: "organization",
+              populate: { path: "user" },
+            },
           },
           {
             path: "missionsHiredFor",
             select: "-hiredEducators -invitedEducators -rejectedEducators",
             populate: {
               path: "organization",
+              populate: { path: "user" },
             },
           },
         ])

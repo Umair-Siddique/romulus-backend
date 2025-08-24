@@ -4,32 +4,32 @@ import mongoose from "mongoose";
 export const missionDataAccess = {
   read: {
     allMissions: () => {
-      return MissionModel.find().populate("organization").exec();
+      return MissionModel.find()
+        .populate({
+          path: "organization",
+          populate: { path: "user" },
+        })
+        .exec();
     },
-
-    missionsByOrganizationId: (organizationId) => {
-      return MissionModel.find({ organization: organizationId }).populate({
-        path: "organization",
-        populate: { path: "user" },
-      })
-      .exec();    },
 
     missionsByEducatorId: (educatorId) => {
       return MissionModel.find({
         hiredEducators: { $in: [new mongoose.Types.ObjectId(educatorId)] },
-      }).populate({
-        path: "organization",
-        populate: { path: "user" },
       })
-      .exec();
+        .populate({
+          path: "organization",
+          populate: { path: "user" },
+        })
+        .exec();
     },
 
     missionById: (missionId) => {
-      return MissionModel.findById(missionId).populate("organization").populate({
-        path: "organization",
-        populate: { path: "user" },
-      })
-      .exec();
+      return MissionModel.findById(missionId)
+        .populate({
+          path: "organization",
+          populate: { path: "user" },
+        })
+        .exec();
     },
 
     missionByOrganizationId: (mId, oId) => {
@@ -37,11 +37,11 @@ export const missionDataAccess = {
         _id: mId,
         organization: oId,
       })
-      .populate({
-        path: "organization",
-        populate: { path: "user" },
-      })
-      .exec();
+        .populate({
+          path: "organization",
+          populate: { path: "user" },
+        })
+        .exec();
     },
 
     missionByEducatorId: (mId, eId) => {
