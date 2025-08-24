@@ -18,11 +18,11 @@ const createTransporter = () => {
 
   transporter.verify((error) => {
     if (error) {
-      logger.error(
-        `Connection Failed: Nodemailer\nerror: ${error.message}`.error
-      );
+      logger.error(`[connection_failed] Mail (error: ${error.message})`.error);
     } else {
-      logger.info("Connected: Nodemailer".service);
+      logger.info(
+        `[connected] Mail (host: ${EMAIL_HOST}, port: ${EMAIL_PORT})`.service
+      );
     }
   });
 
