@@ -12,7 +12,7 @@ export const messageDataAccess = {
           },
         },
         {
-          $sort: { createdAt: -1 },
+          $sort: { createdAt: 1 },
         },
         {
           $group: {
@@ -35,7 +35,7 @@ export const messageDataAccess = {
       ]);
     },
 
-    conversation: (user1, user2) => {
+    messages: (user1, user2) => {
       return MessageModel.aggregate([
         {
           $match: {
@@ -46,7 +46,7 @@ export const messageDataAccess = {
           },
         },
         {
-          $sort: { createdAt: -1 },
+          $sort: { createdAt: 1 },
         },
       ]);
     },

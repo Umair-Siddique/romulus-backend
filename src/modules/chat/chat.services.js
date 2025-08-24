@@ -47,7 +47,7 @@ export const chatServices = {
   getMessageList: async (requestQuery) => {
     const { user1, user2 } = requestQuery;
 
-    const messages = await read.conversation(user1, user2);
+    const messages = await read.messages(user1, user2);
 
     if (!messages) {
       throw createError(404, "Messages not found");
