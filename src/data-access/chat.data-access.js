@@ -1,6 +1,6 @@
 import { MessageModel } from "#models/index.js";
 
-export const messageDataAccess = {
+export const chatDataAccess = {
   read: {
     chats: (userId) => {
       return MessageModel.aggregate([
