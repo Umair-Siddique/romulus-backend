@@ -5,7 +5,7 @@ import { logger, env, connectDatabase } from "#config/index.js";
 
 const { PORT } = env;
 
-export const createWebServer = async (server, app) => {
+export const createBackendServer = async (server, app) => {
   await connectDatabase();
 
   applyGlobalMiddleware(app, appRouter);

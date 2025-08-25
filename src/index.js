@@ -1,12 +1,3 @@
-import express from "express";
-import { createServer } from "http";
+import { app, httpServer, createBackendServer } from "#server/index.js";
 
-import { createWebServer, createSocketServer } from "#server/index.js";
-
-const app = express();
-const server = createServer(app);
-
-const io = createSocketServer(server);
-createWebServer(server, app);
-
-export { io };
+createBackendServer(httpServer, app);

@@ -1,7 +1,7 @@
 import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
-import { io } from "../../index.js";
+import { io } from "#server/socket.js";
 
 const { read, write, update } = dataAccess;
 
