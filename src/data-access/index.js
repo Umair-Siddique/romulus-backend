@@ -33,6 +33,7 @@ export const dataAccess = {
   update: {
     ...educatorDataAccess.update,
     ...missionDataAccess.update,
+    ...chatDataAccess.update,
     ...notificationDataAccess.update,
     ...organizationDataAccess.update,
     ...reportDataAccess.update,

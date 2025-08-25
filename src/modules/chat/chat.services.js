@@ -3,17 +3,18 @@ import createError from "http-errors";
 import { dataAccess } from "#dataAccess/index.js";
 import { io } from "../../index.js";
 
-const { read, write } = dataAccess;
+const { read, write, update } = dataAccess;
 
 export const chatServices = {
   sendMessage: async (requestBody) => {
-    const { sender, recipient, message, time } = requestBody;
+    const { sender, recipient, message, time, hasRead } = requestBody;
 
     const newMessage = await write.message({
       sender,
       recipient,
       message,
       time,
+      hasRead,
     });
 
     if (!newMessage) {
@@ -57,6 +58,22 @@ export const chatServices = {
       success: true,
       message: "Messages retrieved successfully.",
       data: messages,
+    };
+  },
+
+  updateMessage: async (requestBody, requestPathVariables) => {
+    const { id } = requestPathVariables;
+    const { hasRead } = requestBody;
+
+    const updatedMessage = await update.message(id, { hasRead });
+
+    if (!updatedMessage) {
+      throw createError(404, "Message not found");
+    }
+
+    return {
+      success: true,
+      message: "Message updated successfully.",
     };
   },
 };

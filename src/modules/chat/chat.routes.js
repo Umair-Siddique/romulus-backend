@@ -6,4 +6,5 @@ export const chatRoutes = express.Router();
 chatRoutes
   .post("/send-message", chatControllers.sendMessage)
   .get("/chat-list", chatControllers.getChatList)
-  .get("/message-list", chatControllers.getMessageList);
+  .get("/message-list", chatControllers.getMessageList)
+  .patch("/update-message/:id", chatControllers.updateMessage);

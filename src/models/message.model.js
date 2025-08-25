@@ -32,6 +32,10 @@ const MessageSchema = new Schema(
       required: [true, "Message is required"],
       trim: true,
     },
+    hasRead: {
+      type: Boolean,
+      default: false,
+    },
     time: {
       type: Date,
       default: Date.now,

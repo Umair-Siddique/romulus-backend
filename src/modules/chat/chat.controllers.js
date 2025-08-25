@@ -21,4 +21,16 @@ export const chatControllers = {
     const responseBody = await chatServices.getMessageList(requestQuery);
     response.status(200).send(responseBody);
   }),
+
+  updateMessage: asyncHandler(async (request, response) => {
+    const requestPathVariables = request.params;
+    const requestBody = request.body;
+
+    const responseBody = await chatServices.updateMessage(
+      requestBody,
+      requestPathVariables
+    );
+
+    response.status(200).send(responseBody);
+  }),
 };

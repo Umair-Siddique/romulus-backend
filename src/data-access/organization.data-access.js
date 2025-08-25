@@ -28,7 +28,7 @@ export const organizationDataAccess = {
       return OrganizationModel.findByIdAndUpdate(id, data, {
         new: true,
         runValidators: true,
-        ...options, // ✅ merge in arrayFilters or any other caller options
+        ...options,
       })
         .populate("user")
         .exec();

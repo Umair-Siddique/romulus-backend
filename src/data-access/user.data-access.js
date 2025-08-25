@@ -19,11 +19,11 @@ export const userDataAccess = {
         throw createError(400, "Invalid user ID format.");
       }
 
-      return UserModel.findById(id).exec(); // ✅ native Promise
+      return UserModel.findById(id).exec();
     },
 
     userByPhone: (phone) => {
-      return UserModel.findOne({ phone }).exec(); // ✅ consistency
+      return UserModel.findOne({ phone }).exec();
     },
   },
 
@@ -41,27 +41,33 @@ export const userDataAccess = {
 
       return UserModel.findByIdAndUpdate(id, userData, {
         new: true,
-        upsert: true,
-      }); // ✅ native Promise already
+        runValidators: true,
+      });
     },
 
     userByEmail: (email, userData) => {
       return UserModel.findOneAndUpdate({ email }, userData, {
         new: true,
-        upsert: true,
-      }); // ✅ native
+        runValidators: true,
+      });
     },
 
     userByPhone: (phone, userData) => {
-      return UserModel.findOneAndUpdate({ phone }, userData); // ✅ native
+      return UserModel.findOneAndUpdate({ phone }, userData, {
+        new: true,
+        runValidators: true,
+      });
     },
 
     forgottenPassword: (email, password) => {
       return UserModel.findOneAndUpdate(
         { email },
         { password },
-        { new: true, upsert: true }
-      ); // ✅ native
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
     },
   },
 
@@ -71,7 +77,7 @@ export const userDataAccess = {
         throw createError(400, "Invalid user ID format.");
       }
 
-      return UserModel.findByIdAndDelete(id).exec(); // ✅ native Promise
+      return UserModel.findByIdAndDelete(id).exec();
     },
   },
 };

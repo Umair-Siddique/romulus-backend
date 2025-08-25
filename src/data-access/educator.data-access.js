@@ -59,7 +59,11 @@ export const educatorDataAccess = {
 
   update: {
     educatorById: (id, data, options = {}) => {
-      return EducatorModel.findByIdAndUpdate(id, data, options); // ✅ Already returns a native Promise
+      return EducatorModel.findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+        ...options,
+      }); // ✅ Already returns a native Promise
     },
   },
 };

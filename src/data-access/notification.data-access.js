@@ -23,7 +23,7 @@ export const notificationDataAccess = {
       return NotificationModel.findByIdAndUpdate(
         notiId,
         { $set: { read: true } },
-        { new: true } // returns the updated document
+        { new: true, runValidators: true } // returns the updated document
       ).exec(); // ✅ Now returns a real Promise
     },
   },

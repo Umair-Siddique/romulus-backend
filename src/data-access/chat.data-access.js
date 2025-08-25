@@ -30,6 +30,9 @@ export const chatDataAccess = {
           },
         },
         {
+          $sort: { createdAt: -1 },
+        },
+        {
           $replaceWith: "$firstMessage",
         },
       ]);
@@ -55,6 +58,15 @@ export const chatDataAccess = {
   write: {
     message: (message) => {
       return MessageModel.create(message);
+    },
+  },
+
+  update: {
+    message: (id, update) => {
+      return MessageModel.findByIdAndUpdate(id, update, {
+        new: true,
+        runValidators: true,
+      });
     },
   },
 };

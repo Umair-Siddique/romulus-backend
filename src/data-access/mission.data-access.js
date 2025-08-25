@@ -73,13 +73,13 @@ export const missionDataAccess = {
           hiredEducators: 0,
           rejectedEducators: 0,
         })
-        .exec(); // ✅ Already correct
+        .exec();
     },
   },
 
   write: {
     mission: (missionData) => {
-      return MissionModel.create(missionData); // ✅ Already executes, returns native Promise
+      return MissionModel.create(missionData);
     },
   },
 
@@ -87,14 +87,14 @@ export const missionDataAccess = {
     missionById: (missionId, missionData) => {
       return MissionModel.findByIdAndUpdate(missionId, missionData, {
         new: true,
-        upsert: true,
-      }); // ✅ Already returns native Promise
+        runValidators: true,
+      });
     },
   },
 
   remove: {
     missionById: (missionId) => {
-      return MissionModel.findByIdAndDelete(missionId); // ✅ Already returns native Promise
+      return MissionModel.findByIdAndDelete(missionId);
     },
   },
 };
