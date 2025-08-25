@@ -19,7 +19,7 @@ const createLogger = () => {
           winston.format.timestamp({ format: "DD/MMM/YYYY:HH:mm:ss" }),
           winston.format.printf(
             ({ level, message, timestamp }) =>
-              `[${timestamp}] [${level}]: ${message}`
+              `[${timestamp}] [${level}] - ${message}`
           )
         ),
         level: NODE_ENV === "production" ? "warn" : "debug",
