@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 import { env, logger } from "#config/index.js";
-import { IS_PROD_ENV, BACKEND_URL, FRONTEND_URL } from "#constants/index.js";
+import { IS_PROD_ENV } from "#constants/index.js";
 import createError from "http-errors";
 
 const {
@@ -13,6 +13,8 @@ const {
   CLOUDINARY_API_SECRET,
   USER_EMAIL,
   USER_PASSWORD,
+  BACKEND_URL,
+  FRONTEND_URL,
 } = env;
 
 export const healthServices = {

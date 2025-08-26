@@ -1,8 +1,10 @@
 import { Server as SocketIOServer } from "socket.io";
 
 import { logger } from "#config/index.js";
-import { FRONTEND_URL } from "#constants/index.js";
+import { env } from "#config/index.js";
 import { httpServer } from "./server.js";
+
+const { FRONTEND_URL } = env;
 
 const createSocketServer = (httpServer) => {
   const io = new SocketIOServer(httpServer, {

@@ -2,13 +2,9 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 
 import { env, transporter } from "#config/index.js";
-import {
-  VIEWS_DIRECTORY,
-  BACKEND_URL,
-  FRONTEND_URL,
-} from "#constants/index.js";
+import { VIEWS_DIRECTORY } from "#constants/index.js";
 
-const { USER_EMAIL } = env;
+const { USER_EMAIL, BACKEND_URL, FRONTEND_URL } = env;
 
 // Template cache for better performance
 const templateCache = new Map();

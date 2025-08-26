@@ -1,5 +1,5 @@
 {
-  "watch": ["src", ".env"],
+  "watch": ["src", ".env.development", ".env.production"],
   "ext": "js,json",
   "ignore": ["node_modules"],
   "exec": "node ./src/index.js"

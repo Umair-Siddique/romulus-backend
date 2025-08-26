@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import { cleanEnv, str, port, email, url, testOnly } from "envalid";
 
-dotenv.config();
+const envFile = `.env.${process.env.NODE_ENV || "development"}`;
+dotenv.config({ path: envFile });
 
 const validators = {
   PORT: port({ devDefault: 5000, desc: "Port number" }),
@@ -11,10 +12,8 @@ const validators = {
     desc: "Environment type",
   }),
 
-  BACKEND_BASE_URL_DEV: url({ desc: "Development backend URL" }),
-  BACKEND_BASE_URL_PROD: url({ desc: "Production backend URL" }),
-  FRONTEND_BASE_URL_DEV: url({ desc: "Development frontend URL" }),
-  FRONTEND_BASE_URL_PROD: url({ desc: "Production frontend URL" }),
+  BACKEND_URL: url({ desc: "Backend URL" }),
+  FRONTEND_URL: url({ desc: "Frontend URL" }),
 
   DATABASE_URI: url({ desc: "MongoDB connection string" }),
   JWT_SECRET_KEY: str({
