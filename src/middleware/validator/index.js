@@ -5,22 +5,6 @@ import { globalUtils, tokenUtils } from "#utils/index.js";
 const { asyncHandler } = globalUtils;
 
 export const validate = {
-  dto: (schema) =>
-    asyncHandler(async (req, _res, next) => {
-      const { value, error } = schema.validate(req.body, { abortEarly: false });
-
-      if (error) {
-        const errorMessages = error.details.map(({ message }) => message);
-        throw createError(
-          400,
-          `Validation failed: ${errorMessages.join(", ")}`,
-        );
-      }
-
-      req.body = value;
-      next();
-    }),
-
   accessToken: asyncHandler(async (req, _res, next) => {
     const authHeader = req.headers.authorization;
 
@@ -36,6 +20,22 @@ export const validate = {
     next();
   }),
 
+  dto: (schema) =>
+    asyncHandler(async (req, _res, next) => {
+      const { value, error } = schema.validate(req.body, { abortEarly: false });
+
+      if (error) {
+        const errorMessages = error.details.map(({ message }) => message);
+        throw createError(
+          400,
+          `Validation failed: ${errorMessages.join(", ")}`
+        );
+      }
+
+      req.body = value;
+      next();
+    }),
+
   authRole: (authorizedRole) =>
     asyncHandler(async (req, _res, next) => {
       if (!req.user) {
@@ -45,7 +45,7 @@ export const validate = {
       if (req.user.role !== authorizedRole) {
         throw createError(
           403,
-          `Access denied: ${authorizedRole} role required.`,
+          `Access denied: ${authorizedRole} role required.`
         );
       }
       next();
