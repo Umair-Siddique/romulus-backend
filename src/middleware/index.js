@@ -1,3 +1,3 @@
 export * from "./common/index.js";
-export * from "./upload/index.js";
-export * from "./validator/index.js";
+export * from "./upload.js";
+export * from "./validator.js";
