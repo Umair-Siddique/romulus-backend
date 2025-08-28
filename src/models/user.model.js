@@ -12,11 +12,13 @@ const UserSchema = new Schema(
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
     },
+
     phone: {
       type: String,
       trim: true,
       match: [/^\+?[1-9]\d{1,14}$/, "Please provide a valid phone number"],
     },
+
     password: {
       type: String,
       required: [true, "Password is required"],
@@ -26,6 +28,7 @@ const UserSchema = new Schema(
         "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
       ],
     },
+
     role: {
       type: String,
       enum: {
@@ -33,19 +36,32 @@ const UserSchema = new Schema(
         message: "Role must be admin, organization or educator",
       },
     },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-    isPhoneVerified: {
-      type: Boolean,
-    },
+
     status: {
       type: String,
       enum: {
         values: ["active", "inactive", "pending"],
         message: "Status must be active, inactive, or pending",
       },
+    },
+
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    isPhoneVerified: {
+      type: Boolean,
+    },
+
+    isNotificationsAllowed: {
+      type: Boolean,
+      default: true,
+    },
+
+    isMessagesAllowed: {
+      type: Boolean,
+      default: true,
     },
   },
   {

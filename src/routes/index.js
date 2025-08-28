@@ -13,6 +13,7 @@ import {
   twilioRoutes,
 } from "#modules/index.js";
 import { validate } from "#middleware/index.js";
+import { userRoutes } from "#modules/user/user.routes.js";
 
 const appRouter = express.Router();
 const v1Router = express.Router();
@@ -29,5 +30,6 @@ v1Router.use("/notifications", validate.accessToken, notificationRoutes);
 v1Router.use("/organizations", validate.accessToken, organizationRoutes);
 v1Router.use("/reports", validate.accessToken, reportsRoutes);
 v1Router.use("/twilio", twilioRoutes);
+v1Router.use("/users", validate.accessToken, userRoutes);
 
 export default appRouter;

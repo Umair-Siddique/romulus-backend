@@ -193,6 +193,8 @@ export const authServices = {
       educatorId: educatorId || undefined,
       organizationId: organizationId || undefined,
       role: user.role,
+      isNotificationsAllowed: user.isNotificationsAllowed,
+      isMessagesAllowed: user.isMessagesAllowed,
       accessToken,
     };
 
@@ -268,12 +270,17 @@ export const authServices = {
     };
   },
 
-  updatePassword: async (request) => {
-    const { password, resetToken } = request.body;
+  updatePassword: async (requestBody) => {
+    const { userId, password, resetToken } = requestBody;
 
-    const decodedToken = tokenUtils.decode(resetToken);
+    let id;
 
-    const { id } = decodedToken;
+    if (!userId) {
+      const decodedToken = tokenUtils.decode(resetToken);
+      id = decodedToken.id;
+    } else {
+      id = userId;
+    }
 
     const existingUser = await read.userById(id);
 
@@ -281,7 +288,7 @@ export const authServices = {
       throw createError(404, "User not found");
     }
 
-    const hashedPassword = await bcrypt.hash(password, { rounds: 12 });
+    const hashedPassword = await passwordUtils.hash(password, { rounds: 12 });
 
     const isPasswordUpdated = await update.userById(id, {
       password: hashedPassword,
