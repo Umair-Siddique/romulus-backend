@@ -202,7 +202,6 @@ export const authServices = {
       success: true,
       message: "Signed in successfully.",
       data,
-      accessToken,
     };
   },
 
