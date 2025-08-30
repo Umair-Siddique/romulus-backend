@@ -1,13 +1,11 @@
 import mongoose from "mongoose";
 
-import { env } from "./env.config.js";
 import { logger } from "./logger.config.js";
 import { globalUtils } from "#utils/index.js";
+import { DB_CONNECTION_STRING } from "#constants/index.js";
 import { EducatorModel, OrganizationModel } from "#models/index.js";
 
 let isConnected = false;
-
-const { DATABASE_URI } = env;
 
 const { asyncHandler } = globalUtils;
 
@@ -17,7 +15,7 @@ export const connectDatabase = asyncHandler(async () => {
     return;
   }
 
-  const connection = await mongoose.connect(DATABASE_URI, {
+  const connection = await mongoose.connect(DB_CONNECTION_STRING, {
     serverSelectionTimeoutMS: 5000,
   });
 
@@ -25,7 +23,7 @@ export const connectDatabase = asyncHandler(async () => {
   await OrganizationModel.syncIndexes();
 
   isConnected = !!connection.connections[0].readyState;
-  logger.info(`[connected] Database (url: ${DATABASE_URI})`.database);
+  logger.info(`[connected] Database (url: ${DB_CONNECTION_STRING})`.database);
 
   const db = mongoose.connection;
 
