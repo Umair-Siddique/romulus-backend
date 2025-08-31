@@ -191,7 +191,7 @@ export const educatorServices = {
         {
           $push: {
             organizationsFeedbacks: {
-              organizationId: existingEducator.organization,
+              organizationId: reqBody.organizationId,
               userName: reqBody.userName,
               feedback: reqBody.feedback,
               rating: reqBody.rating,
