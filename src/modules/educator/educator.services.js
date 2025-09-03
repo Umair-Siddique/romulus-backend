@@ -175,9 +175,10 @@ export const educatorServices = {
     };
   },
 
-  updateById: async (requestPathVariables, requestBody) => {
+  updateById: async (requestPathVariables, requestBody, requestFiles) => {
     const { id } = requestPathVariables;
     const reqBody = requestBody;
+    const reqFiles = requestFiles;
 
     const existingEducator = await read.educatorById(id);
 
@@ -228,7 +229,30 @@ export const educatorServices = {
       });
     }
 
-    const updatedEducator = await update.educatorById(id, reqBody);
+    if (reqFiles.avatar) {
+      reqFiles.avatar = reqFiles.avatar[0].path;
+    }
+
+    if (reqFiles.certificateOfHonor) {
+      reqFiles.certificateOfHonor = reqFiles.certificateOfHonor[0].path;
+    }
+
+    if (reqFiles.criminalRecord) {
+      reqFiles.criminalRecord = reqFiles.criminalRecord[0].path;
+    }
+
+    if (reqFiles.diploma) {
+      reqFiles.diploma = reqFiles.diploma[0].path;
+    }
+
+    if (reqFiles.identityProof) {
+      reqFiles.identityProof = reqFiles.identityProof[0].path;
+    }
+
+    const updatedEducator = await update.educatorById(id, {
+      ...reqBody,
+      ...reqFiles,
+    });
 
     if (!updatedEducator) {
       throw createError(500, "An error occurred while updating the profile.");
