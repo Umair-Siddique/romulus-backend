@@ -167,7 +167,6 @@ export const organizationServices = {
       officeAddress,
       avatar,
       status,
-      branches,
       ...rest // this will contain dynamically named file fields
     } = data;
 
@@ -237,6 +236,28 @@ export const organizationServices = {
       return {
         success: true,
         message: "Branch updated successfully.",
+        data: existingOrganization,
+      };
+    } else if (!rest.branchId && rest.branchName) {
+      const branchAddressCoordinates = await getCoordinates(rest.branchAddress);
+
+      existingOrganization.branches.push({
+        branchName: rest.branchName,
+        branchEmail: rest.branchEmail,
+        branchPhone: rest.branchPhone,
+        branchCity: rest.branchCity,
+        branchCountry: rest.branchCountry,
+        branchAddress: rest.branchAddress,
+        branchAddressCoordinates: branchAddressCoordinates,
+        residenceGuidelines: requestFiles.residenceGuidelines[0].path,
+        branchStatus: "active",
+      });
+
+      await update.organizationById(id, existingOrganization);
+
+      return {
+        success: true,
+        message: "Branch created successfully.",
         data: existingOrganization,
       };
     }

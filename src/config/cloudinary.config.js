@@ -4,6 +4,7 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 import { env } from "./env.config.js";
 import { logger } from "./logger.config.js";
+import { UPLOAD_FILE_CONFIG } from "#constants/index.js";
 
 const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
   env;
@@ -36,23 +37,12 @@ export const storage = new CloudinaryStorage({
     const isoTime = new Date().toISOString().replace(/[:.]/g, "-");
     const fileExtension = path.extname(file.originalname).substring(1);
 
-    const profileFields = [
-      "avatar",
-      "identityProof",
-      "criminalRecord",
-      "certificateOfHonor",
-      "diploma",
-      "reportProof",
-    ];
-
-    const missionFields = ["technicalDocument"];
+    const profileFields = UPLOAD_FILE_CONFIG.map((field) => field.name);
 
     let folderPath;
 
     if (profileFields.includes(fileType)) {
       folderPath = `users/${userId}/${fileType}`;
-    } else if (missionFields.includes(fileType)) {
-      folderPath = `missions/${userId}/${fileType}`;
     }
 
     return {

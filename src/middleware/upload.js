@@ -1,16 +1,9 @@
 import multer from "multer";
 
 import { storage } from "#config/index.js";
+import { UPLOAD_FILE_CONFIG } from "#constants/index.js";
 
-const knownFields = [
-  { name: "avatar", maxCount: 1 },
-  { name: "identityProof", maxCount: 1 },
-  { name: "criminalRecord", maxCount: 1 },
-  { name: "certificateOfHonor", maxCount: 1 },
-  { name: "diploma", maxCount: 1 },
-  { name: "technicalDocument", maxCount: 1 },
-  { name: "reportProof", maxCount: 1 },
-];
+const knownFields = [...UPLOAD_FILE_CONFIG];
 
 // Add expected dynamic branch fields (assuming max 10 branches for safety)
 for (let i = 0; i < 10; i++) {

@@ -14,4 +14,20 @@ const IS_PROD_ENV = NODE_ENV === "production";
 
 const DB_CONNECTION_STRING = `${DATABASE_URI}/${DATABASE_NAME}`;
 
-export { VIEWS_DIRECTORY, IS_PROD_ENV, DB_CONNECTION_STRING };
+const UPLOAD_FILE_CONFIG = [
+  { name: "avatar", maxCount: 1 },
+  { name: "identityProof", maxCount: 1 },
+  { name: "criminalRecord", maxCount: 1 },
+  { name: "certificateOfHonor", maxCount: 1 },
+  { name: "diploma", maxCount: 1 },
+  { name: "reportProof", maxCount: 1 },
+  { name: "technicalDocument", maxCount: 1 },
+  { name: "residenceGuidelines", maxCount: 1 },
+];
+
+export {
+  VIEWS_DIRECTORY,
+  IS_PROD_ENV,
+  DB_CONNECTION_STRING,
+  UPLOAD_FILE_CONFIG,
+};
