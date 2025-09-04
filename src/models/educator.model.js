@@ -258,6 +258,17 @@ const EducatorSchema = new Schema(
       enum: ["active", "inactive", "pending"],
       default: "pending",
     },
+
+    residenceGuidelines: {
+      type: String,
+      trim: true,
+    },
+
+    trainingStatus: {
+      type: String,
+      enum: ["pending", "ongoing", "completed"],
+      default: "pending",
+    },
   },
   {
     timestamps: true,
