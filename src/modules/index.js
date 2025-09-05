@@ -3,6 +3,7 @@ export * from "./chat/chat.routes.js";
 export * from "./educator/educator.routes.js";
 export * from "./email/email.routes.js";
 export * from "./health/health.routes.js";
+export * from "./invoice/invoice.routes.js";
 export * from "./mission/mission.routes.js";
 export * from "./notification/notification.routes.js";
 export * from "./organization/organization.routes.js";
