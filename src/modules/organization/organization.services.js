@@ -6,17 +6,6 @@ import { logger } from "#config/index.js";
 
 const { read, write, update } = dataAccess;
 
-// Default coordinates as mentioned in OpenAPI docs
-const DEFAULT_OFFICE_COORDINATES = {
-  type: "Point",
-  coordinates: [73.13829207001977, 33.60948427871408],
-};
-
-const DEFAULT_BRANCH_COORDINATES = {
-  type: "Point",
-  coordinates: [73.12305647540082, 33.60784209987379],
-};
-
 export const organizationServices = {
   create: async (requestFiles, requestBody) => {
     const data = { ...requestBody, ...requestFiles };
@@ -228,8 +217,8 @@ export const organizationServices = {
         );
         targetBranch.branchAddressCoordinates = branchAddressCoordinates;
       }
-      if (rest.status) {
-        targetBranch.branchStatus = rest.status;
+      if (status) {
+        targetBranch.branchStatus = status;
       }
 
       await update.organizationById(id, existingOrganization);
