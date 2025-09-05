@@ -51,24 +51,22 @@ export const organizationServices = {
       throw createError(400, "User already has organization profile.");
     }
 
-    const organizationBranches = await Promise.all(
-      branches.map(async (branch) => {
-        const branchAddress = branch.branchAddress;
-        let branchAddressCoordinates;
+    const organizationBranches = [];
 
-        try {
-          branchAddressCoordinates = await getCoordinates(branchAddress);
-        } catch (error) {
-          logger.error(
-            `Failed to get coordinates for branch address: ${branchAddress}\n$error: ${error}`
-          );
-          branchAddressCoordinates = DEFAULT_BRANCH_COORDINATES;
-        }
+    for (const branch of branches) {
+      const branchAddress = branch.branchAddress;
+      const branchAddressCoordinates = await getCoordinates(branchAddress);
 
-        branch.branchAddressCoordinates = branchAddressCoordinates;
-        return branch;
-      })
-    );
+      if (!branchAddressCoordinates) {
+        throw createError(
+          500,
+          `Failed to get coordinates for branch address: ${branchAddress}`
+        );
+      }
+
+      branch.branchAddressCoordinates = branchAddressCoordinates;
+      organizationBranches.push(branch);
+    }
 
     const getFilePath = (file) => {
       if (Array.isArray(file) && file[0]?.path) return file[0].path;
@@ -85,14 +83,13 @@ export const organizationServices = {
       };
     });
 
-    let officeAddressCoordinates;
-    try {
-      officeAddressCoordinates = await getCoordinates(officeAddress);
-    } catch (error) {
-      logger.error(
-        `Failed to get coordinates for office address: ${officeAddress}\n$error: ${error}`
+    const officeAddressCoordinates = await getCoordinates(officeAddress);
+
+    if (!officeAddressCoordinates) {
+      throw createError(
+        500,
+        `Failed to get coordinates for office address: ${officeAddress}`
       );
-      officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
     }
 
     const organizationData = {
@@ -178,12 +175,16 @@ export const organizationServices = {
 
     let officeAddressCoordinates;
     if (officeAddress) {
-      try {
-        officeAddressCoordinates = await getCoordinates(officeAddress);
-      } catch (error) {
+      officeAddressCoordinates = await getCoordinates(officeAddress);
+
+      logger.info(
+        `Coordinates for office address: ${officeAddress} -> ${officeAddressCoordinates}`
+      );
+
+      if (!officeAddressCoordinates) {
         throw createError(
           500,
-          `Failed to get coordinates for office address: ${officeAddress}, error: ${error}`
+          `Failed to get coordinates for office address: ${officeAddress}`
         );
       }
     }
