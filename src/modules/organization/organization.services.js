@@ -181,10 +181,10 @@ export const organizationServices = {
       try {
         officeAddressCoordinates = await getCoordinates(officeAddress);
       } catch (error) {
-        logger.error(
-          `Failed to get coordinates for office address: ${officeAddress}\n$error: ${error}`
+        throw createError(
+          500,
+          `Failed to get coordinates for office address: ${officeAddress}, error: ${error}`
         );
-        officeAddressCoordinates = DEFAULT_OFFICE_COORDINATES;
       }
     }
 
