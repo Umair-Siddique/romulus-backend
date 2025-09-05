@@ -177,8 +177,6 @@ export const educatorServices = {
 
   updateById: async (requestPathVariables, requestBody, requestFiles) => {
     const { id } = requestPathVariables;
-    const reqBody = requestBody;
-    const reqFiles = requestFiles;
 
     const existingEducator = await read.educatorById(id);
 
@@ -186,16 +184,16 @@ export const educatorServices = {
       throw createError(404, "Educator profile not found.");
     }
 
-    if (reqBody.feedback) {
+    if (requestBody.feedback) {
       const updatedEducator = await update.educatorById(
         id,
         {
           $push: {
             organizationsFeedbacks: {
-              organizationId: reqBody.organizationId,
-              userName: reqBody.userName,
-              feedback: reqBody.feedback,
-              rating: reqBody.rating,
+              organizationId: requestBody.organizationId,
+              userName: requestBody.userName,
+              feedback: requestBody.feedback,
+              rating: requestBody.rating,
               createdAt: new Date(),
             },
           },
@@ -207,7 +205,7 @@ export const educatorServices = {
       );
 
       const updatedAverageRating =
-        (existingEducator.rating + reqBody.rating) /
+        (existingEducator.rating + requestBody.rating) /
         updatedEducator.organizationsFeedbacks.length;
 
       await update.educatorById(id, {
@@ -216,42 +214,45 @@ export const educatorServices = {
         },
       });
 
-      delete reqBody.organizationId;
-      delete reqBody.userName;
-      delete reqBody.feedback;
-      delete reqBody.rating;
+      delete requestBody.organizationId;
+      delete requestBody.userName;
+      delete requestBody.feedback;
+      delete requestBody.rating;
     }
 
-    if (reqBody.missionId && !reqBody.availableForHiring) {
+    if (requestBody.missionId && !requestBody.availableForHiring) {
       await update.educatorById(id, {
-        $push: { missionsHiredFor: reqBody.missionId },
+        $push: { missionsHiredFor: requestBody.missionId },
         $set: { availableForHiring: false },
       });
     }
 
-    if (reqFiles.avatar) {
-      reqFiles.avatar = reqFiles.avatar[0].path;
-    }
+    if (requestFiles) {
+      if (requestFiles.avatar) {
+        requestFiles.avatar = requestFiles.avatar[0].path;
+      }
 
-    if (reqFiles.certificateOfHonor) {
-      reqFiles.certificateOfHonor = reqFiles.certificateOfHonor[0].path;
-    }
+      if (requestFiles.certificateOfHonor) {
+        requestFiles.certificateOfHonor =
+          requestFiles.certificateOfHonor[0].path;
+      }
 
-    if (reqFiles.criminalRecord) {
-      reqFiles.criminalRecord = reqFiles.criminalRecord[0].path;
-    }
+      if (requestFiles.criminalRecord) {
+        requestFiles.criminalRecord = requestFiles.criminalRecord[0].path;
+      }
 
-    if (reqFiles.diploma) {
-      reqFiles.diploma = reqFiles.diploma[0].path;
-    }
+      if (requestFiles.diploma) {
+        requestFiles.diploma = requestFiles.diploma[0].path;
+      }
 
-    if (reqFiles.identityProof) {
-      reqFiles.identityProof = reqFiles.identityProof[0].path;
+      if (requestFiles.identityProof) {
+        requestFiles.identityProof = requestFiles.identityProof[0].path;
+      }
     }
 
     const updatedEducator = await update.educatorById(id, {
-      ...reqBody,
-      ...reqFiles,
+      ...requestBody,
+      ...requestFiles,
     });
 
     if (!updatedEducator) {
