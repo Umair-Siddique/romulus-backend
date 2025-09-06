@@ -239,7 +239,8 @@ export const organizationServices = {
         branchCountry: rest.branchCountry,
         branchAddress: rest.branchAddress,
         branchAddressCoordinates: branchAddressCoordinates,
-        residenceGuidelines: requestFiles.residenceGuidelines[0].path,
+        residenceGuidelines:
+          requestFiles.residenceGuidelines?.[0]?.path || null,
         branchStatus: "active",
       });
 
