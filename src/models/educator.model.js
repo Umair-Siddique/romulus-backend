@@ -266,7 +266,7 @@ const EducatorSchema = new Schema(
 
     trainingStatus: {
       type: String,
-      enum: ["pending", "ongoing", "completed"],
+      enum: ["pending", "completed"],
       default: "pending",
     },
   },
