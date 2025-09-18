@@ -43,7 +43,7 @@ export const organizationSchemas = {
       organizationName: organizationName.required(),
       foundedYear: foundedYear.required(),
       phone: phone.required(),
-      siretNumber: siretNumber.required(),
+      siretNumber: siretNumber.optional(),
       city: city.required(),
       country: country.required(),
       officeAddress: address.required(),

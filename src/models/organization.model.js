@@ -149,7 +149,6 @@ const OrganizationSchema = new Schema(
 
     siretNumber: {
       type: String,
-      required: [true, "SIRET number is required"],
       trim: true,
       validate: {
         validator: (v) => {
