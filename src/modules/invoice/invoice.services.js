@@ -9,8 +9,10 @@ export const invoiceServices = {
     for (const missionData of missionsData) {
       const educator = await read.educatorById(missionData.hiredEducator);
       const educatorName = `${educator?.firstName} ${educator?.lastName}`;
+      const educatorHourlyRate = educator?.hourlyRate;
 
       missionData.educatorName = educatorName;
+      missionData.educatorHourlyRate = educatorHourlyRate;
       delete missionData.hiredEducator;
     }
 

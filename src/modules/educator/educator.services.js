@@ -185,7 +185,7 @@ export const educatorServices = {
     }
 
     if (requestBody.feedback) {
-      const updatedEducator = await update.educatorById(
+      let updatedEducator = await update.educatorById(
         id,
         {
           $push: {
@@ -204,9 +204,14 @@ export const educatorServices = {
         }
       );
 
+      updatedEducator = await update.educatorById(id, {
+        $addToSet: {
+          allRatings: requestBody.rating,
+        },
+      });
+
       const updatedAverageRating =
-        (existingEducator.rating + requestBody.rating) /
-        updatedEducator.organizationsFeedbacks.length;
+        updatedEducator.rating / updatedEducator.allRatings.length;
 
       await update.educatorById(id, {
         $set: {

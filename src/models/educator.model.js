@@ -241,11 +241,20 @@ const EducatorSchema = new Schema(
       },
     ],
 
+    allRatings: [
+      {
+        type: Number,
+        min: 1,
+        max: 5,
+        required: [true, "Rating is required"],
+      },
+    ],
+
     rating: {
       type: Number,
-      min: 0,
+      min: 1,
       max: 5,
-      default: 0,
+      default: 1,
     },
 
     availableForHiring: {
