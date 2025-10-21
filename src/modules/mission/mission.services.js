@@ -1,11 +1,10 @@
 import createError from "http-errors";
 
 import { dataAccess } from "#dataAccess/index.js";
-import { globalUtils, twilioUtils } from "#utils/index.js";
+import { twilioUtils } from "#utils/index.js";
 import { logger } from "#config/index.js";
 
 const { read, write, update, remove } = dataAccess;
-const { parseDelimitedString } = globalUtils;
 
 export const missionServices = {
   create: async (requestBody, requestFiles) => {
@@ -15,7 +14,6 @@ export const missionServices = {
       title,
       description,
       branch,
-      skills,
       startDate,
       endDate,
       startTime,
@@ -43,7 +41,6 @@ export const missionServices = {
       title,
       description,
       branch,
-      skills: parseDelimitedString(skills),
       start: toISO8601(startDate, startTime),
       end: toISO8601(endDate, endTime),
       preferredEducator: preferredEducator || undefined,

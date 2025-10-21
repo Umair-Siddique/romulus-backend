@@ -1,13 +1,12 @@
 import express from "express";
 
-import { upload, validate } from "#middleware/index.js";
-import { missionDto } from "#dtos/index.js";
+import { upload } from "#middleware/index.js";
 import { missionControllers } from "./mission.controllers.js";
 
 export const missionRoutes = express.Router();
 
 missionRoutes
-  .post("/", upload, validate.dto(missionDto.create), missionControllers.create)
+  .post("/", upload, missionControllers.create)
   .get("/", missionControllers.getAll)
   .get("/:id", missionControllers.getById)
   .get("/organization/:id", missionControllers.getMissionsByOrganizationId)

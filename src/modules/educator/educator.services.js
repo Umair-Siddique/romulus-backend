@@ -105,30 +105,30 @@ export const educatorServices = {
   },
 
   getNearBy: async (requestQuery) => {
-    const { coordinates, distance, skills } = requestQuery;
+    const { coordinates, distance } = requestQuery;
 
     const educators = await read.educatorsNearby(
       parseDelimitedString(coordinates),
       distance
     );
 
-    const parsedSkills = parseDelimitedString(skills);
+    // const parsedSkills = parseDelimitedString(skills);
 
-    function filterEducatorsBySkills(educators, skills) {
-      if (!skills || skills.length === 0) return educators;
+    // function filterEducatorsBySkills(educators, skills) {
+    //   if (!skills || skills.length === 0) return educators;
 
-      return educators.filter((educator) => {
-        const educatorSkills = educator.skills || [];
-        return skills.some((skill) => educatorSkills.includes(skill));
-      });
-    }
+    //   return educators.filter((educator) => {
+    //     const educatorSkills = educator.skills || [];
+    //     return skills.some((skill) => educatorSkills.includes(skill));
+    //   });
+    // }
 
-    const filteredEducators = filterEducatorsBySkills(educators, parsedSkills);
+    // const filteredEducators = filterEducatorsBySkills(educators, parsedSkills);
 
     return {
       success: true,
       message: "Educators retrieved successfully.",
-      data: filteredEducators,
+      data: educators,
     };
   },
 

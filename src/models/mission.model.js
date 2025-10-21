@@ -32,14 +32,14 @@ const MissionSchema = new Schema(
       index: true, // Index for filtering by branch
     },
 
-    skills: {
-      type: [String],
-      required: [true, "At least one skill is required"],
-      validate: {
-        validator: (v) => v.length > 0 && v.length <= 20,
-        message: "At least one skill is required",
-      },
-    },
+    // skills: {
+    //   type: [String],
+    //   required: [true, "At least one skill is required"],
+    //   validate: {
+    //     validator: (v) => v.length > 0 && v.length <= 20,
+    //     message: "At least one skill is required",
+    //   },
+    // },
 
     start: {
       type: String,
@@ -53,7 +53,7 @@ const MissionSchema = new Schema(
 
     preferredEducator: {
       type: Schema.Types.ObjectId,
-      ref: "Educator"
+      ref: "Educator",
     },
 
     technicalDocument: {
