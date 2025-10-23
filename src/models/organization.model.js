@@ -104,13 +104,7 @@ const OrganizationSchema = new Schema(
     avatar: {
       type: String,
       trim: true,
-      default: "https://example.com/default-profile-picture.png",
-      validate: {
-        validator: (v) => {
-          return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)$/i.test(v);
-        },
-        message: "Avatar must be a valid image URL",
-      },
+      default: "https://www.gravatar.com/avatar/?d=mp",
     },
 
     organizationName: {
@@ -209,6 +203,12 @@ const OrganizationSchema = new Schema(
     },
 
     preferredEducators: {
+      type: [Schema.Types.ObjectId],
+      ref: "Educator",
+      default: [],
+    },
+
+    pastEducators: {
       type: [Schema.Types.ObjectId],
       ref: "Educator",
       default: [],

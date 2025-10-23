@@ -152,7 +152,8 @@ export const missionServices = {
 
   updateById: async (requestPathVariables, requestBody) => {
     const { id } = requestPathVariables;
-    const { hireStatus, educatorId, status, hires, ...rest } = requestBody;
+    const { hireStatus, educatorId, organizationId, status, hires, ...rest } =
+      requestBody;
 
     const mission = await read.missionById(id);
     if (!mission) throw createError(404, "Mission not found");
@@ -171,13 +172,30 @@ export const missionServices = {
         });
 
         await Promise.all([
-          update.organizationById(mission.organization, {
-            $addToSet: { preferredEducators: educatorId },
-          }),
+          update.organizationById(
+            { _id: organizationId },
+            {
+              $addToSet: {
+                preferredEducators: educatorId,
+                pastEducators: educatorId,
+              },
+            }
+          ),
+
+          update.educatorById(
+            { _id: educatorId },
+            {
+              $addToSet: {
+                pastOrganizations: organizationId,
+              },
+            }
+          ),
+
           write.notification(
             user?._id,
             "You have been hired for the mission you accepted invite for."
           ),
+
           update.missionById(id, {
             $push: { hiredEducators: educatorId },
             ...(isFirstHire && { $set: { status: "ongoing" } }),

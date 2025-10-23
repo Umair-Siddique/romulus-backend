@@ -14,6 +14,7 @@ const EducatorSchema = new Schema(
     avatar: {
       type: String,
       trim: true,
+      default: "https://www.gravatar.com/avatar/?d=mp",
     },
 
     firstName: {
@@ -179,6 +180,11 @@ const EducatorSchema = new Schema(
       },
     },
 
+    residenceGuidelines: {
+      type: String,
+      trim: true,
+    },
+
     missionsInvitedFor: [
       {
         mission: {
@@ -241,10 +247,16 @@ const EducatorSchema = new Schema(
       },
     ],
 
+    pastOrganizations: {
+      type: [Schema.Types.ObjectId],
+      ref: "Organization",
+      default: [],
+    },
+
     allRatings: [
       {
         type: Number,
-        min: 1,
+        min: 0,
         max: 5,
         required: [true, "Rating is required"],
       },
@@ -252,9 +264,9 @@ const EducatorSchema = new Schema(
 
     rating: {
       type: Number,
-      min: 1,
+      min: 0,
       max: 5,
-      default: 1,
+      default: 0,
     },
 
     availableForHiring: {
@@ -266,11 +278,6 @@ const EducatorSchema = new Schema(
       type: String,
       enum: ["active", "inactive", "pending"],
       default: "pending",
-    },
-
-    residenceGuidelines: {
-      type: String,
-      trim: true,
     },
 
     trainingStatus: {

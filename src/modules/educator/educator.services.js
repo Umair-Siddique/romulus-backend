@@ -177,6 +177,21 @@ export const educatorServices = {
 
   updateById: async (requestPathVariables, requestBody, requestFiles) => {
     const { id } = requestPathVariables;
+    const {
+      avatar,
+      identityProof,
+      criminalRecord,
+      certificateOfHonor,
+      diploma,
+    } = requestFiles;
+    const {
+      feedback,
+      organizationId,
+      userName,
+      rating,
+      missionId,
+      availableForHiring,
+    } = requestBody;
 
     const existingEducator = await read.educatorById(id);
 
@@ -184,16 +199,16 @@ export const educatorServices = {
       throw createError(404, "Educator profile not found.");
     }
 
-    if (requestBody.feedback) {
+    if (feedback) {
       let updatedEducator = await update.educatorById(
         id,
         {
           $push: {
             organizationsFeedbacks: {
-              organizationId: requestBody.organizationId,
-              userName: requestBody.userName,
-              feedback: requestBody.feedback,
-              rating: requestBody.rating,
+              organizationId,
+              userName,
+              feedback,
+              rating,
               createdAt: new Date(),
             },
           },
@@ -206,7 +221,7 @@ export const educatorServices = {
 
       updatedEducator = await update.educatorById(id, {
         $addToSet: {
-          allRatings: requestBody.rating,
+          allRatings: rating,
         },
       });
 
@@ -225,33 +240,34 @@ export const educatorServices = {
       delete requestBody.rating;
     }
 
-    if (requestBody.missionId && !requestBody.availableForHiring) {
+    // --- Handle Hiring ---
+    if (missionId && !availableForHiring) {
       await update.educatorById(id, {
-        $push: { missionsHiredFor: requestBody.missionId },
+        $push: { missionsHiredFor: missionId },
         $set: { availableForHiring: false },
       });
     }
 
+    // --- Handle File Uploads ---
     if (requestFiles) {
-      if (requestFiles.avatar) {
-        requestFiles.avatar = requestFiles.avatar[0].path;
+      if (avatar) {
+        avatar = avatar[0].path;
       }
 
-      if (requestFiles.certificateOfHonor) {
-        requestFiles.certificateOfHonor =
-          requestFiles.certificateOfHonor[0].path;
+      if (certificateOfHonor) {
+        certificateOfHonor = certificateOfHonor[0].path;
       }
 
-      if (requestFiles.criminalRecord) {
-        requestFiles.criminalRecord = requestFiles.criminalRecord[0].path;
+      if (criminalRecord) {
+        criminalRecord = criminalRecord[0].path;
       }
 
-      if (requestFiles.diploma) {
-        requestFiles.diploma = requestFiles.diploma[0].path;
+      if (diploma) {
+        diploma = diploma[0].path;
       }
 
-      if (requestFiles.identityProof) {
-        requestFiles.identityProof = requestFiles.identityProof[0].path;
+      if (identityProof) {
+        identityProof = identityProof[0].path;
       }
     }
 
