@@ -36,11 +36,9 @@ const EducatorSchema = new Schema(
     gender: {
       type: String,
       required: [true, "Gender is required"],
-      enum: {
-        values: ["male", "female", "other"],
-        message: "Gender must be either male, female, or other",
-      },
-      lowercase: true,
+      trim: true,
+      minlength: [2, "Gender must be at least 2 characters"],
+      maxlength: [50, "Gender cannot exceed 50 characters"],
     },
 
     dateOfBirth: {

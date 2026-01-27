@@ -157,11 +157,37 @@ export const firstName = createStringValidation("First name", 2, 50);
 export const lastName = createStringValidation("Last name", 2, 50);
 
 export const gender = Joi.string()
-  .valid("male", "female", "other", "prefer_not_to_say")
-  .lowercase()
+  .trim()
+  .min(2)
+  .max(50)
+  .custom((value, helpers) => {
+    // Accept common gender values in multiple languages
+    const normalized = value.toLowerCase().trim();
+    
+    const validGenders = [
+      // English
+      'male', 'female', 'other', 'prefer_not_to_say', 'prefer not to say',
+      
+      // French
+      'mâle', 'homme', 'femme', 'femelle', 'autre', 
+      'préfère ne pas dire', 'ne souhaite pas répondre',
+      
+      // Urdu/Pakistani
+      'mard', 'aurat', 'larki', 'larka',
+    ];
+    
+    if (!validGenders.includes(normalized)) {
+      return helpers.error('gender.invalid');
+    }
+    
+    // Return original value (preserve case and language)
+    return value.trim();
+  })
   .messages({
     "string.base": "Gender should be a type of text.",
-    "any.only": "Gender must be male, female, other, or prefer_not_to_say.",
+    "string.min": "Gender must be at least 2 characters long.",
+    "string.max": "Gender must not exceed 50 characters.",
+    "gender.invalid": "Gender must be a valid value (English: male/female/other/prefer_not_to_say, French: Mâle/Femme/Homme/Autre, Urdu: Mard/Aurat).",
     "any.required": "Gender is required.",
   });
 
