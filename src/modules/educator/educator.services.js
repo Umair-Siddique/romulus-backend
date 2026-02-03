@@ -183,7 +183,7 @@ export const educatorServices = {
       criminalRecord,
       certificateOfHonor,
       diploma,
-    } = requestFiles;
+    } = requestFiles || {};
     const {
       feedback,
       organizationId,
@@ -249,31 +249,32 @@ export const educatorServices = {
     }
 
     // --- Handle File Uploads ---
+    const fileUpdates = {};
     if (requestFiles) {
       if (avatar) {
-        avatar = avatar[0].path;
+        fileUpdates.avatar = avatar[0].path;
       }
 
       if (certificateOfHonor) {
-        certificateOfHonor = certificateOfHonor[0].path;
+        fileUpdates.certificateOfHonor = certificateOfHonor[0].path;
       }
 
       if (criminalRecord) {
-        criminalRecord = criminalRecord[0].path;
+        fileUpdates.criminalRecord = criminalRecord[0].path;
       }
 
       if (diploma) {
-        diploma = diploma[0].path;
+        fileUpdates.diploma = diploma[0].path;
       }
 
       if (identityProof) {
-        identityProof = identityProof[0].path;
+        fileUpdates.identityProof = identityProof[0].path;
       }
     }
 
     const updatedEducator = await update.educatorById(id, {
       ...requestBody,
-      ...requestFiles,
+      ...fileUpdates,
     });
 
     if (!updatedEducator) {
